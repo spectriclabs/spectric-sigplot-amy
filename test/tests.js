@@ -2493,6 +2493,13 @@ interactiveTest('raster (smart-smoothing)', 'Is the following raster smoothed un
         timecode: m.j1970toj1950(new Date("2014-07-04T00:00:00Z"))
     });
 });
+interactiveTest('sigplot psd', 'Do you see a raster of a psd', function() {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    notEqual(plot, null);
+
+    plot.overlay_href("dat/psd.tmp");
+});
 interactiveTest('sigplot penny', 'Do you see a raster of a penny', function() {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
