@@ -309,7 +309,6 @@
                 } else {
                     // Otherwise, we allocate for the entire image
                     this.buf = this.hcb.createArray(null, 0, this.lps * this.hcb.subsize * this.hcb.spa);
-                    this.zbuf = new sigplot.PointArray(this.lps * this.hcb.subsize);
                 }
             }
 
@@ -329,7 +328,10 @@
             var ix = Math.floor(x / this.hcb.xdelta);
             var iy = Math.floor(y / this.hcb.ydelta);
             var zidx = (iy * this.hcb.subsize) + ix;
-            return this.zbuf[zidx];
+
+            //return this.zbuf[zidx];
+            // TODO calculate this
+            return null;
         },
 
         change_settings: function(settings) {
@@ -359,10 +361,8 @@
                 this.frame = 0;
                 if (this.hcb.pipe) {
                     this.buf = this.hcb.createArray(null, 0, this.hcb.subsize * this.hcb.spa);
-                    this.zbuf = new sigplot.PointArray(this.hcb.subsize);
                 } else {
                     this.buf = this.hcb.createArray(null, 0, this.lps * this.hcb.subsize * this.hcb.spa);
-                    this.zbuf = new sigplot.PointArray(this.lps * this.hcb.subsize);
                 }
                 this.img = undefined;
 
@@ -391,10 +391,8 @@
                     this.hcb.subsize = hdrmod.subsize;
                     if (this.hcb.pipe) {
                         this.buf = this.hcb.createArray(null, 0, this.hcb.subsize * this.hcb.spa);
-                        this.zbuf = new sigplot.PointArray(this.hcb.subsize);
                     } else {
                         this.buf = this.hcb.createArray(null, 0, this.lps * this.hcb.subsize * this.hcb.spa);
-                        this.zbuf = new sigplot.PointArray(this.lps * this.hcb.subsize);
                     }
                     rescale = true;
                 }
@@ -540,140 +538,147 @@
                     Gx.panymax = Math.max(Gx.panymax, this.ymax);
                 }
 
-                if (this.cx) {
-                    if (Gx.cmode === 1) { // mag
-                        m.cvmag(this.buf, this.zbuf, this.zbuf.length);
-                    } else if (Gx.cmode === 2) { // phase
-                        if (Gx.plab === 25) {
-                            m.cvpha(this.buf, this.zbuf, this.zbuf.length);
-                            m.vsmul(this.zbuf, 1.0 / (2 * Math.PI), this.zbuf, this.zbuf.length);
-                        } else if (Gx.plab !== 24) {
-                            m.cvpha(this.buf, this.zbuf, this.zbuf.length);
-                        } else {
-                            m.cvphad(this.buf, this.zbuf, this.zbuf.length);
-                        }
-                    } else if (Gx.cmode === 3) { // real
-                        m.vmov(this.buf, this.skip, this.zbuf, 1, this.zbuf.length);
-                    } else if (Gx.cmode === 4) { // imag
-                        m.vmov(this.buf.subarray(1), this.skip, this.zbuf, 1, this.zbuf.length);
-                    } else if (Gx.cmode === 5) { // IR - what does this mean for a raster?
-                        m.vfill(this.zbuf, 0, this.zbuf.length);
-                    } else if (Gx.cmode === 6) { // 10log
-                        m.cvmag2logscale(this.buf, Gx.dbmin, 10.0, this.zbuf);
-                    } else if (Gx.cmode === 7) { // 20log
-                        m.cvmag2logscale(this.buf, Gx.dbmin, 20.0, this.zbuf);
-                    }
-                } else {
-                    if (Gx.cmode === 1) { // mag
-                        m.vabs(this.buf, this.zbuf);
-                    } else if (Gx.cmode === 2) { // phase
-                        m.vfill(this.zbuf, 0, this.zbuf.length);
-                    } else if (Gx.cmode === 3) { // real
-                        m.vmov(this.buf, this.skip, this.zbuf, 1, this.zbuf.length);
-                    } else if (Gx.cmode === 4) { // imag
-                        m.vfill(this.zbuf, 0, this.zbuf.length);
-                    } else if (Gx.cmode === 5) { // IR
-                        m.vfill(this.zbuf, 0, this.zbuf.length);
-                    } else if (Gx.cmode === 6) { // 10log
-                        m.vlogscale(this.buf, Gx.dbmin, 10.0, this.zbuf);
-                    } else if (Gx.cmode === 7) { // 20log
-                        m.vlogscale(this.buf, Gx.dbmin, 20.0, this.zbuf);
-                    }
-                }
-
-                // find z-min/z-max
-                // this is equivalent to setting XRASTER /LPB=0
-                var zpoint = this.zbuf;
-
-                var min = 0;
-                var max = 0;
-
-                if ((Gx.autol <= 0) || this.hcb.pipe) {
-                    // If autol is not used or the layer is rendering
-                    // a pipe, then use the basic z-scaling method
-                    if (zpoint.length > 0) {
-                        min = zpoint[0];
-                        max = zpoint[0];
-                        for (var i = 0; i < zpoint.length; i++) {
-                            if ((i / this.xframe) >= this.lpb) {
-                                break;
+                if (!this.img) {
+                    this.zbuf = new sigplot.PointArray(this.lps * this.hcb.subsize);
+                    if (this.cx) {
+                        if (Gx.cmode === 1) { // mag
+                            m.cvmag(this.buf, this.zbuf, this.zbuf.length);
+                        } else if (Gx.cmode === 2) { // phase
+                            if (Gx.plab === 25) {
+                                m.cvpha(this.buf, this.zbuf, this.zbuf.length);
+                                m.vsmul(this.zbuf, 1.0 / (2 * Math.PI), this.zbuf, this.zbuf.length);
+                            } else if (Gx.plab !== 24) {
+                                m.cvpha(this.buf, this.zbuf, this.zbuf.length);
+                            } else {
+                                m.cvphad(this.buf, this.zbuf, this.zbuf.length);
                             }
-                            if (zpoint[i] < min) {
-                                min = zpoint[i];
+                        } else if (Gx.cmode === 3) { // real
+                            m.vmov(this.buf, this.skip, this.zbuf, 1, this.zbuf.length);
+                        } else if (Gx.cmode === 4) { // imag
+                            m.vmov(this.buf.subarray(1), this.skip, this.zbuf, 1, this.zbuf.length);
+                        } else if (Gx.cmode === 5) { // IR - what does this mean for a raster?
+                            m.vfill(this.zbuf, 0, this.zbuf.length);
+                        } else if (Gx.cmode === 6) { // 10log
+                            m.cvmag2logscale(this.buf, Gx.dbmin, 10.0, this.zbuf);
+                        } else if (Gx.cmode === 7) { // 20log
+                            m.cvmag2logscale(this.buf, Gx.dbmin, 20.0, this.zbuf);
+                        }
+                    } else {
+                        if (Gx.cmode === 1) { // mag
+                            m.vabs(this.buf, this.zbuf);
+                        } else if (Gx.cmode === 2) { // phase
+                            m.vfill(this.zbuf, 0, this.zbuf.length);
+                        } else if (Gx.cmode === 3) { // real
+                            m.vmov(this.buf, this.skip, this.zbuf, 1, this.zbuf.length);
+                        } else if (Gx.cmode === 4) { // imag
+                            m.vfill(this.zbuf, 0, this.zbuf.length);
+                        } else if (Gx.cmode === 5) { // IR
+                            m.vfill(this.zbuf, 0, this.zbuf.length);
+                        } else if (Gx.cmode === 6) { // 10log
+                            m.vlogscale(this.buf, Gx.dbmin, 10.0, this.zbuf);
+                        } else if (Gx.cmode === 7) { // 20log
+                            m.vlogscale(this.buf, Gx.dbmin, 20.0, this.zbuf);
+                        }
+                    }
+
+                    // find z-min/z-max
+                    // this is equivalent to setting XRASTER /LPB=0
+                    var zpoint = this.zbuf;
+
+                    var min = 0;
+                    var max = 0;
+
+                    if ((Gx.autol <= 0) || this.hcb.pipe) {
+                        // If autol is not used or the layer is rendering
+                        // a pipe, then use the basic z-scaling method
+                        if (zpoint.length > 0) {
+                            min = zpoint[0];
+                            max = zpoint[0];
+                            for (var i = 0; i < zpoint.length; i++) {
+                                if ((i / this.xframe) >= this.lpb) {
+                                    break;
+                                }
+                                if (zpoint[i] < min) {
+                                    min = zpoint[i];
+                                }
+                                if (zpoint[i] > max) {
+                                    max = zpoint[i];
+                                }
                             }
-                            if (zpoint[i] > max) {
-                                max = zpoint[i];
+                        }
+
+                        if (((Gx.autoz & 1) !== 0)) {
+                            if (Gx.zmin !== undefined) {
+                                Gx.zmin = Math.min(Gx.zmin, min);
+                            } else {
+                                Gx.zmin = min;
                             }
                         }
-                    }
-
-                    if (((Gx.autoz & 1) !== 0)) {
-                        if (Gx.zmin !== undefined) {
-                            Gx.zmin = Math.min(Gx.zmin, min);
-                        } else {
-                            Gx.zmin = min;
+                        if (((Gx.autoz & 2) !== 0)) {
+                            if (Gx.zmax !== undefined) {
+                                Gx.zmax = Math.min(Gx.zmax, max);
+                            } else {
+                                Gx.zmax = max;
+                            }
                         }
-                    }
-                    if (((Gx.autoz & 2) !== 0)) {
-                        if (Gx.zmax !== undefined) {
-                            Gx.zmax = Math.min(Gx.zmax, max);
-                        } else {
-                            Gx.zmax = max;
-                        }
-                    }
 
-                    this.img = mx.create_image(Mx,
-                        this.zbuf,
-                        this.hcb.subsize,
-                        xsize,
-                        this.lps,
-                        Gx.zmin,
-                        Gx.zmax,
-                        Gx.xcompression);
-                } else {
-                    // otherwise autol > 1
-                    var nny = this.hcb.size;
-                    var fac = 1.0 / (Math.max(Gx.autol, 1));
-
-                    // If the image isn't yet created, make one now
-                    if (!this.img) {
                         this.img = mx.create_image(Mx,
                             this.zbuf,
                             this.hcb.subsize,
                             xsize,
                             this.lps,
                             Gx.zmin,
-                            Gx.zmax);
-                    }
+                            Gx.zmax,
+                            Gx.xcompression);
+                        this.img.cmode = Gx.cmode;
+                        this.img.cmap = Gx.cmap;
+                        this.img.origin = Mx.origin;
+                        this.zbuf = null;
+                    } else {
+                        // otherwise autol > 1
+                        var nny = this.hcb.size;
+                        var fac = 1.0 / (Math.max(Gx.autol, 1));
 
-                    Gx.zmin = 0;
-                    Gx.zmax = 0;
-                    if (zpoint.length > 0) {
-                        for (var yy = 0; yy < nny; yy++) {
-                            var noff = yy * this.xframe;
-                            var min = zpoint[noff];
-                            var max = zpoint[noff];
-                            for (var i = 0; i < this.xframe; i++) {
-                                min = Math.min(zpoint[noff + i], min);
-                                max = Math.max(zpoint[noff + i], max);
-                            }
-
-                            // Auto-scale this raster line
-                            if ((Gx.autoz !== 2) && (min !== undefined)) {
-                                Gx.zmin = (min * fac) + (Gx.zmin * (1.0 - fac));
-                            }
-                            if ((Gx.autoz !== 1) && (max !== undefined)) {
-                                Gx.zmax = (max * fac) + (Gx.zmax * (1.0 - fac));
-                            }
-
-                            // Render the row
-                            mx.update_image_row(Mx,
-                                this.img,
-                                zpoint.subarray(noff, noff + this.xframe),
-                                yy,
+                        // If the image isn't yet created, make one now
+                        if (!this.img) {
+                            this.img = mx.create_image(Mx,
+                                this.zbuf,
+                                this.hcb.subsize,
+                                xsize,
+                                this.lps,
                                 Gx.zmin,
                                 Gx.zmax);
+                        }
 
+                        Gx.zmin = 0;
+                        Gx.zmax = 0;
+                        if (zpoint.length > 0) {
+                            for (var yy = 0; yy < nny; yy++) {
+                                var noff = yy * this.xframe;
+                                var min = zpoint[noff];
+                                var max = zpoint[noff];
+                                for (var i = 0; i < this.xframe; i++) {
+                                    min = Math.min(zpoint[noff + i], min);
+                                    max = Math.max(zpoint[noff + i], max);
+                                }
+
+                                // Auto-scale this raster line
+                                if ((Gx.autoz !== 2) && (min !== undefined)) {
+                                    Gx.zmin = (min * fac) + (Gx.zmin * (1.0 - fac));
+                                }
+                                if ((Gx.autoz !== 1) && (max !== undefined)) {
+                                    Gx.zmax = (max * fac) + (Gx.zmax * (1.0 - fac));
+                                }
+
+                                // Render the row
+                                mx.update_image_row(Mx,
+                                    this.img,
+                                    zpoint.subarray(noff, noff + this.xframe),
+                                    yy,
+                                    Gx.zmin,
+                                    Gx.zmax);
+
+                            }
                         }
                     }
                 }
@@ -709,6 +714,9 @@
                         Gx.zmin,
                         Gx.zmax,
                         Gx.xcompression);
+                    this.img.cmode = Gx.cmode;
+                    this.img.cmap = Gx.cmap;
+                    this.img.origin = Mx.origin;
                 }
             }
 
@@ -752,6 +760,10 @@
                     // TODO - can we preserve the image data rather than resetting?
                     this.img = null;
                     this.plot.rescale();
+                }
+            } else {
+                if (this.img && this.img.origin !== Mx.origin) {
+                    this.img = null;
                 }
             }
 
