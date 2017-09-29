@@ -2868,7 +2868,7 @@ window.mx = window.mx || {};
             }
             if (!flags.noxplab) {
                 if (flags.xlabel instanceof Function) {
-                    xlabel = flags.ylabel(xlab, _xmult);
+                    xlabel = flags.xlabel(xlab, _xmult);
                 } else if (flags.xlabel !== undefined) {
                     xlabel = flags.xlabel;
                 } else {
