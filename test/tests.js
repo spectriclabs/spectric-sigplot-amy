@@ -1749,6 +1749,113 @@ interactiveTest('sigplot expand full', 'Do you see a fully expanded plot?', func
     plot1(plot);
     plot2(plot);
 });
+interactiveTest('sigplot autoscale IR', 'Do you see a plot with x&y axis range from -250 to 250 ?', function() {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        cmode: "IR"
+    });
+
+    var hdl = window.setInterval(function() {
+        var random = [];
+        // by default, only bufmax points are used for
+        // autoscalling, using /all ensures that autoscaling
+        // is applied against all points
+        for (var i = 0; i <= plot._Gx.bufmax * 2; i += 1) {
+            if (i < plot._Gx.bufmax) {
+                random.push((Math.random() * 10) - 5);
+            } else {
+                random.push((Math.random() * 500) - 250);
+            }
+        }
+
+        var data_layer = plot.get_layer(0);
+        if (data_layer === null) {
+            plot.overlay_pipe({
+                type: 1000,
+                format: "CF"
+            }, {
+                framesize: plot._Gx.bufmax,
+                line: 0,
+                radius: 1,
+                symbol: 1
+            });
+        } else {
+            plot.push(0, random);
+        }
+    }, 1000);
+});
+interactiveTest('sigplot autoscale IR (slow)', 'Do you see a plot with where the y-axis slowly grows -250 to 250 ?', function() {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        cmode: "IR",
+        autol: 20
+    });
+
+    var hdl = window.setInterval(function() {
+        var random = [];
+        // by default, only bufmax points are used for
+        // autoscalling, using /all ensures that autoscaling
+        // is applied against all points
+        for (var i = 0; i <= plot._Gx.bufmax * 2; i += 1) {
+            if (i < plot._Gx.bufmax) {
+                random.push((Math.random() * 10) - 5);
+            } else {
+                random.push((Math.random() * 500) - 250);
+            }
+        }
+
+        var data_layer = plot.get_layer(0);
+        if (data_layer === null) {
+            plot.overlay_pipe({
+                type: 1000,
+                format: "CF"
+            }, {
+                framesize: plot._Gx.bufmax,
+                line: 0,
+                radius: 1,
+                symbol: 1
+            });
+        } else {
+            plot.push(0, random);
+        }
+    }, 1000);
+});
+interactiveTest('sigplot no-autoscale IR (slow)', 'Do you see a plot with where the axes remain -1,1 ?', function() {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        cmode: "IR",
+        autol: 0
+    });
+
+    var hdl = window.setInterval(function() {
+        var random = [];
+        // by default, only bufmax points are used for
+        // autoscalling, using /all ensures that autoscaling
+        // is applied against all points
+        for (var i = 0; i <= plot._Gx.bufmax * 2; i += 1) {
+            if (i < plot._Gx.bufmax) {
+                random.push((Math.random() * 10) - 5);
+            } else {
+                random.push((Math.random() * 500) - 250);
+            }
+        }
+
+        var data_layer = plot.get_layer(0);
+        if (data_layer === null) {
+            plot.overlay_pipe({
+                type: 1000,
+                format: "CF"
+            }, {
+                framesize: plot._Gx.bufmax,
+                line: 0,
+                radius: 1,
+                symbol: 1
+            });
+        } else {
+            plot.push(0, random);
+        }
+    }, 1000);
+});
 interactiveTest('sigplot custom axis label', 'Do you see the axis label "CustomY (a) vs. Time code format"?', function() {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
