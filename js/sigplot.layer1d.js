@@ -339,7 +339,7 @@
                     }
                 }
 
-                var d = this.hcb.xstart + this.hcb.xdelta * (this.hcb.size - 1.0);
+                var d = this.hcb.xstart + this.hcb.xdelta * (this.size - 1.0);
                 this.xmin = Math.min(this.hcb.xstart, d);
                 this.xmax = Math.max(this.hcb.xstart, d);
                 this.xdelta = this.hcb.xdelta;
