@@ -81,6 +81,7 @@
     'use strict';
 
     var common = require("./common");
+    var _ = require("lodash");
 
     function bluefile() {}
 
@@ -325,7 +326,8 @@
         this.options = {
             ext_header_type: "dict"
         };
-        common.update(this.options, options);
+        _.merge(this.options, options);
+
         this.buf = buf;
         if (this.buf != null) {
             var dvhdr = new DataView(this.buf);
@@ -471,13 +473,13 @@
                 });
                 ii += lkey;
             }
-            var dictTypes = ['dict', 'json', {}, 'XMTable', 'JSON', 'DICT'];
-            for (var k in dictTypes) {
-                if (dictTypes[k] === this.options.ext_header_type) {
-                    return dict_keywords;
+            var listTypes = ['list', 'array'];
+            for (var k in listTypes) {
+                if (listTypes[k] === this.options.ext_header_type) {
+                    return keywords;
                 }
             }
-            return keywords;
+            return dict_keywords;
         },
         /**
          * Internal method to create typed array for the data based on the
