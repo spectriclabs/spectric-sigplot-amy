@@ -4806,3 +4806,172 @@ interactiveTest('headermod', 'does the plot show a range 200-2200', function() {
     strictEqual(plot._Gx.lyr[0].xmin, 200);
     strictEqual(plot._Gx.lyr[0].xmax, 2200);
 });
+interactiveTest('brackets', 'do you see a series of evenly spaced brackets', function() {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    notEqual(plot, null);
+
+    // create a base layer
+    var hcb = {
+        xunits: 3,
+        yunits: 26,
+        size: 1024,
+        xdelta: 1 
+    };
+    var layerOptions = {
+        framesize: 1024
+    };
+
+    var ramp_lyr = plot.overlay_pipe(hcb, layerOptions);
+
+    var ramp = [];
+    for (var i = 0; i < 1024; i += 1) {
+        ramp.push(i + 1);
+    }
+    plot.push(ramp_lyr, ramp);
+
+    var delta = (1024/20);
+    // create bracket layers
+    for (var i = 0; i < 20; i += 1) {
+        var hcb = {
+            xstart: i*delta,
+            xdelta: 0.1
+        };
+        var layerOptions = {
+            framesize: 22
+        };
+
+        var bkt_lyr = plot.overlay_pipe(hcb, layerOptions);
+
+        var bkt = [hcb.xstart-50];
+        for (var j = 0; j < 20; j += 1) {
+            bkt.push(hcb.xstart);
+        }
+        bkt.push(hcb.xstart-50);
+        plot.push(bkt_lyr, bkt);
+    }
+
+});
+interactiveTest('brackets', 'do you see a series of evenly spaced brackets that stay constant', function() {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    notEqual(plot, null);
+
+    // create a base layer
+    var hcb = {
+        xunits: 3,
+        yunits: 26,
+        size: 1024,
+        xdelta: 1 
+    };
+    var layerOptions = {
+        framesize: 1024
+    };
+
+    var rand_lyr = plot.overlay_pipe(hcb, layerOptions);
+
+    var rand = [];
+    for (var i = 0; i < 1024; i += 1) {
+        rand.push(Math.random()*500);
+    }
+    plot.push(rand_lyr, rand);
+
+    var delta = (1024/20);
+    // create bracket layers
+    for (var i = 0; i < 20; i += 1) {
+        var hcb = {
+            xstart: i*delta,
+            xdelta: 0.1
+        };
+        var layerOptions = {
+            framesize: 22
+        };
+
+        var bkt_lyr = plot.overlay_pipe(hcb, layerOptions);
+
+        var bkt = [hcb.xstart-50];
+        for (var j = 0; j < 20; j += 1) {
+            bkt.push(hcb.xstart);
+        }
+        bkt.push(hcb.xstart-50);
+        plot.push(bkt_lyr, bkt);
+    }
+
+    ifixture.interval = window.setInterval(function() {
+        var scaling = (Math.random()*500) + 500;
+        var rand = [];
+        for (var i = 0; i < 1024; i += 1) {
+            rand.push(Math.random()*scaling);
+        }
+        plot.push(rand_lyr, rand);
+    }, 100);
+
+});
+interactiveTest('brackets', 'do you see a series of evenly spaced brackets that move', function() {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    notEqual(plot, null);
+
+    // create a base layer
+    var hcb = {
+        xunits: 3,
+        yunits: 26,
+        size: 1024,
+        xdelta: 1 
+    };
+    var layerOptions = {
+        framesize: 1024
+    };
+
+    var rand_lyr = plot.overlay_pipe(hcb, layerOptions);
+
+    var rand = [];
+    for (var i = 0; i < 1024; i += 1) {
+        rand.push(Math.random()*500);
+    }
+    plot.push(rand_lyr, rand);
+
+    var delta = (1024/20);
+    // create bracket layers
+    for (var i = 0; i < 20; i += 1) {
+        var hcb = {
+            xstart: i*delta,
+            xdelta: 0.1
+        };
+        var layerOptions = {
+            framesize: 22
+        };
+
+        var bkt_lyr = plot.overlay_pipe(hcb, layerOptions);
+
+        var bkt = [hcb.xstart-50];
+        for (var j = 0; j < 20; j += 1) {
+            bkt.push(hcb.xstart);
+        }
+        bkt.push(hcb.xstart-50);
+        plot.push(bkt_lyr, bkt);
+    }
+
+    ifixture.interval = window.setInterval(function() {
+        // move all the brackets
+        for (var lyr = 1; lyr <= 20; lyr += 1) {
+            var val = Math.random() * 1000;
+            var bkt = [val-50];
+            for (var j = 0; j < 20; j += 1) {
+                bkt.push(val);
+            }
+            bkt.push(val-50);
+            plot.push(lyr, bkt);
+        }
+
+        // move the underlying data
+        var scaling = (Math.random()*500) + 500;
+        var rand = [];
+        for (var i = 0; i < 1024; i += 1) {
+            rand.push(Math.random()*scaling);
+        }
+        plot.push(rand_lyr, rand);
+
+    }, 1000);
+
+});
