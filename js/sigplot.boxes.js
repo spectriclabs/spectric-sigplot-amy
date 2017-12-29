@@ -22,35 +22,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 /* global module */
 /* global require */
-
 (function() {
-
     var m = require("./m");
     var mx = require("./mx");
-
-    /**
-     * @constructor
-     * @param options
-     * @returns {BoxesPlugin}
-     */
-    var BoxesPlugin = function(options) {
-        this.options = (options === undefined) ? {} : options;
-
-        if (this.options.display === undefined) {
-            this.options.display = true;
-        }
-
-        this.boxes = [];
-    };
-
-    BoxesPlugin.prototype = {
-        init: function(plot) {
+    var SigplotPlugin = require("./sigplot.plugin");
+    var BoxesPlugin = SigplotPlugin.extend({
+        $const: {
+            DEFAULTS: {
+                display: true
+            }
+        },
+        /**
+         * @constructor
+         * @param options
+         * @returns {BoxesPlugin}
+         */
+        constructor: function(options) {
+            BoxesPlugin.$super.call(this, options, BoxesPlugin.DEFAULTS);
+            this.boxes = [];
+        },
+        onAdd: function(plot) {
             this.plot = plot;
         },
-
         menu: function() {
             var _display_handler = (function(self) {
                 return function() {
@@ -143,11 +138,7 @@
                     ctx.fillRect(x, y, w, h);
                     ctx.globalAlpha = 1;
                 }
-                ctx.strokeRect(x,
-                    y,
-                    w,
-                    h);
-
+                ctx.strokeRect(x, y, w, h);
                 if (box.text) {
                     ctx.save();
                     ctx.font = box.font || Mx.text_H + "px Courier New, monospace";
@@ -179,8 +170,7 @@
             this.plot = undefined;
             this.boxes = [];
         }
-    };
-
+    });
     module.exports = BoxesPlugin;
 
 }());

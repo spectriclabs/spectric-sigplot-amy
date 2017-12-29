@@ -1550,8 +1550,7 @@
                 throw "Invalid plugin zorder";
             }
 
-
-            plugin.init(this);
+            plugin.setPlot(this);
 
             var canvas = document.createElement('canvas');
             canvas.width = this._Mx.canvas.width;

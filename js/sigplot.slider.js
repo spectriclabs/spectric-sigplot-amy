@@ -22,49 +22,44 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 /* global module */
 /* global require */
-
 (function() {
-
     var m = require("./m");
     var mx = require("./mx");
-    var common = require("./common");
-
+    var SigplotPlugin = require("./sigplot.plugin");
     /**
      * @constructor
      * @param options
      * @returns {SliderPlugin}
      */
-    var SliderPlugin = function(options) {
-        this.options = {
-            display: true,
-            style: {
-                lineWidth: 1,
-                lineCap: "square" //, strokeStyle: "#FFFFFF", textStyle: "#FFFFFF"
-            },
-            direction: "vertical", // "vertical","horizontal","both" 
-            name: "Slider",
-            prevent_drag: false,
-            add_box: false, // add boxes around values
-            persistent_style: false, // highlights and/or boxes persist
-            slider_ID: 0 // each slider has a numerical int ID
-        };
-
-        common.update(this.options, options);
-        this.position = undefined;
-        this.location = undefined;
-        this.paired_slider = undefined;
-        this.name = this.options.name;
-
-    };
-
-    SliderPlugin.prototype = {
-        init: function(plot) {
+    var SliderPlugin = SigplotPlugin.extend({
+        $const: {
+            DEFAULTS: {
+                display: true,
+                style: {
+                    lineWidth: 1,
+                    lineCap: "square", //, strokeStyle: "#FFFFFF", textStyle: "#FFFFFF"
+                    textStyle: undefined
+                },
+                direction: "vertical", // "vertical","horizontal","both" 
+                name: "Slider",
+                prevent_drag: false,
+                add_box: false, // add boxes around values
+                persistent_style: false, // highlights and/or boxes persist
+                slider_ID: 0 // each slider has a numerical int ID
+            }
+        },
+        constructor: function(options) {
+            SliderPlugin.$super.call(this, options, SliderPlugin.DEFAULTS);
+            this.position = undefined;
+            this.location = undefined;
+            this.paired_slider = undefined;
+            this.name = this.options.name;
+        },
+        onAdd: function(plot) {
             this.plot = plot;
             var Mx = plot._Mx;
-
             // Register for mouse events
             var self = this;
             this.onmousemove = function(evt) {
@@ -616,8 +611,7 @@
             this.plot = undefined;
             this.position = undefined;
         }
-    };
-
+    });
     module.exports = SliderPlugin;
 
 }());

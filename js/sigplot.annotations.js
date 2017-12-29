@@ -22,50 +22,43 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 /* global module */
 /* global require */
-
 (function() {
-
     var m = require("./m");
     var mx = require("./mx");
-
-    /**
-     * @constructor
-     * @param options
-     * @returns {AnnotationPlugin}
-     */
-    var AnnotationPlugin = function(options) {
-        this.options = (options === undefined) ? {} : options;
-
-        if (this.options.display === undefined) {
-            this.options.display = true;
-        }
-
-        this.options.textBaseline = this.options.textBaseline || "alphabetic";
-        this.options.textAlign = this.options.textAlign || "left";
-
-        this.annotations = [];
-    };
-
-    AnnotationPlugin.prototype = {
-        init: function(plot) {
+    var SigplotPlugin = require("./sigplot.plugin");
+    var AnnotationPlugin = SigplotPlugin.extend({
+        $const: {
+            DEFAULTS: {
+                textBaseline: "alphabetic",
+                textAlign: "left",
+                prevent_hover: false,
+                display: true
+            }
+        },
+        /**
+         * @constructor
+         * @param options
+         * @returns {BoxesPlugin}
+         */
+        constructor: function(options) {
+            AnnotationPlugin.$super.call(this, options, AnnotationPlugin.DEFAULTS);
+            this.annotations = [];
+        },
+        onAdd: function(plot) {
             var self = this;
             this.plot = plot;
             var Mx = this.plot._Mx;
-
             this.onmousemove = function(evt) {
                 // Ignore if there are no annotations
                 if (self.annotations.length === 0) {
                     return;
                 }
-
                 // Or if the user wants to prevent hover actions
                 if (self.options.prevent_hover) {
                     return;
                 }
-
                 // Ignore if the mouse is outside of the plot area, clear the highlights
                 if ((evt.xpos < Mx.l) || (evt.xpos > Mx.r)) {
                     self.set_highlight(false);
@@ -328,8 +321,7 @@
             this.plot = undefined;
             this.annotations = undefined;
         }
-    };
-
+    });
     module.exports = AnnotationPlugin;
 
 }());

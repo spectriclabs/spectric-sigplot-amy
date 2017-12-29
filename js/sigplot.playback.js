@@ -22,37 +22,35 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 /* global module */
 /* global require */
-
 (function() {
-
     var m = require("./m");
     var mx = require("./mx");
-    var common = require("./common");
 
-    /**
-     * @constructor
-     * @param options
-     * @returns {PlaybackControlsPlugin}
-     */
-    var PlaybackControlsPlugin = function(options) {
-        this.options = {
-            display: true,
-            size: 25,
-            lineWidth: 2,
-            fillStyle: false
-        };
-        common.update(this.options, options);
-        this.state = "paused";
-        this.highlight = false;
-    };
-
-    PlaybackControlsPlugin.prototype = {
-        init: function(plot) {
+    var SigplotPlugin = require("./sigplot.plugin");
+    var PlaybackControlsPlugin = SigplotPlugin.extend({
+        $const: {
+            DEFAULTS: {
+                display: true,
+                size: 25,
+                lineWidth: 2,
+                fillStyle: false,
+                strokeStyle: undefined
+            }
+        },
+        /**
+         * @constructor
+         * @param options
+         * @returns {BoxesPlugin}
+         */
+        constructor: function(options) {
+            PlaybackControlsPlugin.$super.call(this, options, PlaybackControlsPlugin.DEFAULTS);
+            this.state = "paused";
+            this.highlight = false;
+        },
+        onAdd: function(plot) {
             this.plot = plot;
-
             // Register for mouse events
             var self = this;
             var Mx = this.plot._Mx;
@@ -275,7 +273,7 @@
             this.plot = undefined;
             this.boxes = undefined;
         }
-    };
+    });
 
     module.exports = PlaybackControlsPlugin;
 
