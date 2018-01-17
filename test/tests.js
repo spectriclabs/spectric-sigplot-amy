@@ -4816,7 +4816,7 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets', fun
         xunits: 3,
         yunits: 26,
         size: 1024,
-        xdelta: 1 
+        xdelta: 1
     };
     var layerOptions = {
         framesize: 1024
@@ -4830,11 +4830,11 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets', fun
     }
     plot.push(ramp_lyr, ramp);
 
-    var delta = (1024/20);
+    var delta = (1024 / 20);
     // create bracket layers
     for (var i = 0; i < 20; i += 1) {
         var hcb = {
-            xstart: i*delta,
+            xstart: i * delta,
             xdelta: 0.1
         };
         var layerOptions = {
@@ -4843,11 +4843,11 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets', fun
 
         var bkt_lyr = plot.overlay_pipe(hcb, layerOptions);
 
-        var bkt = [hcb.xstart-50];
+        var bkt = [hcb.xstart - 50];
         for (var j = 0; j < 20; j += 1) {
             bkt.push(hcb.xstart);
         }
-        bkt.push(hcb.xstart-50);
+        bkt.push(hcb.xstart - 50);
         plot.push(bkt_lyr, bkt);
     }
 
@@ -4862,7 +4862,7 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets that 
         xunits: 3,
         yunits: 26,
         size: 1024,
-        xdelta: 1 
+        xdelta: 1
     };
     var layerOptions = {
         framesize: 1024
@@ -4872,15 +4872,15 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets that 
 
     var rand = [];
     for (var i = 0; i < 1024; i += 1) {
-        rand.push(Math.random()*500);
+        rand.push(Math.random() * 500);
     }
     plot.push(rand_lyr, rand);
 
-    var delta = (1024/20);
+    var delta = (1024 / 20);
     // create bracket layers
     for (var i = 0; i < 20; i += 1) {
         var hcb = {
-            xstart: i*delta,
+            xstart: i * delta,
             xdelta: 0.1
         };
         var layerOptions = {
@@ -4889,19 +4889,19 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets that 
 
         var bkt_lyr = plot.overlay_pipe(hcb, layerOptions);
 
-        var bkt = [hcb.xstart-50];
+        var bkt = [hcb.xstart - 50];
         for (var j = 0; j < 20; j += 1) {
             bkt.push(hcb.xstart);
         }
-        bkt.push(hcb.xstart-50);
+        bkt.push(hcb.xstart - 50);
         plot.push(bkt_lyr, bkt);
     }
 
     ifixture.interval = window.setInterval(function() {
-        var scaling = (Math.random()*500) + 500;
+        var scaling = (Math.random() * 500) + 500;
         var rand = [];
         for (var i = 0; i < 1024; i += 1) {
-            rand.push(Math.random()*scaling);
+            rand.push(Math.random() * scaling);
         }
         plot.push(rand_lyr, rand);
     }, 100);
@@ -4917,7 +4917,7 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets that 
         xunits: 3,
         yunits: 26,
         size: 1024,
-        xdelta: 1 
+        xdelta: 1
     };
     var layerOptions = {
         framesize: 1024
@@ -4927,15 +4927,15 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets that 
 
     var rand = [];
     for (var i = 0; i < 1024; i += 1) {
-        rand.push(Math.random()*500);
+        rand.push(Math.random() * 500);
     }
     plot.push(rand_lyr, rand);
 
-    var delta = (1024/20);
+    var delta = (1024 / 20);
     // create bracket layers
     for (var i = 0; i < 20; i += 1) {
         var hcb = {
-            xstart: i*delta,
+            xstart: i * delta,
             xdelta: 0.1
         };
         var layerOptions = {
@@ -4944,11 +4944,11 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets that 
 
         var bkt_lyr = plot.overlay_pipe(hcb, layerOptions);
 
-        var bkt = [hcb.xstart-50];
+        var bkt = [hcb.xstart - 50];
         for (var j = 0; j < 20; j += 1) {
             bkt.push(hcb.xstart);
         }
-        bkt.push(hcb.xstart-50);
+        bkt.push(hcb.xstart - 50);
         plot.push(bkt_lyr, bkt);
     }
 
@@ -4956,19 +4956,19 @@ interactiveTest('brackets', 'do you see a series of evenly spaced brackets that 
         // move all the brackets
         for (var lyr = 1; lyr <= 20; lyr += 1) {
             var val = Math.random() * 1000;
-            var bkt = [val-50];
+            var bkt = [val - 50];
             for (var j = 0; j < 20; j += 1) {
                 bkt.push(val);
             }
-            bkt.push(val-50);
+            bkt.push(val - 50);
             plot.push(lyr, bkt);
         }
 
         // move the underlying data
-        var scaling = (Math.random()*500) + 500;
+        var scaling = (Math.random() * 500) + 500;
         var rand = [];
         for (var i = 0; i < 1024; i += 1) {
-            rand.push(Math.random()*scaling);
+            rand.push(Math.random() * scaling);
         }
         plot.push(rand_lyr, rand);
 
