@@ -2242,7 +2242,8 @@
          * Placeholder for cleanup logic.
          */
         cleanup: function() {
-            // TODO not sure what we really want to do here yet
+            // What else do we want to do here?
+            this.unmimic()
         },
 
         /**
@@ -3094,7 +3095,7 @@
                 throw "mimic must be called with at least one event mask";
             }
 
-            this.unmimic(other);
+            this.unmimic();
 
             if (mask.zoom) {
                 var f = function(event) {
@@ -3188,7 +3189,7 @@
         /**
          * Unregister zoom/unzoom listeners added via previous call to unmimic.
          */
-        unmimic: function(other) {
+        unmimic: function() {
             var other = this.mimicListeners.other;
             if (other) {
                 var that = this;
@@ -3278,7 +3279,7 @@
         },
 
         /**
-         * Enable listeners for events on plot
+         * Disable listeners for events on plot
          */
 
         disable_listeners: function() {
