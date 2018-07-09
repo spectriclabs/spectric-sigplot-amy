@@ -2243,7 +2243,7 @@
          */
         cleanup: function() {
             // What else do we want to do here?
-            this.unmimic()
+            this.unmimic();
         },
 
         /**
