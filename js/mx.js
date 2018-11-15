@@ -2871,12 +2871,62 @@
     };
 
     /**
-     * @param Mx
+     * @param {Object} Mx
+     *     the Mx canvas object
      * @param xdiv
+     *     the number of x divisions requested.  If the value is negative the
+     *     absolute value is used to set the exact number of divisions.  If the
+     *     value is positive, a reasonable number of divisions is selected that
+     *     is close to the provided value.
      * @param ydiv
-     * @param xlab
-     * @param ylab
-     * @param flags
+     *     the number of y divisions requested.  If the value is negative the
+     *     absolute value is used to set the exact number of divisions.  If the
+     *     value is positive, a reasonable number of divisions is selected that
+     *     is close to the provided value.
+     * @param {number} xlab
+     *     the x-axis unit code
+     * @param {number} ylab
+     *     the y-axis unit code
+     * @param {Object} flags - flags that control the drawing of axis
+     *
+     *
+     * @param {boolean} flags.exactbox
+     *     draw the box exactly on the plot area instead of just outside it
+     * @param {Object} flags.fillstyle
+     *     the fill style for the plot area; an array uses mx.linear_gradient
+     *     to fill the plot area
+     * @param {boolean} flags.noaxisbox
+     *     set to true to not draw a axis box around the plot
+     * @param {boolean} flags.xtimecode
+     *     the x-axis values are timecode
+     * @param {number} flags.xmult
+     *     the power of ten multiplier use to render the xaxis labels
+     * @param {boolean} flags.ytimecode
+     *     the y-axis values are timecode
+     * @param {number} flags.ymult
+     *     the power of ten multiplier use to render the yaxis labels
+     * @param {boolean} flags.noxtlab
+     *     the y-axis values are timecode
+     * @param {boolean} flags.noytlab
+     *     the y-axis values are timecode
+     * @param {boolean} flags.ontop
+     *     render the x-axis on top instead of on the bottom
+     * @param {boolean} flags.noyplab
+     *     set to true to hide the ylabel
+     * @param {string} flags.ylabel
+     *     the label for the y-axis as a string, otherwise ylab is used
+     * @param {boolean} flags.noxplab
+     *     set to true to hide the xlabel
+     * @param {string} flags.xlabel
+     *     the label for the x-axis as a string, otherwise xlab is used
+     * @param {boolean} flags.inside
+     *      render the tics inside the plot area
+     * @param {boolean} flags.grid
+     *     draw a grid for the axis
+     * @param {Object} flags.gridStyle
+     *     the style to use for rendering the grid lines
+     * @param {boolean} flags.yonright
+     *     render the y-axis on the right instead of the left
      */
     // ~= MX$FDRAWAXIS
     mx.drawaxis = function(Gx, Mx, xdiv, ydiv, xlab, ylab, flags) {
@@ -3075,6 +3125,7 @@
             xTIC.dtic = stk1.xmax - xTIC.dtic1 + 1.0;
         }
 
+        // Render the x-axis tics
         var i;
         ix = 0;
         xlbl = "";
@@ -3184,6 +3235,8 @@
                 return (val >= stk1.ymax);
             };
         }
+        
+        // Render the y-axis tics
         var ylbl;
         for (var y = yTIC.dtic1; endtic(y); y = y + yTIC.dtic) {
             i = iscb + Math.round(fact * (y - stk1.ymin)) - 2;
