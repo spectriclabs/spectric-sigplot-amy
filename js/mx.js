@@ -3022,12 +3022,20 @@
         } else if (!flags.xtimecode) {
             _xmult = mx.mult(stk1.xmin, stk1.xmax);
         }
-        if (ydiv < 0) {
-            yTIC.dtic1 = stk1.ymin;
-            yTIC.dtic = (stk1.ymin - stk1.ymax) / ydiv;
+
+        // Calculate where to start the ytics and the interval between tics
+        if (flags.ylogrithmic === true) {
+            yTIC.dtic1 = Math.ceil(log10(stk1.ymax)) - Math.abs(ydiv);
+            yTIC.dtic  = 1; // dTic is power of ten
         } else {
-            yTIC = mx.tics(stk1.ymin, stk1.ymax, ydiv, flags.ytimecode);
+            if (ydiv < 0) {
+                yTIC.dtic1 = stk1.ymin;
+                yTIC.dtic = (stk1.ymin - stk1.ymax) / ydiv;
+            } else {
+                yTIC = mx.tics(stk1.ymin, stk1.ymax, ydiv, flags.ytimecode);
+            }
         }
+
         var _ymult = 1.0;
         if (flags.ymult) { // if ymult was provided
             _ymult = flags.ymult;
@@ -3235,7 +3243,11 @@
         }
         jtext = 0.4 * Mx.text_h;
         if (stk1.ymin !== stk1.ymax) {
-            fact = -height / (stk1.ymax - stk1.ymin);
+            if (flags.ylogrithmic === true) {
+                fact = -height / (Math.ceil(log10(stk1.ymax)) - yTIC.dtic1);
+            } else {
+                fact = -height / (stk1.ymax - stk1.ymin);
+            }
         } else {
             fact = -height / 1.0;
         }
@@ -3248,10 +3260,17 @@
         if (yTIC.dtic === 0) {
             ytic = stk1.ymax - ytic1 + 1.0;
         }
+
         if (stk1.ymax >= stk1.ymin) {
-            endtic = function(val) {
-                return (val <= stk1.ymax);
-            };
+            if (flags.ylogrithmic === true) {
+                endtic = function(val) {
+                    return (val <= Math.ceil(log10(stk1.ymax)));
+                };
+            } else {
+                endtic = function(val) {
+                    return (val <= stk1.ymax);
+                };
+            }
         } else {
             endtic = function(val) {
                 return (val >= stk1.ymax);
@@ -3261,10 +3280,19 @@
         // Render the y-axis tics
         var ylbl;
         for (var y = yTIC.dtic1; endtic(y); y = y + yTIC.dtic) {
-            i = iscb + Math.round(fact * (y - stk1.ymin)) - 2;
+            if (flags.ylogrithmic === true) {
+                i = iscb + Math.round(fact * (y - yTIC.dtic1)) - 2;
+            } else {
+                // iscb is the pixel coordinate for the bottom of the
+                // plot area.  Because the pixel coordinates are 0,0
+                // in the upper-left the 'i' value will be less than
+                // the bottom
+                i = iscb + Math.round(fact * (y - stk1.ymin)) - 2;
+            }
             if (i > iscb) {
                 continue;
             }
+            // draw the tic/grid line
             if (flags.grid && flags.grid !== "x") {
                 if (!flags.gridStyle) {
                     flags.gridStyle = {
@@ -3278,6 +3306,7 @@
                 mx.textline(Mx, iscl - 2, i, iscl + 2, i);
                 mx.textline(Mx, iscr - 2, i, iscr + 2, i);
             }
+            // draw the tic labels
             if (yticlabels) {
                 // TODO
                 if (flags.inside &&
@@ -3314,7 +3343,11 @@
                         }
                     }
                 } else {
-                    ylbl = mx.format_f(y * fmul, 12, 6);
+                    if (flags.ylogrithmic === true) {
+                        ylbl = mx.format_f(Math.pow(10, y) * fmul, 12, 6);
+                    } else {
+                        ylbl = mx.format_f(y * fmul, 12, 6);
+                    }
                     ylbl = trimlabel(ylbl, flags.inside);
                     mx.text(Mx, itext, Math.min(iscb, i + jtext), ylbl);
                 }

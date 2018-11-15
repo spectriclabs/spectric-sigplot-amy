@@ -1771,7 +1771,25 @@ interactiveTest('sigplot empty', 'Do you see an empty plot scaled from -1 to 1 o
     var container = document.getElementById('plot');
     assert.equal(container.childNodes.length, 0);
     assert.equal(ifixture.childNodes.length, 2);
-    var plot = new sigplot.Plot(container, {});
+    var plot = new sigplot.Plot(container);
+    assert.notEqual(plot, null);
+    assert.equal(container.childNodes.length, 1);
+    assert.equal(container.childNodes[0], plot._Mx.parent);
+    assert.equal(plot._Mx.parent.childNodes.length, 2);
+    assert.equal(plot._Mx.parent.childNodes[0], plot._Mx.canvas);
+    assert.equal(plot._Mx.parent.childNodes[1], plot._Mx.wid_canvas);
+    assert.equal(plot._Mx.canvas.width, 600);
+    assert.equal(plot._Mx.canvas.height, 400);
+    assert.equal(plot._Mx.canvas.style.position, "absolute");
+    assert.equal(plot._Mx.wid_canvas.width, 600);
+    assert.equal(plot._Mx.wid_canvas.height, 400);
+    assert.equal(plot._Mx.wid_canvas.style.position, "absolute");
+});
+interactiveTest('sigplot semilog empty', 'Do you see an empty semilog plot scaled from 0 to 1000 on the y-axis?', function(assert) {
+    var container = document.getElementById('plot');
+    assert.equal(container.childNodes.length, 0);
+    assert.equal(ifixture.childNodes.length, 2);
+    var plot = new sigplot.Plot(container, {ymin: 0, ymax: 1000, semilog: true});
     assert.notEqual(plot, null);
     assert.equal(container.childNodes.length, 1);
     assert.equal(container.childNodes[0], plot._Mx.parent);
@@ -1908,6 +1926,18 @@ interactiveTest('sigplot continuous mtag', 'Ensure continuous mtag updates', fun
 interactiveTest('sigplot ramp', 'Do you see a ramp from 0 to 1023?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 0; i < 1024; i++) {
+        ramp.push(i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp"
+    });
+});
+interactiveTest('sigplot ramp semilog', 'Do you see a ramp from 0 to 1023?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {ymin: 0, ymax: 1000, semilog: true});
     assert.notEqual(plot, null);
     var ramp = [];
     for (var i = 0; i < 1024; i++) {

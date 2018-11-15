@@ -3697,7 +3697,8 @@
             if (Gx.specs) {
                 if (Gx.sections === 0) {
                     var drawaxis_flags = {
-                        grid: Gx.grid
+                        grid: Gx.grid,
+                        ylogrithmic: (Gx.semilog || Gx.loglog)
                     };
                     if (Gx.panning === 2) {
                         drawaxis_flags.noxtlab = true;
@@ -4061,6 +4062,9 @@
         //the drawmode and autol before the x or y cut was showing
         this.old_drawmode = undefined;
         this.old_autol = undefined;
+
+        this.semilog = false;
+        this.loglog = false;
     }
 
     /**
@@ -6707,6 +6711,8 @@
         }
 
         Gx.basemode = Gx.cmode;
+        Gx.semilog = (o.semilog === true);
+        Gx.loglog = (o.loglog === true);;
 
         plot.change_settings({
             cmode: Gx.cmode
