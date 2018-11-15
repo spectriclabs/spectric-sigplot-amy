@@ -2739,12 +2739,25 @@
 
 
     /**
-     * @param Mx
-     * @param xstart
-     * @param ystart
-     * @param xend
-     * @param yend
-     * @param style
+     * Draw a line using the current foreground color, unless overwritten by
+     * the style option.
+     *
+     * @param {Object} Mx
+     *     the Mx canvas object
+     * @param {number} xstart
+     *     the x-pixel coordinate to start the line 
+     * @param {number} ystart
+     *     the y-pixel coordinate to start the line 
+     * @param {number} xend
+     *     the x-pixel coordinate to end the line 
+     * @param {number} yend
+     *     the y-pixel coordinate to end the line 
+     * @param {Object} style
+     *     style options
+     * @param {Object} style.color
+     *     use the provided color instead of Mx.fg
+     * @param {Object} style.width
+     *     overwrite the default width of 1
      */
     // ~= MX$FTEXTLINE
     mx.textline = function(Mx, xstart, ystart, xend, yend, style) {
@@ -2762,9 +2775,17 @@
     };
 
     /**
-     * @param dmin
-     * @param dmax
-     * @param ndiv
+     * Calculate a good number of tic mark divisions for the provided range.
+     *
+     * @param {number} dmin
+     *     the mininum value
+     * @param {number} dmax
+     *     the maximum value
+     * @param {number} ndiv
+     *     the desired number of divisions
+     *
+     * @returns {Object}
+     *    an object with dtic (tic mark interval) and dtic1 (first tic mark value)
      */
     // ~= MX$TICS
     mx.tics = function(dmin, dmax, ndiv, timecode) {
@@ -2986,6 +3007,7 @@
             dtic1: 0
         };
 
+        // Calculate where to start the xtics and the interval between tics
         if (xdiv < 0) {
             xTIC.dtic1 = stk1.xmin;
             xTIC.dtic = (stk1.xmin - stk1.xmax) / xdiv;
