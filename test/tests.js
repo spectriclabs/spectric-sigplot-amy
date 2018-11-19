@@ -1937,11 +1937,11 @@ interactiveTest('sigplot ramp', 'Do you see a ramp from 0 to 1023?', function(as
 });
 interactiveTest('sigplot ramp semilog', 'Do you see a ramp from 0 to 1023?', function(assert) {
     var container = document.getElementById('plot');
-    var plot = new sigplot.Plot(container, {ymin: 0, ymax: 1000, semilog: true});
+    var plot = new sigplot.Plot(container, {semilog: true, cmode: 8});
     assert.notEqual(plot, null);
     var ramp = [];
     for (var i = 0; i < 1024; i++) {
-        ramp.push(i);
+        ramp.push(i+1);
     }
     plot.overlay_array(ramp, {
         file_name: "ramp"

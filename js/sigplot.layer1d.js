@@ -502,10 +502,14 @@
                     end: n2
                 };
             }
+            // Handle the various CModes for scalar and complex
             if (this.cx) {
+                // complex data
                 if (Gx.cmode === 1) {
+                    // magnitude
                     m.cvmag(dbuf, this.ypoint, npts);
                 } else if (Gx.cmode === 2) {
+                    // phase
                     if (Gx.plab === 25) {
                         m.cvpha(dbuf, this.ypoint, npts);
                         m.vsmul(this.ypoint, 1.0 / (2 * Math.PI), this.ypoint, npts);
@@ -515,30 +519,40 @@
                         m.cvphad(dbuf, this.ypoint, npts);
                     }
                 } else if (Gx.cmode === 3) {
+                    // real
                     m.vmov(dbuf, skip, this.ypoint, 1, npts);
-                } else if (Gx.cmode >= 6) {
-                    m.cvmag2(dbuf, this.ypoint, npts);
                 } else if (Gx.cmode >= 4) {
+                    // imaginary
                     m.vmov(dbuf.subarray(1), skip, this.ypoint, 1, npts);
+                } else if ((Gx.cmode === 6) || (Gx.cmode === 7) || (Gx.cmode === 8)) {
+                    // 10*LOG, 20*LOG require absolute value
+                    m.cvmag2(dbuf, this.ypoint, npts);
                 }
             } else {
-                if (Gx.cmode === 5) { // I vs. R
+                // scalar data
+                if (Gx.cmode === 5) {
+                    // I vs. R doesn't really make sense for scalar
                     m.vfill(this.ypoint, 0, npts);
-                } else if ((Gx.cmode === 1) || (Gx.cmode >= 6)) { // Mag, log
+                } else if ((Gx.cmode === 1) || (Gx.cmode === 6) || (Gx.cmode === 7) || (Gx.cmode === 8)) {
+                    // Mag, 10*LOG, 20*LOG require absolute value
                     for (var i = 0; i < npts; i++) {
                         this.ypoint[i] = Math.abs(dbuf[i]);
                     }
                 } else {
+                    // Everything else
                     for (var i = 0; i < npts; i++) {
                         this.ypoint[i] = dbuf[i];
                     }
                 }
             }
 
-            if (Gx.cmode >= 6) {
+            // For 10*LOG and 20*LOG
+            if ((Gx.cmode === 6) || (Gx.cmode === 7) || (Gx.cmode === 8)) {
                 m.vlog10(this.ypoint, Gx.dbmin, this.ypoint);
-                var dbscale = 10.0;
-                if (Gx.cmode === 7) {
+                var dbscale = 1.0;
+                if (Gx.cmode === 6) {
+                    dbscale = 10.0;
+                } else if (Gx.cmode === 7) {
                     dbscale = 20.0;
                 }
                 if ((Gx.lyr.length > 0) && (Gx.lyr[0].cx)) {

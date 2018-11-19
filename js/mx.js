@@ -2783,12 +2783,16 @@
      *     the maximum value
      * @param {number} ndiv
      *     the desired number of divisions
+     * @param {boolean} timecode
+     *     true if the tics represent timecode
+     * @param {boolean} logrithmic
+     *     true if the tics are going to be logrithmic
      *
      * @returns {Object}
      *    an object with dtic (tic mark interval) and dtic1 (first tic mark value)
      */
     // ~= MX$TICS
-    mx.tics = function(dmin, dmax, ndiv, timecode) {
+    mx.tics = function(dmin, dmax, ndiv, timecode, logrithmic) {
         var dtic = 1;
         var dtic1 = dmin;
 
@@ -2797,6 +2801,13 @@
             return {
                 dtic: 1,
                 dtic1: dmin
+            };
+        }
+
+        if (logrithmic) {
+            return {
+                dtic: 1,
+                dtic1: Math.floor(dmin)
             };
         }
 
@@ -3024,16 +3035,11 @@
         }
 
         // Calculate where to start the ytics and the interval between tics
-        if (flags.ylogrithmic === true) {
-            yTIC.dtic1 = Math.ceil(log10(stk1.ymax)) - Math.abs(ydiv);
-            yTIC.dtic  = 1; // dTic is power of ten
+        if (ydiv < 0) {
+            yTIC.dtic1 = stk1.ymin;
+            yTIC.dtic = (stk1.ymin - stk1.ymax) / ydiv;
         } else {
-            if (ydiv < 0) {
-                yTIC.dtic1 = stk1.ymin;
-                yTIC.dtic = (stk1.ymin - stk1.ymax) / ydiv;
-            } else {
-                yTIC = mx.tics(stk1.ymin, stk1.ymax, ydiv, flags.ytimecode);
-            }
+            yTIC = mx.tics(stk1.ymin, stk1.ymax, ydiv, flags.ytimecode, flags.ylogrithmic);
         }
 
         var _ymult = 1.0;
@@ -3243,11 +3249,7 @@
         }
         jtext = 0.4 * Mx.text_h;
         if (stk1.ymin !== stk1.ymax) {
-            if (flags.ylogrithmic === true) {
-                fact = -height / (Math.ceil(log10(stk1.ymax)) - yTIC.dtic1);
-            } else {
-                fact = -height / (stk1.ymax - stk1.ymin);
-            }
+            fact = -height / (stk1.ymax - stk1.ymin);
         } else {
             fact = -height / 1.0;
         }
@@ -3262,15 +3264,9 @@
         }
 
         if (stk1.ymax >= stk1.ymin) {
-            if (flags.ylogrithmic === true) {
-                endtic = function(val) {
-                    return (val <= Math.ceil(log10(stk1.ymax)));
-                };
-            } else {
-                endtic = function(val) {
-                    return (val <= stk1.ymax);
-                };
-            }
+            endtic = function(val) {
+                return (val <= stk1.ymax);
+            };
         } else {
             endtic = function(val) {
                 return (val >= stk1.ymax);
@@ -3280,15 +3276,11 @@
         // Render the y-axis tics
         var ylbl;
         for (var y = yTIC.dtic1; endtic(y); y = y + yTIC.dtic) {
-            if (flags.ylogrithmic === true) {
-                i = iscb + Math.round(fact * (y - yTIC.dtic1)) - 2;
-            } else {
-                // iscb is the pixel coordinate for the bottom of the
-                // plot area.  Because the pixel coordinates are 0,0
-                // in the upper-left the 'i' value will be less than
-                // the bottom
-                i = iscb + Math.round(fact * (y - stk1.ymin)) - 2;
-            }
+            // iscb is the pixel coordinate for the bottom of the
+            // plot area.  Because the pixel coordinates are 0,0
+            // in the upper-left the 'i' value will be less than
+            // the bottom
+            i = iscb + Math.round(fact * (y - stk1.ymin)) - 2;
             if (i > iscb) {
                 continue;
             }

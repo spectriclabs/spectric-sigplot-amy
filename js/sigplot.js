@@ -1794,55 +1794,56 @@
             }
 
             var cmode;
-            var address = settings.cmode === undefined ? "" : settings.cmode;
-            if (typeof address === "string") {
-                address = address + "";
-                cmode = address.toUpperCase();
-            } else {
-                cmode = address;
-            }
-
             if (settings.cmode !== undefined) {
-                if ((Gx.lyr.length > 0) && (Gx.lyr[0].cx)) {
-                    Gx.cmode = 1;
-                } else {
-                    Gx.cmode = 3;
-                }
+                if (typeof settings.cmode === "string") {
+                    cmode = settings.cmode.toUpperCase();
 
-                if ((cmode === "MA") || (cmode === "INMA") || (cmode === "ABMA") ||
-                    (cmode === "__MA") || (cmode === "MAGNITUDE") || (cmode === 1)) {
-                    Gx.cmode = 1;
-                }
-                if ((cmode === "PH") || (cmode === "INPH") || (cmode === "ABPH") ||
-                    (cmode === "__PH") || (cmode === "PHASE") || (cmode === 2)) {
-                    Gx.cmode = 2;
-                }
-                if ((cmode === "RE") || (cmode === "INRE") || (cmode === "ABRE") ||
-                    (cmode === "__RE") || (cmode === "REAL") || (cmode === 3)) {
-                    Gx.cmode = 3;
-                }
-                if ((cmode === "IM") || (cmode === "INIM") || (cmode === "ABIM") ||
-                    (cmode === "__IM") || (cmode === "IMAGINARY") || (cmode === 4)) {
-                    Gx.cmode = 4;
-                }
-                if ((cmode === "LO") || (cmode === "D1") || (cmode === "INLO") || (cmode === "IND1") ||
-                    (cmode === "ABIM") || (cmode === "ABD1") || (cmode === "__LO") ||
-                    (cmode === "__D1") || (cmode === "10*LOG10") || (cmode === 6)) {
-                    Gx.cmode = 6;
-                }
-                if ((cmode === "L2") || (cmode === "D2") || (cmode === "INL2") || (cmode === "IND2") ||
-                    (cmode === "ABLO") || (cmode === "ABD2") || (cmode === "__L2") ||
-                    (cmode === "__D2") || (cmode === "20*LOG10") || (cmode === 7)) {
-                    Gx.cmode = 7;
-                }
-                if ((cmode === "RI") || (cmode === "IR") || (cmode === "INRI") || (cmode === "INIR") ||
-                    (cmode === "ABRI") || (cmode === "ABIR") || (cmode === "__RI") ||
-                    (cmode === "__IR") || (cmode === "IMAG/REAL") || (cmode === "REAL/IMAG") || (cmode === 5)) {
-                    if (Gx.index) {
-                        alert("Imag/Real mode not permitted in INDEX mode");
+                    if ((Gx.lyr.length > 0) && (Gx.lyr[0].cx)) {
+                        Gx.cmode = 1;
                     } else {
-                        Gx.cmode = 5;
+                        Gx.cmode = 3;
                     }
+
+                    if ((cmode === "MA") || (cmode === "INMA") || (cmode === "ABMA") ||
+                        (cmode === "__MA") || (cmode === "MAGNITUDE") || (cmode === 1)) {
+                        Gx.cmode = 1;
+                    }
+                    if ((cmode === "PH") || (cmode === "INPH") || (cmode === "ABPH") ||
+                        (cmode === "__PH") || (cmode === "PHASE") || (cmode === 2)) {
+                        Gx.cmode = 2;
+                    }
+                    if ((cmode === "RE") || (cmode === "INRE") || (cmode === "ABRE") ||
+                        (cmode === "__RE") || (cmode === "REAL") || (cmode === 3)) {
+                        Gx.cmode = 3;
+                    }
+                    if ((cmode === "IM") || (cmode === "INIM") || (cmode === "ABIM") ||
+                        (cmode === "__IM") || (cmode === "IMAGINARY") || (cmode === 4)) {
+                        Gx.cmode = 4;
+                    }
+                    if ((cmode === "LO") || (cmode === "D1") || (cmode === "INLO") || (cmode === "IND1") ||
+                        (cmode === "ABIM") || (cmode === "ABD1") || (cmode === "__LO") ||
+                        (cmode === "__D1") || (cmode === "10*LOG10") || (cmode === 6)) {
+                        Gx.cmode = 6;
+                    }
+                    if ((cmode === "L2") || (cmode === "D2") || (cmode === "INL2") || (cmode === "IND2") ||
+                        (cmode === "ABLO") || (cmode === "ABD2") || (cmode === "__L2") ||
+                        (cmode === "__D2") || (cmode === "20*LOG10") || (cmode === 7)) {
+                        Gx.cmode = 7;
+                    }
+                    if (cmode === "LL") {
+                        Gx.cmode = 8;
+                    }
+                    if ((cmode === "RI") || (cmode === "IR") || (cmode === "INRI") || (cmode === "INIR") ||
+                        (cmode === "ABRI") || (cmode === "ABIR") || (cmode === "__RI") ||
+                        (cmode === "__IR") || (cmode === "IMAG/REAL") || (cmode === "REAL/IMAG") || (cmode === 5)) {
+                        if (Gx.index) {
+                            alert("Imag/Real mode not permitted in INDEX mode");
+                        } else {
+                            Gx.cmode = 5;
+                        }
+                    }
+                } else {
+                    Gx.cmode = settings.cmode;
                 }
 
                 Gx.basemode = Gx.cmode;
@@ -3822,7 +3823,7 @@
      * @memberOf sigplot
      * @private
      */
-    var cxm = ["Ma", "Ph", "Re", "Im", "IR", "Lo", "L2"];
+    var cxm = ["Ma", "Ph", "Re", "Im", "IR", "Lo", "L2", "LL"];
 
     /**
      * Map integer abscissa mode to string equivalent.
@@ -6574,6 +6575,9 @@
                 case 7:
                     address = "L2";
                     break;
+                case 8:
+                    address = "LL";
+                    break;
                 default:
                     throw new RangeError("Invalid cmode value");
             }
@@ -6700,6 +6704,9 @@
             (cmode === "__D2") || (cmode === "20*LOG10")) {
             Gx.cmode = 7;
         }
+        if (cmode === "LL") {
+            Gx.cmode = 8;
+        }
         if ((cmode === "RI") || (cmode === "IR") || (cmode === "INRI") || (cmode === "INIR") ||
             (cmode === "ABRI") || (cmode === "ABIR") || (cmode === "__RI") ||
             (cmode === "__IR") || (cmode === "IMAG/REAL") || (cmode === "REAL/IMAG")) {
@@ -6712,7 +6719,7 @@
 
         Gx.basemode = Gx.cmode;
         Gx.semilog = (o.semilog === true);
-        Gx.loglog = (o.loglog === true);;
+        Gx.loglog = (o.loglog === true);
 
         plot.change_settings({
             cmode: Gx.cmode
