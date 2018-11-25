@@ -247,8 +247,29 @@ QUnit.test('colormap', function(assert) {
 // QUnit 'mx' module
 //////////////////////////////////////////////////////////////////////////////
 QUnit.module('mx', {
-    setup: function() {},
-    teardown: function() {}
+    beforeEach: function() {
+        ifixture.innerHTML = '';
+        var plotdiv = document.createElement("div");
+        plotdiv.id = "plot";
+        plotdiv.style.margin = "0 auto";
+        plotdiv.style.width = "600px";
+        plotdiv.style.height = "400px";
+        ifixture.appendChild(plotdiv);
+        plotdiv = document.createElement("div");
+        plotdiv.id = "plot2";
+        plotdiv.style.margin = "0 auto";
+        plotdiv.style.width = "600px";
+        plotdiv.style.height = "400px";
+        plotdiv.style.display = "none";
+        ifixture.appendChild(plotdiv);
+    },
+    afterEach: function() {
+        ifixture.innerHTML = '';
+        if (ifixture.interval) {
+            window.clearInterval(ifixture.interval);
+            ifixture.interval = undefined;
+        }
+    }
 });
 QUnit.test('mx format_f', function(assert) {
     // the toFixed() function is limited to 0-20
@@ -263,6 +284,10 @@ QUnit.test('mx real_to_pixel test', function(assert) {
         x: 0,
         y: 0,
         level: 0,
+        _xscale: sigplot.m.linear,
+        _yscale: sigplot.m.linear,
+        _xscale_inv: sigplot.m.linear,
+        _yscale_inv: sigplot.m.linear,
         stk: [{
             xmin: -1,
             xmax: 1,
@@ -305,6 +330,102 @@ QUnit.test('mx real_to_pixel test', function(assert) {
     assert.equal(result.y, 200);
     assert.equal(result.clipped, true);
 });
+QUnit.test('mx trace pixel_to_real', function(assert) {
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+
+    // 100 pixels per element
+    sigplot.mx.xlim(Mx, 0, 6);
+    sigplot.mx.ylim(Mx, 0, 4);
+
+    var res;
+
+    res = sigplot.mx.pixel_to_real(Mx, 0, 400);
+    assert.equal(res.x, 0);
+    assert.equal(res.y, 0);
+
+    res = sigplot.mx.pixel_to_real(Mx, 600, 0);
+    assert.equal(res.x, 6);
+    assert.equal(res.y, 4);
+
+    res = sigplot.mx.pixel_to_real(Mx, 300, 200);
+    assert.equal(res.x, 3);
+    assert.equal(res.y, 2);
+});
+QUnit.test('mx trace pixel_to_real logx', function(assert) {
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+
+    // 100 pixels per decade
+    sigplot.mx.xlim(Mx, 1, 1000000);
+    sigplot.mx.xscale(Mx, 'log');
+    sigplot.mx.ylim(Mx, 0, 4);
+
+    var res;
+
+    res = sigplot.mx.pixel_to_real(Mx, 0, 400);
+    assert.equal(res.x, 1);
+    assert.equal(res.y, 0);
+
+    res = sigplot.mx.real_to_pixel(Mx, 1, 0);
+    assert.equal(res.x, 0);
+    assert.equal(res.y, 400);
+
+    res = sigplot.mx.pixel_to_real(Mx, 600, 0);
+    almostEqual(assert, res.x, 1000000);
+    assert.equal(res.y, 4);
+
+    res = sigplot.mx.real_to_pixel(Mx, 1000000, 4);
+    assert.equal(res.x, 600);
+    assert.equal(res.y, 0);
+
+    res = sigplot.mx.pixel_to_real(Mx, 300, 200);
+    almostEqual(assert, res.x, 1000);
+    assert.equal(res.y, 2);
+
+    res = sigplot.mx.real_to_pixel(Mx, 1000, 2);
+    assert.equal(res.x, 300);
+    assert.equal(res.y, 200);
+});
+QUnit.test('mx trace pixel_to_real logy', function(assert) {
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+
+    // 100 pixels per decade
+    sigplot.mx.xlim(Mx, 0, 4);
+    sigplot.mx.ylim(Mx, 1, 1000000);
+    sigplot.mx.yscale(Mx, 'log');
+
+    var res;
+
+    res = sigplot.mx.pixel_to_real(Mx, 0, 400);
+    assert.equal(res.x, 0);
+    assert.equal(res.y, 1);
+
+    res = sigplot.mx.real_to_pixel(Mx, 0, 1);
+    assert.equal(res.x, 0);
+    assert.equal(res.y, 400);
+
+    res = sigplot.mx.pixel_to_real(Mx, 600, 0);
+    assert.equal(res.x, 4);
+    almostEqual(assert, res.y, 1000000);
+
+    res = sigplot.mx.real_to_pixel(Mx, 4, 1000000);
+    assert.equal(res.x, 600);
+    assert.equal(res.y, 0);
+
+    res = sigplot.mx.pixel_to_real(Mx, 300, 200);
+    assert.equal(res.x, 2);
+    almostEqual(assert, res.y, 1000);
+
+    res = sigplot.mx.real_to_pixel(Mx, 2, 1000);
+    assert.equal(res.x, 300);
+    assert.equal(res.y, 200);
+});
+
 //////////////////////////////////////////////////////////////////////////////
 // QUnit 'bluefile' module
 //////////////////////////////////////////////////////////////////////////////
@@ -1751,7 +1872,159 @@ QUnit.test('Plot y-cut preserves pan values', function(assert) {
         done();
     }, {});
 });
+//////////////////////////////////////////////////////////////////////////////
+// QUnit 'mx-interactive' module
+//////////////////////////////////////////////////////////////////////////////
+QUnit.module('mx-interactive', {
+    beforeEach: function() {
+        ifixture.innerHTML = '';
+        var plotdiv = document.createElement("div");
+        plotdiv.id = "plot";
+        plotdiv.style.margin = "0 auto";
+        plotdiv.style.width = "600px";
+        plotdiv.style.height = "400px";
+        ifixture.appendChild(plotdiv);
+        plotdiv = document.createElement("div");
+        plotdiv.id = "plot2";
+        plotdiv.style.margin = "0 auto";
+        plotdiv.style.width = "600px";
+        plotdiv.style.height = "400px";
+        plotdiv.style.display = "none";
+        ifixture.appendChild(plotdiv);
+    },
+    afterEach: function() {
+        ifixture.innerHTML = '';
+        if (ifixture.interval) {
+            window.clearInterval(ifixture.interval);
+            ifixture.interval = undefined;
+        }
+    }
+});
+interactiveTest('mx clear_window', 'Do you see any empty black square?', function(assert) {
+    var container = document.getElementById('plot');
+    assert.equal(container.childNodes.length, 0);
+    assert.equal(ifixture.childNodes.length, 2);
 
+    var Mx = sigplot.mx.open(container);
+    assert.notEqual(Mx, null);
+    assert.equal(container.childNodes.length, 1);
+    assert.equal(container.childNodes[0], Mx.parent);
+    assert.equal(Mx.parent.childNodes.length, 2);
+    assert.equal(Mx.parent.childNodes[0], Mx.canvas);
+    assert.equal(Mx.parent.childNodes[1], Mx.wid_canvas);
+    assert.equal(Mx.canvas.width, 600);
+    assert.equal(Mx.canvas.height, 400);
+    assert.equal(Mx.canvas.style.position, "absolute");
+    assert.equal(Mx.wid_canvas.width, 600);
+    assert.equal(Mx.wid_canvas.height, 400);
+    assert.equal(Mx.wid_canvas.style.position, "absolute");
+
+    sigplot.mx.clear_window(Mx);
+});
+interactiveTest('mx draw_line', 'Do you see a red (UL to BR) and green (BL to UR) cross?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    sigplot.mx.draw_line(Mx, 'red', 0, 0, 600, 400);
+    sigplot.mx.draw_line(Mx, 'green', 0, 400, 600, 0);
+});
+interactiveTest('mx trace', 'Do you see a red triangle?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    var xpoint = [0, 1, 2, 3, 4, 5, 6];
+    var ypoint = [0, 1, 2, 3, 2, 1, 0];
+    sigplot.mx.xlim(Mx, 0, 6);
+    sigplot.mx.ylim(Mx, 0, 6);
+    sigplot.mx.trace(Mx, 'red', xpoint, ypoint, 7, undefined, undefined, 1, 2, 4);
+});
+interactiveTest('mx trace off screen', 'Do you see a red triangle?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    var xpoint = [0, 1, 2, 3, 4, 5, 6];
+    var ypoint = [0, 1, 2, 3, 2, 1, 0];
+    sigplot.mx.xlim(Mx, 0, 6);
+    sigplot.mx.ylim(Mx, 0.5, 6);
+    sigplot.mx.trace(Mx, 'red', xpoint, ypoint, 7, undefined, undefined, 1, 2, 4);
+});
+interactiveTest('mx trace logx', 'Do you see a red triangle?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    var xpoint = [1, 10, 100, 1000, 10000, 100000, 1000000];
+    var ypoint = [0, 1, 2, 3, 2, 1, 0];
+    sigplot.mx.xlim(Mx, 1, 1000000);
+    sigplot.mx.ylim(Mx, 0, 6);
+    sigplot.mx.xscale(Mx, 'log');
+    sigplot.mx.trace(Mx, 'red', xpoint, ypoint, 7, undefined, undefined, 1, 2, 4);
+});
+interactiveTest('mx trace logy', 'Do you see a red triangle?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    var xpoint = [0, 1, 2, 3, 4, 5, 6];
+    var ypoint = [1, 10, 100, 1000, 100, 10, 1];
+    sigplot.mx.xlim(Mx, 0, 6);
+    sigplot.mx.ylim(Mx, 1, 100000);
+    sigplot.mx.yscale(Mx, 'log');
+    sigplot.mx.trace(Mx, 'red', xpoint, ypoint, 7, undefined, undefined, 1, 2, 4);
+});
+interactiveTest('mx trace axes', 'Do you see a red triangle?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    sigplot.mx.padding(Mx, 100);
+
+    var xpoint = [0, 1, 2, 3, 4, 5, 6];
+    var ypoint = [0, 1, 2, 3, 2, 1, 0];
+    sigplot.mx.xlim(Mx, 0, 6);
+    sigplot.mx.ylim(Mx, 0, 6);
+    sigplot.mx.drawaxis(Mx, 5, 5, 0, 0);
+    sigplot.mx.trace(Mx, 'red', xpoint, ypoint, 7, undefined, undefined, 1, 2, 4);
+});
+interactiveTest('mx trace logx axes', 'Do you see a red triangle?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    sigplot.mx.padding(Mx, 100);
+    var xpoint = [1, 10, 100, 1000, 10000, 100000, 1000000];
+    var ypoint = [0, 1, 2, 3, 2, 1, 0];
+    sigplot.mx.xlim(Mx, 1, 3000000000000);
+    sigplot.mx.ylim(Mx, 0, 6);
+    sigplot.mx.xscale(Mx, 'log');
+    sigplot.mx.drawaxis(Mx, 5, 5, 0, 0);
+    sigplot.mx.trace(Mx, 'red', xpoint, ypoint, 7, undefined, undefined, 1, 2, 4);
+});
+interactiveTest('mx trace logy axes', 'Do you see a red triangle?', function(assert) {
+    assert.expect(0);
+
+    var container = document.getElementById('plot');
+    var Mx = sigplot.mx.open(container);
+    sigplot.mx.clear_window(Mx);
+    sigplot.mx.padding(Mx, 100);
+    var xpoint = [0, 1, 2, 3, 4, 5, 6];
+    var ypoint = [1, 10, 100, 1000, 100, 10, 1];
+    sigplot.mx.xlim(Mx, 0, 6);
+    sigplot.mx.ylim(Mx, 1, 100000);
+    sigplot.mx.yscale(Mx, 'log');
+    sigplot.mx.drawaxis(Mx, 5, 5, 0, 0);
+    sigplot.mx.trace(Mx, 'red', xpoint, ypoint, 7, undefined, undefined, 1, 2, 4);
+});
 //////////////////////////////////////////////////////////////////////////////
 // QUnit 'sigplot-interactive' module
 //////////////////////////////////////////////////////////////////////////////
@@ -1798,11 +2071,37 @@ interactiveTest('sigplot empty', 'Do you see an empty plot scaled from -1 to 1 o
     assert.equal(plot._Mx.wid_canvas.height, 400);
     assert.equal(plot._Mx.wid_canvas.style.position, "absolute");
 });
-interactiveTest('sigplot semilog empty', 'Do you see an empty semilog plot scaled from 0 to 1000 on the y-axis?', function(assert) {
+interactiveTest('sigplot y log empty', 'Do you see an empty semilog plot scaled from 1 to 1000 on the y-axis?', function(assert) {
     var container = document.getElementById('plot');
     assert.equal(container.childNodes.length, 0);
     assert.equal(ifixture.childNodes.length, 2);
-    var plot = new sigplot.Plot(container, {ymin: 0, ymax: 1000, semilog: true});
+    var plot = new sigplot.Plot(container, {
+        ymin: 1,
+        ymax: 1000,
+        yscale: 'log'
+    });
+    assert.notEqual(plot, null);
+    assert.equal(container.childNodes.length, 1);
+    assert.equal(container.childNodes[0], plot._Mx.parent);
+    assert.equal(plot._Mx.parent.childNodes.length, 2);
+    assert.equal(plot._Mx.parent.childNodes[0], plot._Mx.canvas);
+    assert.equal(plot._Mx.parent.childNodes[1], plot._Mx.wid_canvas);
+    assert.equal(plot._Mx.canvas.width, 600);
+    assert.equal(plot._Mx.canvas.height, 400);
+    assert.equal(plot._Mx.canvas.style.position, "absolute");
+    assert.equal(plot._Mx.wid_canvas.width, 600);
+    assert.equal(plot._Mx.wid_canvas.height, 400);
+    assert.equal(plot._Mx.wid_canvas.style.position, "absolute");
+});
+interactiveTest('sigplot x log empty', 'Do you see an empty semilog plot scaled from 1 to 1000 on the x-axis?', function(assert) {
+    var container = document.getElementById('plot');
+    assert.equal(container.childNodes.length, 0);
+    assert.equal(ifixture.childNodes.length, 2);
+    var plot = new sigplot.Plot(container, {
+        xmin: 1,
+        xmax: 1000,
+        xscale: 'log'
+    });
     assert.notEqual(plot, null);
     assert.equal(container.childNodes.length, 1);
     assert.equal(container.childNodes[0], plot._Mx.parent);
@@ -1948,16 +2247,88 @@ interactiveTest('sigplot ramp', 'Do you see a ramp from 0 to 1023?', function(as
         file_name: "ramp"
     });
 });
-interactiveTest('sigplot ramp semilog', 'Do you see a ramp from 0 to 1023?', function(assert) {
+interactiveTest('sigplot ramp log y', 'Do you see a log plot 100 to 100000?', function(assert) {
     var container = document.getElementById('plot');
-    var plot = new sigplot.Plot(container, {semilog: true, cmode: 8});
+    var plot = new sigplot.Plot(container, {
+        yscale: 'log'
+    });
     assert.notEqual(plot, null);
     var ramp = [];
-    for (var i = 0; i < 1024; i++) {
-        ramp.push(i+1);
+    for (var i = 1; i < 1000; i++) {
+        ramp.push(i * 100);
     }
     plot.overlay_array(ramp, {
         file_name: "ramp"
+    }, {
+        symbol: 2
+    });
+});
+interactiveTest('sigplot ramp symlog y', 'Do you see a log plot -50000 to 50000', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        yscale: 'symlog'
+    });
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 0; i < 1000; i++) {
+        ramp.push((i * 100) - 50000);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp"
+    }, {
+        symbol: 2
+    });
+});
+interactiveTest('sigplot log y large range', 'Do you see a log plot 1 to 1e12?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        yscale: 'log'
+    });
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 1; i < 10000; i++) {
+        ramp.push(i * i * i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp"
+    }, {
+        symbol: 2
+    });
+});
+interactiveTest('sigplot ramp log x', 'Do you see a ramp from 1 to 1000 with a log x-axis?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        xscale: 'log'
+    });
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 1; i < 1000; i++) {
+        ramp.push(i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp",
+        xstart: 1,
+        xdelta: 100000
+    }, {
+        symbol: 2
+    });
+});
+interactiveTest('sigplot ramp symlog x', 'Do you see a ramp from 1 to 1000 with a symlog x-axis?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        xscale: 'symlog'
+    });
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 1; i < 1000; i++) {
+        ramp.push(i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp",
+        xstart: -50000000,
+        xdelta: 100000
+    }, {
+        symbol: 2
     });
 });
 interactiveTest('sigplot ramp', 'Do you see a sin wave?', function(assert) {

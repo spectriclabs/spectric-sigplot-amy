@@ -932,6 +932,30 @@
         return Math.pow(10, v);
     };
 
+    m.symlog10 = function(v, lo_thresh) {
+        if (lo_thresh === undefined) {
+            lo_thresh = 1.0e-20;
+        }
+        if (v > 0) {
+            return Math.log(Math.max(v, lo_thresh)) / Math.log(10);
+        } else if (v < 0) {
+            v = Math.abs(v);
+            return -1 * (Math.log(Math.max(v, lo_thresh)) / Math.log(10));
+        } else {
+            return 0;
+        }
+    };
+
+    m.sympow10 = function(v) {
+        if (v > 0) {
+            return Math.pow(10, v);
+        } else if (v < 0) {
+            return -1 * Math.pow(10, Math.abs(v));
+        } else {
+            return 0;
+        }
+    };
+
     /**
      * For each vector element in <src>, determine the max of <src> element and <lo_thresh>, returns the log(base10) of that value in <dst>
      * @param	{array}		src		Input vector.

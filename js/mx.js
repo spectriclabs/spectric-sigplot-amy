@@ -2860,6 +2860,9 @@
             } else if (Mx.xscale === "log") {
                 Mx._xscale = m.log10;
                 Mx._xscale_inv = m.pow10;
+            } else if (Mx.xscale === "symlog") {
+                Mx._xscale = m.symlog10;
+                Mx._xscale_inv = m.sympow10;
             }
         }
     };
@@ -2888,6 +2891,9 @@
             } else if (Mx.yscale === "log") {
                 Mx._yscale = m.log10;
                 Mx._yscale_inv = m.pow10;
+            } else if (Mx.yscale === "symlog") {
+                Mx._yscale = m.symlog10;
+                Mx._yscale_inv = m.sympow10;
             }
         }
     };
@@ -2972,15 +2978,14 @@
             } else if (ddf < 2.25) {
                 dtic = 2.0 * sig;
             } else if (ddf < 3.5) {
-                if (scale === "log") {
-                    dtic = 3.0 * sig;
-                } else {
-                    dtic = 2.50 * sig;
-                }
+                dtic = 2.50 * sig;
             } else if (ddf < 7.0) {
                 dtic = 5.0 * sig;
             } else {
                 dtic = 10.0 * sig;
+            }
+            if ((scale === "log") || (scale === "symlog")) {
+                dtic = Math.max(1, Math.ceil(dtic));
             }
         }
 
@@ -3324,7 +3329,7 @@
                             ix = i + (Mx.text_w * (xlbl.length + 1));
                         }
                     } else {
-                        if (Mx.xscale === "log") {
+                        if ((Mx.xscale === "log") || (Mx.xscale === "symlog")) {
                             xlbl = "10^" + x;
                         } else {
                             xlbl = mx.format_f(x * fmul, xlbl_maxlen, xlbl_maxlen / 2);
@@ -3462,7 +3467,7 @@
                     }
                 } else {
                     // TODO this is a bit brute-force
-                    if (Mx.yscale === "log") {
+                    if ((Mx.yscale === "log") || (Mx.yscale === "symlog")) {
                         ylbl = "10^" + y;
                     } else {
                         ylbl = mx.format_f(y * fmul, 12, 6);
