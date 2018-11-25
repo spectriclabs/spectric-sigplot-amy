@@ -2067,6 +2067,22 @@
         ctx.clearRect(0, 0, Mx.width, Mx.height);
     };
 
+    mx.padding = function(Mx, pad) {
+        Mx.l = pad;
+        Mx.r = Mx.width - pad;
+        Mx.t = pad;
+        Mx.b = Mx.height - pad;
+
+        Mx.stk.forEach(function(stk) {
+            stk.x1 = Mx.l;
+            stk.x2 = Mx.r;
+            stk.y1 = Mx.t;
+            stk.y2 = Mx.b;
+            stk.xscl = (stk.xmax - stk.xmin) / (stk.x2 - stk.x1);
+            stk.yscl = (stk.ymax - stk.ymin) / (stk.y2 - stk.y1);
+        });
+    };
+
     /**
      * @param Mx
      * @param func
@@ -2772,6 +2788,62 @@
             style.width = 1;
         }
         draw_line(ctx, xstart, ystart, xend, yend, style, style.color, style.width);
+    };
+
+    mx.xlim = function(Mx, xmin, xmax) {
+        if (xmin === undefined) {
+            return {
+                "xmin": Mx.stk[0].xmin,
+                "xmax": Mx.stk[0].xmax
+            };
+        } else {
+            Mx.stk[0].xmin = xmin;
+            Mx.stk[0].xmax = xmax;
+            Mx.stk[0].xscl = (Mx.stk[0].xmax - Mx.stk[0].xmin) / (Mx.stk[0].x2 - Mx.stk[0].x1);
+        }
+    };
+
+    mx.xscale = function(Mx, xscale) {
+        if (xscale === undefined) {
+            return Mx.xscale;
+        } else {
+            Mx.xscale = xscale;
+            if (Mx.xscale === "linear") {
+                Mx._xscale = m.linear;
+                Mx._xscale_inv = m.linear;
+            } else if (Mx.xscale === "log") {
+                Mx._xscale = m.log10;
+                Mx._xscale_inv = m.pow10;
+            }
+        }
+    };
+
+    mx.ylim = function(Mx, ymin, ymax) {
+        if (ymin === undefined) {
+            return {
+                "ymin": Mx.stk[0].ymin,
+                "ymax": Mx.stk[0].ymax
+            };
+        } else {
+            Mx.stk[0].ymin = ymin;
+            Mx.stk[0].ymax = ymax;
+            Mx.stk[0].yscl = (Mx.stk[0].ymax - Mx.stk[0].ymin) / (Mx.stk[0].y2 - Mx.stk[0].y1);
+        }
+    };
+
+    mx.yscale = function(Mx, yscale) {
+        if (yscale === undefined) {
+            return Mx.yscale;
+        } else {
+            Mx.yscale = yscale;
+            if (Mx.yscale === "linear") {
+                Mx._yscale = m.linear;
+                Mx._yscale_inv = m.linear;
+            } else if (Mx.yscale === "log") {
+                Mx._yscale = m.log10;
+                Mx._yscale_inv = m.pow10;
+            }
+        }
     };
 
     /**
