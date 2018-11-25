@@ -917,11 +917,19 @@
         }
     };
 
+    m.linear = function(v) {
+        return v;
+    };
+
     m.log10 = function(v, lo_thresh) {
         if (lo_thresh === undefined) {
             lo_thresh = 1.0e-20;
         }
         return Math.log(Math.max(v, lo_thresh)) / Math.log(10);
+    };
+
+    m.pow10 = function(v) {
+        return Math.pow(10, v);
     };
 
     /**
