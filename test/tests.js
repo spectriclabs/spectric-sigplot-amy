@@ -35,6 +35,19 @@ if (/PhantomJS/.test(window.navigator.userAgent)) {
     sigplot.m.log.setLevel("error");
 }
 
+function almostEqual(assert, v1, v2, threshold) {
+    var diff = Math.abs(v1 - v2);
+    if (threshold === undefined) {
+        threshold = 1.0e-6;
+    }
+
+    if (diff >= threshold) {
+        assert.ok(false, 'value ' + v1 + ' is not equal to ' + v2 + ' with difference ' + diff);
+    } else {
+        assert.ok(true);
+    }
+}
+
 function interactiveTest(testName, msg, callback) {
     if (!ifixture) {
         return;
