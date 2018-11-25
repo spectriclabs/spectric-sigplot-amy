@@ -228,7 +228,17 @@
         this.xmrk = 0.0; // absc coord of mark
         this.ymrk = 0.0;
         this.origin = 1;
+
         this.stk = [new mx.STKSTRUCT()]; // zoom stack
+
+        this.xscale = "linear";
+        this._xscale = m.linear;
+        this._xscale_inv = m.linear;
+        this.yscale = "linear";
+        this._yscale = m.linear;
+        this._yscale_inv = m.linear;
+
+
 
         mx.setbgfg(this, "black", "white");
 
@@ -252,6 +262,11 @@
         this.r = this.width;
         this.t = 0;
         this.b = this.height;
+
+        this.stk[0].x1 = this.l;
+        this.stk[0].x2 = this.r;
+        this.stk[0].y1 = this.t;
+        this.stk[0].y2 = this.b;
 
         // Scrollbar state
         this.scrollbar_x = new mx.SCROLLBAR();
@@ -436,6 +451,12 @@
         })(Mx);
 
         mx.enableListeners(Mx);
+
+        var font_width = Mx.font_width;
+        if (Mx.font_scaled) {
+            font_width = Math.min(Mx.font_width, Mx.width / 64);
+        }
+        mx.set_font(Mx, font_width);
 
         return Mx;
     };
@@ -1394,6 +1415,10 @@
             throw "mx.trace requires xpoint and ypoint";
         }
 
+        if (istart === undefined) {
+            istart = 0;
+        }
+
         if (skip === undefined) {
             skip = 1;
         }
@@ -1439,6 +1464,8 @@
             return;
         }
 
+        stk4 = mx.scaled(Mx, stk4);
+
         var left = stk4.x1;
         var top = stk4.y1;
 
@@ -1476,10 +1503,11 @@
         var pixy = new Int32Array(new ArrayBuffer(bufsize));
 
         var ib = 0;
+        // Drawing symbols only
         if ((line === 0) && (symb !== 0)) {
             for (var n = (skip - 1); n < npts; n += skip) {
-                var x = xpoint[n];
-                var y = ypoint[n];
+                var x = Mx._xscale(xpoint[n]);
+                var y = Mx._yscale(ypoint[n]);
                 var lvisible = ((x >= xmin) && (x <= xmax) && (y >= ymin) && (y <= ymax));
                 if (lvisible) {
                     pixx[0] = Math.round((x - xxmin) * xscl) + left;
@@ -1488,10 +1516,11 @@
                 }
             }
         }
+        // Drawing vertical bars
         if (options.vertsym === true) {
             for (var n = (skip - 1); n < npts; n += skip) {
-                var x = xpoint[n];
-                var y = ypoint[n];
+                var x = Mx._xscale(xpoint[n]);
+                var y = Mx._yscale(ypoint[n]);
                 if ((x >= xmin) && (x <= xmax)) {
                     var i = Math.round((x - xxmin) * xscl) + left;
                     mx.draw_line(Mx, color, i, 0, i, Mx.height);
@@ -1503,10 +1532,11 @@
                 }
             }
         }
+        // Drawing horizontal bars
         if (options.horzsym === true) {
             for (var n = (skip - 1); n < npts; n += skip) {
-                var x = xpoint[n];
-                var y = ypoint[n];
+                var x = Mx._xscale(xpoint[n]);
+                var y = Mx._yscale(ypoint[n]);
                 if ((y >= ymin) && (y <= ymax)) {
                     var i = Math.round((y - yymin) * yscl) + top;
                     mx.draw_line(Mx, color, 0, i, Mx.width, i);
@@ -1517,6 +1547,7 @@
                     }
                 }
             }
+            // Drawing the line itself
         } else if (line !== 0) {
             var colors;
             if ((options) && (options.highlight)) {
@@ -1591,13 +1622,13 @@
             }
 
             var wn = 0; // the winding number counter http://geomalgorithms.com/a03-_inclusion.html
-            var mid_x = (Mx.stk[Mx.level].xmax + Mx.stk[Mx.level].xmin) / 2.0;
-            var mid_y = (Mx.stk[Mx.level].ymax + Mx.stk[Mx.level].ymin) / 2.0;
+            var mid_x = (stk4.xmax + stk4.xmin) / 2.0;
+            var mid_y = (stk4.ymax + stk4.ymin) / 2.0;
 
-            var x = xpoint[0];
-            var y = ypoint[0];
+            var x = Mx._xscale(xpoint[0]);
+            var y = Mx._yscale(ypoint[0]);
 
-            wn = update_winding_number(wn, mid_x, mid_y, Mx.stk[Mx.level].xmin, Mx.stk[Mx.level].ymin, x, y);
+            wn = update_winding_number(wn, mid_x, mid_y, stk4.xmin, stk4.ymin, x, y);
 
             var lvisible = ((x >= xmin) && (x <= xmax) && (y >= ymin) && (y <= ymax));
             // The first point is visible
@@ -1618,8 +1649,8 @@
 
                 var lx = x;
                 var ly = y;
-                x = xpoint[n];
-                y = ypoint[n];
+                x = Mx._xscale(xpoint[n]);
+                y = Mx._yscale(ypoint[n]);
 
                 wn = update_winding_number(wn, mid_x, mid_y, lx, ly, x, y);
 
@@ -1686,10 +1717,12 @@
                     }
                 }
             }
-            wn = update_winding_number(wn, mid_x, mid_y, x, y, Mx.stk[Mx.level].xmax, Mx.stk[Mx.level].ymin);
-            wn = update_winding_number(wn, mid_x, mid_y, Mx.stk[Mx.level].xmax, Mx.stk[Mx.level].ymin, Mx.stk[Mx.level].xmin, Mx.stk[Mx.level].ymin);
+            wn = update_winding_number(wn, mid_x, mid_y, x, y, stk4.xmax, stk4.ymin);
+            wn = update_winding_number(wn, mid_x, mid_y, stk4.xmax, stk4.ymin, stk4.xmin, stk4.ymin);
+            // If there are points still to be drawn
             if ((ib - ie) > 0) {
                 mx.draw_lines(Mx, colors, pixx.subarray(ie, ib), pixy.subarray(ie, ib), (ib - ie), line, style);
+                // If the last point is visible, include it
                 if (visible) {
                     ie = ie + 1;
                 }
@@ -1701,9 +1734,9 @@
                     // the last data point
                     mx.draw_symbols(Mx,
                         color,
-                        pixx.subarray(ie - 1, ib),
-                        pixy.subarray(ie - 1, ib),
-                        ib - ie - 1,
+                        pixx.subarray(ie, ib),
+                        pixy.subarray(ie, ib),
+                        ib - ie,
                         symb,
                         rad,
                         n - ib + istart);
@@ -1728,13 +1761,10 @@
                     var x_start = highlight.xstart;
                     var x_end = highlight.xend;
 
-                    console.log("x start ", x_start);
-                    console.log("x end ", x_end);
-
-                    if (x_start >= Mx.stk[Mx.level].xmax) {
+                    if (x_start >= stk4.xmax) {
                         continue;
                     }
-                    if (x_end <= Mx.stk[Mx.level].xmin) {
+                    if (x_end <= stk4.xmin) {
                         continue;
                     }
 
@@ -2141,6 +2171,23 @@
         Mx.warpbox.alt_style = alt_style;
     };
 
+    mx.scaled = function(Mx, instk) {
+
+        var outstk = new mx.STKSTRUCT();
+        outstk.x1 = instk.x1;
+        outstk.y1 = instk.y1;
+        outstk.x2 = instk.x2;
+        outstk.y2 = instk.y2;
+        outstk.xmin = Mx._xscale(instk.xmin);
+        outstk.xmax = Mx._xscale(instk.xmax);
+        outstk.xscl = (outstk.xmax - outstk.xmin) / (outstk.x2 - outstk.x1);
+        outstk.ymin = Mx._yscale(instk.ymin);
+        outstk.ymax = Mx._yscale(instk.ymax);
+        outstk.yscl = (outstk.ymax - outstk.ymin) / (outstk.y2 - outstk.y1);
+
+        return outstk;
+    };
+
     /**
      * @param inorigin
      * @param outorigin
@@ -2154,7 +2201,6 @@
         outorigin = Math.max(1, outorigin);
 
         var outstk = new mx.STKSTRUCT();
-
         outstk.xmin = instk.xmin;
         outstk.xmax = instk.xmax;
         outstk.ymin = instk.ymin;
@@ -2864,7 +2910,7 @@
      *    an object with dtic (tic mark interval) and dtic1 (first tic mark value)
      */
     // ~= MX$TICS
-    mx.tics = function(dmin, dmax, ndiv, timecode, logrithmic) {
+    mx.tics = function(dmin, dmax, ndiv, timecode, scale) {
         var dtic = 1;
         var dtic1 = dmin;
 
@@ -2876,18 +2922,11 @@
             };
         }
 
-        if (logrithmic) {
-            return {
-                dtic: 1,
-                dtic1: Math.floor(dmin)
-            };
-        }
-
         // split up range into about ndiv 'nice' chunks
         // zero is included only if   dmin < zero < dmax
         var dran = Math.abs(dmax - dmin);
         var df = dran / ndiv;
-        var sig = log10(Math.max(df, 1.0e-36));
+        var sig = m.log10(Math.max(df, 1.0e-36));
         var nsig;
         if (sig < 0.0) {
             nsig = Math.ceil(sig);
@@ -2933,7 +2972,11 @@
             } else if (ddf < 2.25) {
                 dtic = 2.0 * sig;
             } else if (ddf < 3.5) {
-                dtic = 2.50 * sig;
+                if (scale === "log") {
+                    dtic = 3.0 * sig;
+                } else {
+                    dtic = 2.50 * sig;
+                }
             } else if (ddf < 7.0) {
                 dtic = 5.0 * sig;
             } else {
@@ -2945,6 +2988,7 @@
         if (dtic === 0.0) {
             dtic = 1.0;
         }
+
         var nseg;
         if (dmax >= dmin) {
             if (dmin >= 0.0) {
@@ -3033,8 +3077,13 @@
      *     render the y-axis on the right instead of the left
      */
     // ~= MX$FDRAWAXIS
-    mx.drawaxis = function(Gx, Mx, xdiv, ydiv, xlab, ylab, flags) {
+    mx.drawaxis = function(Mx, xdiv, ydiv, xlab, ylab, flags) {
+        if (flags === undefined) {
+            flags = {};
+        }
         var stk1 = mx.origin(Mx.origin, 1, Mx.stk[Mx.level]);
+        stk1 = mx.scaled(Mx, stk1);
+
         var iscl = 0;
         var isct = 0;
         var iscr = 0;
@@ -3095,7 +3144,7 @@
             xTIC.dtic1 = stk1.xmin;
             xTIC.dtic = (stk1.xmin - stk1.xmax) / xdiv;
         } else {
-            xTIC = mx.tics(stk1.xmin, stk1.xmax, xdiv, flags.xtimecode);
+            xTIC = mx.tics(stk1.xmin, stk1.xmax, xdiv, flags.xtimecode, Mx.xscale);
         }
 
 
@@ -3111,7 +3160,7 @@
             yTIC.dtic1 = stk1.ymin;
             yTIC.dtic = (stk1.ymin - stk1.ymax) / ydiv;
         } else {
-            yTIC = mx.tics(stk1.ymin, stk1.ymax, ydiv, flags.ytimecode, flags.ylogrithmic);
+            yTIC = mx.tics(stk1.ymin, stk1.ymax, ydiv, flags.ytimecode, Mx.yscale);
         }
 
         var _ymult = 1.0;
@@ -3265,6 +3314,7 @@
                 mx.textline(Mx, i, isct - 2, i, isct + 2);
             }
             if (xticlabels) {
+                // if sp==1 then all tics are labeled, otherwise only the first tick
                 if (sp) {
                     xlbl = null;
                     if (flags.xtimecode) {
@@ -3274,8 +3324,12 @@
                             ix = i + (Mx.text_w * (xlbl.length + 1));
                         }
                     } else {
-                        xlbl = mx.format_f(x * fmul, xlbl_maxlen, xlbl_maxlen / 2);
-                        xlbl = trimlabel(xlbl, true);
+                        if (Mx.xscale === "log") {
+                            xlbl = "10^" + x;
+                        } else {
+                            xlbl = mx.format_f(x * fmul, xlbl_maxlen, xlbl_maxlen / 2);
+                            xlbl = trimlabel(xlbl, true);
+                        }
                     }
                     if (xlbl) {
                         var itexti = Math.round(xlbl.length / 2) * Mx.text_w;
@@ -3344,7 +3398,7 @@
                 return (val >= stk1.ymax);
             };
         }
-        
+
         // Render the y-axis tics
         var ylbl;
         for (var y = yTIC.dtic1; endtic(y); y = y + yTIC.dtic) {
@@ -3407,12 +3461,13 @@
                         }
                     }
                 } else {
-                    if (flags.ylogrithmic === true) {
-                        ylbl = mx.format_f(Math.pow(10, y) * fmul, 12, 6);
+                    // TODO this is a bit brute-force
+                    if (Mx.yscale === "log") {
+                        ylbl = "10^" + y;
                     } else {
                         ylbl = mx.format_f(y * fmul, 12, 6);
+                        ylbl = trimlabel(ylbl, flags.inside);
                     }
-                    ylbl = trimlabel(ylbl, flags.inside);
                     mx.text(Mx, itext, Math.min(iscb, i + jtext), ylbl);
                 }
             }
@@ -4416,16 +4471,6 @@
     }
 
     /**
-     * @method log10
-     * @param val
-     * @private
-     */
-    function log10(val) {
-        return Math.log(val) / Math.log(10);
-    }
-
-
-    /**
      * Attempts to format a number in the same manner
      * as the FORTRAN format code 1p1g16.9
      * 1p1g16.9
@@ -5055,7 +5100,12 @@
      * @private
      */
     mx.real_to_pixel = function(Mx, x, y, clip) {
+        x = Mx._xscale(x);
+        y = Mx._yscale(y);
+
         var stk4 = mx.origin(Mx.origin, 4, Mx.stk[Mx.level]);
+        stk4 = mx.scaled(Mx, stk4);
+
         if ((stk4.xscl === 0.0) || (stk4.yscl === 0.0)) {
             return {
                 x: 0,
@@ -5111,22 +5161,27 @@
      * @private
      */
     mx.pixel_to_real = function(Mx, xpos, ypos) {
+        // TODO is an mx.origin call missing here?
+        var stk = mx.scaled(Mx, Mx.stk[Mx.level]);
+
         var iretx = Math.min(Mx.r, Math.max(Mx.l, xpos));
         var irety = Math.min(Mx.b, Math.max(Mx.t, ypos));
         var retx;
         var rety;
 
-        var k = Mx.level;
         if ((Mx.origin !== 2) && (Mx.origin !== 3)) {
-            retx = Mx.stk[k].xmin + (iretx - Mx.stk[k].x1) * Mx.stk[k].xscl;
+            retx = stk.xmin + (iretx - stk.x1) * stk.xscl;
         } else {
-            retx = Mx.stk[k].xmin + (Mx.stk[k].x2 - iretx) * Mx.stk[k].xscl;
+            retx = stk.xmin + (stk.x2 - iretx) * stk.xscl;
         }
         if (Mx.origin > 2) {
-            rety = Mx.stk[k].ymin + (irety - Mx.stk[k].y1) * Mx.stk[k].yscl;
+            rety = stk.ymin + (irety - stk.y1) * stk.yscl;
         } else {
-            rety = Mx.stk[k].ymin + (Mx.stk[k].y2 - irety) * Mx.stk[k].yscl;
+            rety = stk.ymin + (stk.y2 - irety) * stk.yscl;
         }
+
+        retx = Mx._xscale_inv(retx);
+        rety = Mx._yscale_inv(rety);
 
         return {
             x: retx,

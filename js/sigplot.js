@@ -3698,8 +3698,7 @@
             if (Gx.specs) {
                 if (Gx.sections === 0) {
                     var drawaxis_flags = {
-                        grid: Gx.grid,
-                        ylogrithmic: (Gx.semilog || Gx.loglog)
+                        grid: Gx.grid
                     };
                     if (Gx.panning === 2) {
                         drawaxis_flags.noxtlab = true;
@@ -3742,7 +3741,7 @@
                     if (Gx.ylabel !== undefined) {
                         drawaxis_flags.ylabel = Gx.ylabel;
                     }
-                    mx.drawaxis(Gx, Mx, Gx.xdiv, Gx.ydiv, xlab, ylab, drawaxis_flags);
+                    mx.drawaxis(Mx, Gx.xdiv, Gx.ydiv, xlab, ylab, drawaxis_flags);
                 } //else {
                 // Not implemented yet
                 //}
@@ -3784,7 +3783,7 @@
                     noytlab: true,
                     noyplab: true
                 };
-                mx.drawaxis(Gx, Mx, Gx.xdiv, Gx.ydiv, xlab, ylab,
+                mx.drawaxis(Mx, Gx.xdiv, Gx.ydiv, xlab, ylab,
                     drawaxis_flags);
             }
 
@@ -4063,9 +4062,6 @@
         //the drawmode and autol before the x or y cut was showing
         this.old_drawmode = undefined;
         this.old_autol = undefined;
-
-        this.semilog = false;
-        this.loglog = false;
     }
 
     /**
@@ -6718,8 +6714,8 @@
         }
 
         Gx.basemode = Gx.cmode;
-        Gx.semilog = (o.semilog === true);
-        Gx.loglog = (o.loglog === true);
+        mx.xscale(Mx, o.xscale || "linear");
+        mx.yscale(Mx, o.yscale || "linear");
 
         plot.change_settings({
             cmode: Gx.cmode

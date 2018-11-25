@@ -571,12 +571,15 @@
                 qmin = qmax + yran;
                 yran = -yran;
             }
-            if (yran <= 1.0e-20) {
-                qmin = qmin - 1.0;
-                qmax = qmax + 1.0;
-            } else {
-                qmin = qmin - 0.02 * yran;
-                qmax = qmax + 0.02 * yran;
+
+            if (Mx.yscale === 'linear') {
+                if (yran <= 1.0e-20) {
+                    qmin = qmin - 1.0;
+                    qmax = qmax + 1.0;
+                } else {
+                    qmin = qmin - 0.02 * yran;
+                    qmax = qmax + 0.02 * yran;
+                }
             }
 
             if (Mx.level === 0) {
