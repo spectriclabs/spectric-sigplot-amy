@@ -40,44 +40,34 @@
          this._high = 1;
          var ncolors = this.options.ncolors;
          this._fscale = ncolors / (this._high - this._low);
-         var colorindex = 1;
-         var colorBlockIndex = 1;
+
          colors = JSON.parse(JSON.stringify(colors)); //make a copy so we dont change the original colors
          colors = this._parseColors(colors);
          this.colors = colors;
-         var col1 = colors[0];
-         var col2 = colors[1];
-         // pos is the percentage of scale (0-100), so
-         // colorStop is how many percentage is allocated
-         // to this band
-         var colorStop = colors[1].pos - colors[0].pos;
-         // now many colors are allocated to this block
-         var colorsInBlock = ncolors * (colorStop / 100);
-         // the interpolation step per color number
-         var factorStep = 1 / colorsInBlock;
-         for (var n = 0; n < ncolors - 2; n++) {
-             if (colorBlockIndex > colorsInBlock) {
-                 col1 = colors[colorindex];
-                 col2 = colors[colorindex + 1];
-                 // if we are at the end of the color list
-                 if (col2 === undefined) {
-                     break;
-                 }
-                 if ((col1.pos >= 100) && (col2.pos >= 100)) {
-                    break;
-                }
-                 var colorStop = col2.pos - col1.pos;
-                 var colorsInBlock = ncolors * (colorStop / 100);
-                 var factorStep = 1 / colorsInBlock;
-                 var colorBlockIndex = 1;
+
+         // Add the first color
+         this._addColor(colors[0], true);
+
+         var colorindex = 0;
+         for (var n = 1; n < ncolors - 1; n++) {
+             var colorPos = n * (100.0 / ncolors);
+             while ((colorindex < colors.length-1) && (colors[colorindex+1].pos < colorPos)) {
                  colorindex += 1;
              }
-             this._addColor(this.interpolate(col1, col2, factorStep * colorBlockIndex));
-             colorBlockIndex += 1;
+
+             var col1 = colors[colorindex];
+             var col2 = colors[colorindex+1];
+
+             var xx = (colorPos - col1.pos) / (col2.pos - col1.pos);
+             this._addColor(this.interpolate(col1, col2, xx));
          }
-         
-        this._addColor(colors[colorindex]);
-        this._addColor(colors[0], true);
+
+         // Move to the first color with pos:100 and at it at the end of the list
+         while (colorindex < colors.length - 1 && colors[colorindex + 1].pos < 100) {
+            colorindex += 1;
+         }
+
+         this._addColor(colors[colorindex+1]);
          
      };
      ColorMap.prototype = {
@@ -202,10 +192,10 @@
          },
          interpolate: function(col1, col2, factor) {
              return {
-                 red: col1.red + factor * (col2.red - col1.red),
-                 green: col1.green + factor * (col2.green - col1.green),
-                 blue: col1.blue + factor * (col2.blue - col1.blue),
-                 alpha: col1.alpha + factor * (col2.alpha - col1.alpha)
+                 red: ~~(col1.red + factor * (col2.red - col1.red)),
+                 green: ~~(col1.green + factor * (col2.green - col1.green)),
+                 blue: ~~(col1.blue + factor * (col2.blue - col1.blue)),
+                 alpha: ~~(col1.alpha + factor * (col2.alpha - col1.alpha))
              };
          }
      };
