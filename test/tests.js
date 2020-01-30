@@ -310,6 +310,7 @@ QUnit.test('mx real_to_pixel test', function(assert) {
     assert.equal(result.y, 200);
     assert.equal(result.clipped, true);
 });
+
 //////////////////////////////////////////////////////////////////////////////
 // QUnit 'bluefile' module
 //////////////////////////////////////////////////////////////////////////////
@@ -1963,6 +1964,56 @@ QUnit.module('sigplot-interactive', {
         }
     }
 });
+interactiveTest('SDS small', 'does the SDS plot work', function(assert) {
+
+    var container = document.getElementById('plot');
+    container.style.width = "400px";
+
+    var plot = new sigplot.Plot(container, {zmin: -1000, zmax: 500});
+    assert.notEqual(plot, null);
+
+    plot.overlay_href(
+        "http://192.168.1.229:5055/sds?filename=mydata_SL_500_1000",
+        null,
+        {
+            layerType: "SDS"
+        },
+        { // TODO get this from the SDS instead
+            xstart: 0,
+            xdelta: 1,
+            ystart: 0,
+            ydelta: 1,
+            size: 1000,
+            subsize: 500,
+            format: 'SL'
+        }
+    )
+});
+interactiveTest('SDS large', 'does the SDS plot work', function(assert) {
+
+    var container = document.getElementById('plot');
+    container.style.width = "400px";
+
+    var plot = new sigplot.Plot(container, {zmin: -20000, zmax: 8192});
+    assert.notEqual(plot, null);
+
+    plot.overlay_href(
+        "http://192.168.1.229:5055/sds?filename=mydata_SI_8192_20000",
+        null,
+        {
+            layerType: "SDS"
+        },
+        { // TODO get this from the SDS instead
+            xstart: 0,
+            xdelta: 1,
+            ystart: 0,
+            ydelta: 1,
+            size: 20000,
+            subsize: 8192,
+            format: 'SI'
+        }
+    )
+});
 interactiveTest('sigplot empty', 'Do you see an empty plot scaled from -1 to 1 on both axis?', function(assert) {
     var container = document.getElementById('plot');
     assert.equal(container.childNodes.length, 0);
@@ -2473,6 +2524,20 @@ interactiveTest('sigplot penny 1d legend default', 'Do you see a 1d penny with p
     }
     plot.overlay_href("dat/penny.prm", null, {
         layerType: sigplot.Layer1D
+    });
+});
+interactiveTest('sigplot mydata', 'Do you see Grants file?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {zmin: -1000, zmax: 500});
+    assert.notEqual(plot, null);
+    plot.change_settings({yinv: true});
+    plot.overlay_href("dat/mydata_SL_500_1000.tmp", null, {
+        layerType: sigplot.Layer2D,
+	drawmode: 'falling',
+	zmin: -1000,
+	zmax: 500
+    }, function() {
+        plot.change_settings({yinv: true});
     });
 });
 interactiveTest('sigplot penny 1d legend string override', 'Do you see a penny with properly labeled legend (abc)?', function(assert) {

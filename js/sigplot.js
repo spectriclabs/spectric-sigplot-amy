@@ -40,6 +40,7 @@
     var mx = require("./mx");
     var Layer1D = require("./sigplot.layer1d");
     var Layer2D = require("./sigplot.layer2d");
+    var LayerSDS = require("./sigplot.layerSDS");
 
     function sigplot(element, options) {
         if (!(this instanceof sigplot)) {
@@ -2428,10 +2429,10 @@
          * @returns data_layer
          *
          */
-        overlay_href: function(href, onload, layerOptions) {
+        overlay_href: function(href, onload, layerOptions, overrides) {
             var self = this;
             href.split('|').forEach(function(hr) {
-                self.overlay_href_single(hr.trim(), onload, layerOptions);
+                self.overlay_href_single(hr.trim(), onload, layerOptions, overrides);
             });
         },
 
@@ -2461,40 +2462,54 @@
          * @returns data_layer
          *
          */
-        overlay_href_single: function(href, onload, layerOptions) {
+        overlay_href_single: function(href, onload, layerOptions, overrides) {
             m.log.debug("Overlay href: " + href);
             try {
                 this.show_spinner();
 
-                var handleHeader = (function(plot, onload) {
-                    return function(hcb) {
-                        try {
-                            if (!hcb) {
-                                alert("Failed to load data");
-                            } else {
-                                var i;
-                                if (href.endsWith(".mat")) {
-                                    i = plot.overlay_matfile(hcb, layerOptions);
-                                } else {
-                                    i = plot.overlay_bluefile(hcb, layerOptions);
-                                }
-                                if (onload) {
-                                    onload(hcb, i);
-                                }
-                            }
-                        } finally {
-                            plot.hide_spinner();
-                        }
+                if (layerOptions && layerOptions.layerType === "SDS") {
+                    var hcb = {
+                        url: href
                     };
-                }(this, onload));
-
-                var reader;
-                if (href.endsWith(".mat")) {
-                    reader = new matfile.MatFileReader();
+                    common.update(hcb, overrides);
+                    var i = this.overlay_bluefile(hcb, layerOptions);
+                    if (onload) {
+                        onload(hcb, i);
+                    }
+                    this.hide_spinner();
                 } else {
-                    reader = new bluefile.BlueFileReader();
+                    var handleHeader = (function(plot, onload) {
+                        return function(hcb) {
+                            try {
+                                if (!hcb) {
+                                    alert("Failed to load data");
+                                } else {
+                                    common.update(hcb, overrides);
+
+                                    var i;
+                                    if (href.endsWith(".mat")) {
+                                        i = plot.overlay_matfile(hcb, layerOptions);
+                                    } else {
+                                        i = plot.overlay_bluefile(hcb, layerOptions);
+                                    }
+                                    if (onload) {
+                                        onload(hcb, i);
+                                    }
+                                }
+                            } finally {
+                                plot.hide_spinner();
+                            }
+                        };
+                    }(this, onload));
+
+                    var reader;
+                    if (href.endsWith(".mat")) {
+                        reader = new matfile.MatFileReader();
+                    } else {
+                        reader = new bluefile.BlueFileReader();
+                    }
+                    reader.read_http(href, handleHeader);
                 }
-                reader.read_http(href, handleHeader);
             } catch (error) {
                 console.error(error);
                 alert("Failed to load data");
@@ -2597,6 +2612,8 @@
                     layers = Layer1D.overlay(this, hcb, layerOptions);
                 } else if (layerOptions.layerType === "2D") {
                     layers = Layer2D.overlay(this, hcb, layerOptions);
+                } else if (layerOptions.layerType === "SDS") {
+                    layers = LayerSDS.overlay(this, hcb, layerOptions);
                 } else {
                     layers = layerOptions.layerType.overlay(this, hcb, layerOptions);
                 }
@@ -8563,7 +8580,10 @@
                         // get_data fills in the layer xbuf/ybuf with data
                         Gx.lyr[n].get_data(xmin, xmax);
 
-                        // have the layer prep it's data to be rendered
+                        // have the layer prep it's data to be rendered; NOTE
+                        // the layer needs to propertly set panxmin/max and panymin/max
+                        // here.  This should probably be change to avoid inversion of
+                        // control
                         var npts = Gx.lyr[n].prep(xmin, xmax);
 
                         // If both All and Expand are provided we

@@ -5482,7 +5482,7 @@
 
     /**
      * @param Mx
-     * @param data
+     * @param data array of data
      * @param nx
      * @param ny
      * @param nex
