@@ -63,7 +63,7 @@
         this.xdata = false; // true if X data is data from file
         this.modified = false;
 
-        this.preferred_origin = 1; // TODO Raster is normally 4
+        this.preferred_origin = 4; // TODO Raster is normally 4
         this.opacity = 1;
         this.xcompression = plot._Gx.xcompression; // default is Gx.xcompression
 
@@ -95,10 +95,14 @@
             var Gx = this.plot._Gx;
             var Mx = this.plot._Mx;
 
+            // Get Header Params from URL 
+
             this.hcb = hcb;
             this.hcb.buf_type = "D";
 
             this.lps = this.hcb.lps || Math.ceil(hcb.size);
+
+            this.cache = {};
 
             if (Gx.index) {
                 this.xstart = 1.0;
@@ -218,7 +222,7 @@
             var oReq = new XMLHttpRequest();
 
             var url = this.hcb.url + 
-                "&x1=" + Math.floor(xmin / HCB.xdelta) +
+                "/rds?x1=" + Math.floor(xmin / HCB.xdelta) +
                 "&y1=" + Math.ceil(ymin / HCB.ydelta) +
                 "&x2=" + Math.floor(xmax / HCB.xdelta) +
                 "&y2=" + Math.ceil(ymax / HCB.ydelta) +
@@ -229,42 +233,59 @@
                 "&outfmt=RGBA" +
                 "&transform=mean" +
                 "&colormap=RampColormap";
-
-            console.log("Getting SDS URL " + url);
-            oReq.open("GET", url, true);
-            oReq.responseType = "arraybuffer";
-            oReq.overrideMimeType('text\/plain; charset=x-user-defined');
-
-            var that = this;
-            oReq.onload = function(oEvent) {
-                if (oReq.readyState === 4) {
-                    if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
-                        var arrayBuffer = null; // Note: not oReq.responseText
-                        if (oReq.response) {
-                            arrayBuffer = oReq.response;
+            
+            var img = this.cache[url];
+            if (img) {
+                mx.draw_image(Mx,
+                    img,
+                    xmin, // xmin
+                    ymin, // ymin
+                    xmax, // xmax
+                    ymax, // ymax
+                    1.0,
+                    false,
+                    true
+                );
+            } else {
+                console.log("Getting SDS URL " + url);
+                oReq.open("GET", url, true);
+                oReq.responseType = "arraybuffer";
+                oReq.overrideMimeType('text\/plain; charset=x-user-defined');
+    
+                var that = this;
+                oReq.onload = function(oEvent) {
+                    if (oReq.readyState === 4) {
+                        if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
+                            var arrayBuffer = null; // Note: not oReq.responseText
+                            if (oReq.response) {
+                                arrayBuffer = oReq.response;
+                            }
+    
+                            //let imgd = new Uint8ClampedArray(arrayBuffer);
+                            arrayBuffer.width = iw;
+                            arrayBuffer.height = ih;
+                            that.cache[url] = arrayBuffer;
+                            mx.draw_image(Mx,
+                                arrayBuffer,
+                                xmin, // xmin
+                                ymin, // ymin
+                                xmax, // xmax
+                                ymax, // ymax
+                                1.0,
+                                false,
+                                true
+                            );
+                            return;
                         }
-
-                        //let imgd = new Uint8ClampedArray(arrayBuffer);
-                        arrayBuffer.width = iw;
-                        arrayBuffer.height = ih;
-
-                        mx.draw_image(Mx,
-                            arrayBuffer,
-                            that.xmin, // xmin
-                            that.ymin, // ymin
-                            that.xmax, // xmax
-                            that.ymax, // ymax
-                            1.0,
-                            false,
-                            true
-                        );
-                        return;
                     }
-                }
-            };
-            oReq.onerror = function(oEvent) {
-            };
-            oReq.send(null);
+                };
+                oReq.onerror = function(oEvent) {
+                };
+                oReq.send(null);
+
+            }
+
+
         }
     };
 

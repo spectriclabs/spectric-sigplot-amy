@@ -1973,44 +1973,46 @@ interactiveTest('SDS small', 'does the SDS plot work', function(assert) {
     assert.notEqual(plot, null);
 
     plot.overlay_href(
-        "http://192.168.1.229:5055/sds?filename=mydata_SL_500_1000",
+        "http://localhost:5055/sds/mydata_SL_500_1000.tmp",
         null,
         {
             layerType: "SDS"
         },
-        { // TODO get this from the SDS instead
-            xstart: 0,
-            xdelta: 1,
-            ystart: 0,
-            ydelta: 1,
-            size: 1000,
-            subsize: 500,
-            format: 'SL'
+        { 
+            // TODO get this from the SDS instead
+         //   xstart: 0,
+         //   xdelta: 1,
+         //   ystart: 0,
+         //   ydelta: 1,
+         //     size: 1000,
+         //   subsize: 500,
+         //   format: 'SL'
         }
     )
 });
 interactiveTest('SDS large', 'does the SDS plot work', function(assert) {
 
     var container = document.getElementById('plot');
-    container.style.width = "400px";
+    container.style.width = "376px";
+    container.style.height = "378px";
 
-    var plot = new sigplot.Plot(container, {zmin: -20000, zmax: 8192});
+    var plot = new sigplot.Plot(container, {zmin: 0, zmax: 10});
     assert.notEqual(plot, null);
 
     plot.overlay_href(
-        "http://192.168.1.229:5055/sds?filename=mydata_SI_8192_20000",
+        "http://localhost:5055/sds/mydata_SB_6000_6000.tmp",
         null,
         {
             layerType: "SDS"
         },
         { // TODO get this from the SDS instead
-            xstart: 0,
-            xdelta: 1,
-            ystart: 0,
-            ydelta: 1,
-            size: 20000,
-            subsize: 8192,
-            format: 'SI'
+         //   xstart: 0,
+         //   xdelta: 1,
+         //   ystart: 0,
+         //   ydelta: 1,
+         //   size: 6000,
+         //   subsize: 6000,
+         //   format: 'SB'
         }
     )
 });
