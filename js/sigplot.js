@@ -2466,81 +2466,68 @@
             m.log.debug("Overlay href: " + href);
             try {
                 this.show_spinner();
+                var handleHeader = (function(plot, onload) {
+                    return function(dat) {
+                        try {
+                            if (!hcb) {
+                                alert("Failed to load data");
+                            } else {
+                                common.update(hcb, overrides);
 
-                if (layerOptions && layerOptions.layerType === "SDS" && false) {
-                    var hcb = {
-                        url: href
-                    };
-                    common.update(hcb, overrides);
-                    var i = this.overlay_bluefile(hcb, layerOptions);
-                    if (onload) {
-                        onload(hcb, i);
-                    }
-                    this.hide_spinner();
-                } else {
-                    var handleHeader = (function(plot, onload) {
-                        return function(dat) {
-                            try {
-                                if (!hcb) {
-                                    alert("Failed to load data");
+                                var i;
+                                if (href.endsWith(".mat")) {
+                                    i = plot.overlay_matfile(hcb, layerOptions);
                                 } else {
-                                    common.update(hcb, overrides);
-
-                                    var i;
-                                    if (href.endsWith(".mat")) {
-                                        i = plot.overlay_matfile(hcb, layerOptions);
-                                    } else {
-                                        i = plot.overlay_bluefile(hcb, layerOptions);
-                                    }
-                                    if (onload) {
-                                        onload(hcb, i);
-                                    }
-                                }
-                            } finally {
-                                plot.hide_spinner();
-                            }
-                        };
-                    }(this, onload));
-
-                    var handleSDS = (function(plot, onload) {
-                        return function(hcb) {
-                            // LOWER CASE CRAP THAT GRANT SENT US
-                            try {
-                                if (!hcb) {
-                                    alert("Failed to load data");
-                                } else {
-                                    common.update(hcb, overrides);
-                                    layerOptions.layerType = "SDS";
                                     i = plot.overlay_bluefile(hcb, layerOptions);
                                 }
-                            } finally {
-                                plot.hide_spinner();
+                                if (onload) {
+                                    onload(hcb, i);
+                                }
                             }
-                        };
-                    }(this, onload));
-
-                    var reader;
-                    if (href.endsWith(".mat")) {
-                        reader = new matfile.MatFileReader();
-                        reader.read_http(href, handleHeader);
-                    } else if (layerOptions && layerOptions.layerType === "SDS") {
-                        // TODO it would be nice to not check layerType here but either
-                        // peek at the URL contents OR use something in the URL
-                        var oReq = new XMLHttpRequest();
-                        oReq.open("GET", href, true);
-                        oReq.responseType = "json";
-                        oReq.onload = function(oEvent) {
-                            oReq.response.url = href;
-                            handleSDS(oReq.response);
+                        } finally {
+                            plot.hide_spinner();
                         }
-                        oReq.onerror = function(oEvent) {
-                            //console.log("error fetching SDS header" + oEvent)
-                        };
-                        oReq.send(null);
-                    } else {
-                        reader = new bluefile.BlueFileReader();
-                        reader.read_http(href, handleHeader);
-                    }                    
+                    };
+                }(this, onload));
+
+                var handleSDS = (function(plot, onload) {
+                    return function(hcb) {
+                        // LOWER CASE CRAP THAT GRANT SENT US
+                        try {
+                            if (!hcb) {
+                                alert("Failed to load data");
+                            } else {
+                                common.update(hcb, overrides);
+                                layerOptions.layerType = "SDS";
+                                i = plot.overlay_bluefile(hcb, layerOptions);
+                            }
+                        } finally {
+                            plot.hide_spinner();
+                        }
+                    };
+                }(this, onload));
+
+                var reader;
+                if (href.endsWith(".mat")) {
+                    reader = new matfile.MatFileReader();
+                    reader.read_http(href, handleHeader);
+                } else if (layerOptions && layerOptions.layerType === "SDS") {
+                    // TODO it would be nice to not check layerType here but either
+                    // peek at the URL contents OR use something in the URL
+                    var oReq = new XMLHttpRequest();
+                    oReq.open("GET", href + "?mode=hdr", true);
+                    oReq.responseType = "json";
+                    oReq.onload = function(oEvent) {
+                        oReq.response.url = href;
+                        handleSDS(oReq.response);
+                    }
+                    oReq.onerror = function(oEvent) {
+                        //console.log("error fetching SDS header" + oEvent)
+                    };
+                    oReq.send(null);
+                } else {
+                    reader = new bluefile.BlueFileReader();
+                    reader.read_http(href, handleHeader);
                 }
             } catch (error) {
                 console.error(error);

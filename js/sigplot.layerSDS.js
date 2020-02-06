@@ -222,7 +222,8 @@
             var oReq = new XMLHttpRequest();
 
             var url = this.hcb.url + 
-                "/rds?x1=" + Math.floor(xmin / HCB.xdelta) +
+                "?mode=rds" +
+                "&x1=" + Math.floor(xmin / HCB.xdelta) +
                 "&y1=" + Math.ceil(ymin / HCB.ydelta) +
                 "&x2=" + Math.floor(xmax / HCB.xdelta) +
                 "&y2=" + Math.ceil(ymax / HCB.ydelta) +
