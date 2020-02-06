@@ -2467,7 +2467,7 @@
             try {
                 this.show_spinner();
                 var handleHeader = (function(plot, onload) {
-                    return function(dat) {
+                    return function(hcb) {
                         try {
                             if (!hcb) {
                                 alert("Failed to load data");
@@ -2494,12 +2494,16 @@
                     return function(hcb) {
                         // LOWER CASE CRAP THAT GRANT SENT US
                         try {
+                            var i = null;
                             if (!hcb) {
                                 alert("Failed to load data");
                             } else {
                                 common.update(hcb, overrides);
                                 layerOptions.layerType = "SDS";
                                 i = plot.overlay_bluefile(hcb, layerOptions);
+                                if (onload) {
+                                    onload(hcb, i);
+                                }
                             }
                         } finally {
                             plot.hide_spinner();
@@ -2520,7 +2524,7 @@
                     oReq.onload = function(oEvent) {
                         oReq.response.url = href;
                         handleSDS(oReq.response);
-                    }
+                    };
                     oReq.onerror = function(oEvent) {
                         //console.log("error fetching SDS header" + oEvent)
                     };

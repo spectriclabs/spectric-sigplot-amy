@@ -248,7 +248,6 @@
                     true
                 );
             } else {
-                console.log("Getting SDS URL " + url);
                 oReq.open("GET", url, true);
                 oReq.responseType = "arraybuffer";
                 oReq.overrideMimeType('text\/plain; charset=x-user-defined');
