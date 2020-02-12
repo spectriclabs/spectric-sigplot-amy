@@ -2522,8 +2522,10 @@
                     oReq.open("GET", href + "?mode=hdr", true);
                     oReq.responseType = "json";
                     oReq.onload = function(oEvent) {
-                        oReq.response.url = href;
-                        handleSDS(oReq.response);
+                        var hcb = JSON.parse(JSON.stringify(oReq.response));
+                        hcb.url = href;
+                        handleSDS(hcb);
+
                     };
                     oReq.onerror = function(oEvent) {
                         //console.log("error fetching SDS header" + oEvent)
