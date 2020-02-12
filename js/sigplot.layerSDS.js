@@ -229,12 +229,17 @@
                 "&y2=" + (Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1) +
                 "&outxsize=" + iw +
                 "&outysize=" + ih +
-                "&zmin=" + Gx.zmin + 
-                "&zmax=" + Gx.zmax +
                 "&outfmt=RGBA" +
                 "&transform=mean" +
                 "&colormap=RampColormap";
-            
+
+            if (Gx.zmin !== undefined) {
+                url = url+"&zmin=" + Gx.zmin;
+            }
+            if (Gx.zmax !== undefined) {
+                url = url+"&zmax=" + Gx.zmax;
+            }
+
             var img = this.cache[url];
             if (img) {
                 mx.draw_image(Mx,
