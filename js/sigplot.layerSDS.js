@@ -143,7 +143,20 @@
         },
 
         change_settings: function(settings) {
+            var Gx = this.plot._Gx;
+            if (settings.debugCanvas) {
+                this.debugCanvas = settings.debugCanvas;
+            }
             
+            if (settings.cmode !== undefined) {
+                this.img = undefined;
+                if (((Gx.autoz & 1) !== 0)) {
+                    Gx.zmin = undefined;
+                }
+                if (((Gx.autoz & 2) !== 0)) {
+                    Gx.zmax = undefined;
+                }
+            }
         },
 
         reload: function(data, hdrmod) {
@@ -240,6 +253,12 @@
                 url = url+"&zmax=" + Gx.zmax;
             }
 
+            if (Gx.cmode !== undefined) {
+                var cxm = ["Ma", "Ph", "Re", "Im", "IR", "Lo", "L2"];
+                url = url+"&cxmode=" + cxm[Gx.cmode-1];
+            }
+
+
             var img = this.cache[url];
             if (img) {
                 mx.draw_image(Mx,
@@ -261,6 +280,19 @@
                 oReq.onload = function(oEvent) {
                     if (oReq.readyState === 4) {
                         if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
+                            var zmin = oReq.getResponseHeader("Zmin");
+                            var zmax = oReq.getResponseHeader("Zmax");
+                            
+                            if ((Mx.level === 0) && (Gx.zmin === undefined)) {
+                                if (((Gx.autoz & 1) !== 0)) {
+                                    Gx.zmin = zmin;
+                                }
+                            }
+                            if ((Mx.level === 0) && (Gx.zmax === undefined)) {
+                                if (((Gx.autoz & 2) !== 0)) {
+                                    Gx.zmax = zmax;
+                                }
+                            }
                             var arrayBuffer = null; // Note: not oReq.responseText
                             if (oReq.response) {
                                 arrayBuffer = oReq.response;
