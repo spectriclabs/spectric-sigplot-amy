@@ -223,10 +223,10 @@
 
             var url = this.hcb.url + 
                 "?mode=rds" +
-                "&x1=" + Math.floor(xmin / HCB.xdelta) +
-                "&y1=" + Math.ceil(ymin / HCB.ydelta) +
-                "&x2=" + Math.floor(xmax / HCB.xdelta) +
-                "&y2=" + Math.ceil(ymax / HCB.ydelta) +
+                "&x1=" + Math.floor((xmin -HCB.xstart)/ HCB.xdelta) +
+                "&y1=" + Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) +
+                "&x2=" + (Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1) +
+                "&y2=" + (Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1) +
                 "&outxsize=" + iw +
                 "&outysize=" + ih +
                 "&zmin=" + Gx.zmin + 
