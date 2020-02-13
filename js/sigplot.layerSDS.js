@@ -157,6 +157,24 @@
                     Gx.zmax = undefined;
                 }
             }
+
+            if (settings.xcmp !== undefined) {
+                if (settings.xcmp === "smooth") {
+                    this.xcompression = 0;
+                } else if (settings.xcmp === "avg") {
+                    this.xcompression = 1;
+                } else if (settings.xcmp === "min") {
+                    this.xcompression = 2;
+                } else if (settings.xcmp === "max") {
+                    this.xcompression = 3;
+                } else if (settings.xcmp === "first") {
+                    this.xcompression = 4;
+                } else if (settings.xcmp === "maxabs") {
+                    this.xcompression = 5;
+                } else {
+                    this.xcompression = settings.xcmp;
+                }
+            }
         },
 
         reload: function(data, hdrmod) {
@@ -243,7 +261,6 @@
                 "&outxsize=" + iw +
                 "&outysize=" + ih +
                 "&outfmt=RGBA" +
-                "&transform=mean" +
                 "&colormap=RampColormap";
 
             if (Gx.zmin !== undefined) {
@@ -256,6 +273,11 @@
             if (Gx.cmode !== undefined) {
                 var cxm = ["Ma", "Ph", "Re", "Im", "IR", "Lo", "L2"];
                 url = url+"&cxmode=" + cxm[Gx.cmode-1];
+            }
+            
+            if (this.xcompression !== undefined) {
+                var xcmp = ["first", "mean", "min", "max", "first", "absmax"];
+                url = url + "&transform=" + xcmp[this.xcompression];
             }
 
 
