@@ -158,7 +158,7 @@
                 this.hcb.subsize = settings.subsize;
                 this.hcb.ape = settings.subsize;
                 this.hcb.size = this.hcb.dview.length / (this.hcb.spa * this.hcb.ape);
-                if (hcb.file_type ===1000) {
+                if (this.hcb.file_type ===1000) {
                     this.lps = Math.ceil(this.hcb.size/this.hcb.subsize);
                 } else {
                     this.lps = Math.ceil(this.hcb.size);
