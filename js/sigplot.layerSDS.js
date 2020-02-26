@@ -100,7 +100,12 @@
             this.hcb = hcb;
             this.hcb.buf_type = "D";
 
-            this.lps = this.hcb.lps || Math.ceil(hcb.size);
+            if (hcb.file_type ===1000) {
+                this.lps = this.hcb.lps || Math.ceil((hcb.size/hcb.subsize));
+            } else {
+                this.lps = this.hcb.lps || Math.ceil(hcb.size);
+            }
+            
 
             this.cache = {};
 
@@ -112,7 +117,12 @@
                 this.ystart = 1.0;
                 this.ydelta = 1.0;
                 this.ymin = 1.0;
-                this.ymax = this.size;
+                if (hcb.file_type ===1000) {
+                    this.ymax = (hcb.size / hcb.subsize);
+                } else {
+                    this.ymax = (hcb.size);
+                }
+
             } else {
                 this.xstart = hcb.xstart;
                 this.xdelta = hcb.xdelta;
@@ -144,6 +154,15 @@
 
         change_settings: function(settings) {
             var Gx = this.plot._Gx;
+            if (settings.subsize) {
+                this.hcb.subsize = settings.subsize;
+                this.hcb.ape = settings.subsize;
+                this.hcb.size = this.hcb.dview.length / (this.hcb.spa * this.hcb.ape);
+                this.lps = Math.ceil(this.hcb.size);
+                var d = this.hcb.ystart + (this.hcb.ydelta * this.lps);
+                this.ymin = this.hcb.ymin || Math.min(this.hcb.ystart, d);
+                this.ymax = this.hcb.ymax || Math.max(this.hcb.ystart, d);
+            }
             if (settings.debugCanvas) {
                 this.debugCanvas = settings.debugCanvas;
             }
@@ -232,7 +251,11 @@
 
             // Make sure w/h remain within limits
             w = Math.min(w, HCB.subsize);
-            h = Math.min(h, HCB.size);
+            if (HCB.file_type ===1000) {
+                h = Math.min(h, (HCB.size / HCB.subsize));
+            } else {
+                h = Math.min(h,  HCB.size);
+            }
 
             // figure out the upper-left and lower-right pixel coordinates
             var ul = mx.real_to_pixel(Mx, xmin, ymin);
@@ -261,7 +284,8 @@
                 "&outxsize=" + iw +
                 "&outysize=" + ih +
                 "&outfmt=RGBA" +
-                "&colormap=RampColormap";
+                "&colormap=RampColormap" +
+                "&subsize="+HCB.subsize;
 
             if (Gx.zmin !== undefined) {
                 url = url+"&zmin=" + Gx.zmin;
