@@ -1964,6 +1964,15 @@ QUnit.module('sigplot-interactive', {
         }
     }
 });
+/*
+interactiveTest('SDS SP', 'does the SDS plot work', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container);
+    plot.overlay_href("dat/mydata_SP_6000_6000.tmp", null, {
+        layerType: "SDS"
+    });
+});
+*/
 interactiveTest('SDS small', 'does the SDS plot work', function(assert) {
 
     var container = document.getElementById('plot');
