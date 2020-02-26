@@ -2520,10 +2520,12 @@
                     // peek at the URL contents OR use something in the URL
                     var oReq = new XMLHttpRequest();
                     oReq.open("GET", href + "?mode=hdr", true);
-                    oReq.responseType = "json";
+                    oReq.responseType = "";
                     oReq.onload = function(oEvent) {
-                        var hcb = JSON.parse(JSON.stringify(oReq.response));
-                        hcb.url = href;
+                        var hcb = JSON.parse(oReq.responseText);
+                        if (hcb) {
+                            hcb.url = href;
+                        }
                         handleSDS(hcb);
 
                     };
