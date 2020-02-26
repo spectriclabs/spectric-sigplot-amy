@@ -5170,7 +5170,7 @@
             var src = new Uint32Array(buf);
             var dst = new Uint32Array(imgd.data.buffer);
             for (var ii = 0; ii < src.length; ii++) {
-                dst[ii] = Mx.pixel.getColorByIndex(src[ii]).color;
+                dst[ii] = src[ii];
             }
             imgctx.putImageData(imgd, 0, 0);
         } else {
@@ -5276,8 +5276,7 @@
                 yy = Math.round(Math.floor(ii / w) * height_scaling) + sy;
                 jj = Math.floor((yy * buf.width) + xx);
 
-                value = src[jj];
-                dest[ii] = colorMap.getColorByIndex(value).color;
+                dest[ii] = src[jj];
             }
         } else {
             for (var ii = 0; ii < dest.length; ii++) {
