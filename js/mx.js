@@ -5169,9 +5169,16 @@
             // for-loop based approach
             var src = new Uint32Array(buf);
             var dst = new Uint32Array(imgd.data.buffer);
-            for (var ii = 0; ii < src.length; ii++) {
-                dst[ii] = src[ii];
+            if (buf.contents !== "rgba") {
+                for (var ii = 0; ii < src.length; ii++) {
+                    dst[ii] = Mx.pixel.getColorByIndex(src[ii]).color;
+                }
+            } else {
+                for (var ii = 0; ii < src.length; ii++) {
+                    dst[ii] = src[ii];
+                }
             }
+
             imgctx.putImageData(imgd, 0, 0);
         } else {
             if (!downscaling) {
@@ -5270,13 +5277,18 @@
         // one loop with the downscaling if condition inside; but benchmarking
         // has shown this approach to be almost twice as fast for the condition
         // where downscaling isn't used
-        if (!downscaling) {
+        if (!downscaling || buf.contents === "rgba") {
             for (var ii = 0; ii < dest.length; ii++) {
                 xx = Math.round(Math.floor(ii % w) * width_scaling) + sx;
                 yy = Math.round(Math.floor(ii / w) * height_scaling) + sy;
                 jj = Math.floor((yy * buf.width) + xx);
 
-                dest[ii] = src[jj];
+                value = src[jj];
+                if (buf.contents !== "rgba") {
+                    dest[ii] = colorMap.getColorByIndex(value).color;
+                } else {
+                    dest[ii] = src[jj];
+                }
             }
         } else {
             for (var ii = 0; ii < dest.length; ii++) {

@@ -352,6 +352,7 @@
                             //let imgd = new Uint8ClampedArray(arrayBuffer);
                             arrayBuffer.width = iw;
                             arrayBuffer.height = ih;
+                            arrayBuffer.contents = "rgba";
                             that.cache[url] = arrayBuffer;
                             mx.draw_image(Mx,
                                 arrayBuffer,
