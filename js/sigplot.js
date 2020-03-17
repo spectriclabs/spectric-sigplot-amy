@@ -7185,11 +7185,15 @@
             Gx.xstart = hcb.xstart;
             Gx.xdelta = hcb.xdelta;
             Mx.origin = 1;
+            Gx.zmin = undefined;
+            Gx.zmax = undefined;
         } else {
             Gx.xstart = 0.0;
             Gx.xdelta = 1.0;
             Gx.autol = -1;
             Mx.origin = 1;
+            Gx.zmin = undefined;
+            Gx.zmax = undefined;
         }
 
         // if (!open) {
