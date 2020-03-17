@@ -30,7 +30,7 @@
 
     var m = require("./m");
     var mx = require("./mx");
-
+    var common = require("./common");
     /**
      * @constructor
      * @param plot
@@ -92,6 +92,13 @@
          * @private
          */
         init: function(hcb) {
+
+            //De-Bounce this function
+            this.debounceSend = common.debounce(function(oReq) {
+                oReq.send(null);
+            }, 100,false);
+
+
             var Gx = this.plot._Gx;
             var Mx = this.plot._Mx;
 
@@ -370,7 +377,8 @@
                 };
                 oReq.onerror = function(oEvent) {
                 };
-                oReq.send(null);
+
+                this.debounceSend(oReq);
 
             }
 
