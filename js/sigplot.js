@@ -32,6 +32,7 @@
 
     var version = "version-PLACEHOLDER";
 
+    var _ = require("underscore");
     var Spinner = require("spin");
     var common = require("./common");
     var bluefile = require("./bluefile");
@@ -2091,9 +2092,11 @@
             }
 
             var origHCB = Gx.HCB.slice();
+            var origHCB_UUID = _.clone(Gx.HCB_UUID);
+
             this.deoverlay();
             for (var i = 0; i < origHCB.length; i++) {
-                this.overlay_bluefile(origHCB[i]);
+                this.overlay_bluefile(origHCB_UUID[origHCB[i]]);
             }
 
             // propagate old layer attributes to re-read layers
@@ -2129,10 +2132,19 @@
          * @param {Object} hdrmod
          *            optional changes to the file header
          */
-        reload: function(n, data, hdrmod, rsync) {
+        reload: function(lyr, data, hdrmod, rsync) {
             var Mx = this._Mx;
             var Gx = this._Gx;
+
+            var n = -1;
+            if (_.has(Gx.HCB_UUID, lyr)) {
+                n = this.get_lyrn(lyr);
+            }
+
             if ((n < 0) || (n >= Gx.lyr.length)) {
+                if (typeof lyr === "number") {
+                    throw "reload requires use the layer uuid returned by overlay and no longer supports layer indexes";
+                }
                 return;
             }
 
@@ -2199,10 +2211,19 @@
          * @param {boolean} [rsync=false]
          *            optional dispatch refresh syncronously
          */
-        push: function(n, data, hdrmod, sync, rsync) {
+        push: function(lyr, data, hdrmod, sync, rsync) {
             var Mx = this._Mx;
             var Gx = this._Gx;
+
+            var n = -1;
+            if (_.has(Gx.HCB_UUID, lyr)) {
+                n = this.get_lyrn(lyr);
+            }
+
             if ((n < 0) || (n >= Gx.lyr.length)) {
+                if (typeof lyr === "number") {
+                    throw "push requires use the layer uuid returned by overlay and no longer supports layer indexes";
+                }
                 return;
             }
 
@@ -2431,9 +2452,19 @@
          */
         overlay_href: function(href, onload, layerOptions, overrides) {
             var self = this;
+            var lyr_uuids = [];
             href.split('|').forEach(function(hr) {
-                self.overlay_href_single(hr.trim(), onload, layerOptions, overrides);
+                var lyr_uuid = self.overlay_href_single(hr.trim(), onload, layerOptions, overrides);
+                lyr_uuids.push(lyr_uuid);
             });
+
+            if (lyr_uuids.length === 0) {
+                return null;
+            } else if (lyr_uuids.length === 1) {
+                return lyr_uuids[0];
+            } else {
+                return lyr_uuids;
+            }
         },
 
         /**
@@ -2463,7 +2494,9 @@
          *
          */
         overlay_href_single: function(href, onload, layerOptions, overrides) {
-            m.log.debug("Overlay href: " + href);
+            var lyr_uuid = this.reg_hcb(null);
+
+            m.log.debug("Overlay href: " + href + " " + lyr_uuid);
             try {
                 this.show_spinner();
                 var handleHeader = (function(plot, onload) {
@@ -2472,6 +2505,7 @@
                             if (!hcb) {
                                 alert("Failed to load data");
                             } else {
+                                hcb._uuid = lyr_uuid;
                                 common.update(hcb, overrides);
 
                                 var i;
@@ -2498,6 +2532,7 @@
                             if (!hcb) {
                                 alert("Failed to load data");
                             } else {
+                                hcb._uuid = lyr_uuid;
                                 common.update(hcb, overrides);
                                 layerOptions.layerType = "SDS";
                                 i = plot.overlay_bluefile(hcb, layerOptions);
@@ -2539,9 +2574,10 @@
                 }
             } catch (error) {
                 console.error(error);
-                alert("Failed to load data");
                 this.hide_spinner();
             }
+
+            return lyr_uuid;
         },
 
         show_spinner: function() {
@@ -2551,11 +2587,43 @@
             }
         },
 
-        hide_spinner: function() {
-            if (this._Gx.spinner) {
-                this._Gx.spinner.stop();
+        hide_spinner: function(force) {
+            var cnt_pending = 0;
+            _.mapObject(this._Gx.HCB_UCB, (k, v) => {
+                if (v === null) {
+                    cnt_pending += 1;
+                }
+            });
+
+            if ((cnt_pending === 0) || force) {
+                if (this._Gx.spinner) {
+                    this._Gx.spinner.stop();
+                }
+                this._Gx.spinner = undefined;
             }
-            this._Gx.spinner = undefined;
+        },
+
+        reg_hcb: function(hcb) {
+            var uuid = common.uuidv4();
+            this._Gx.HCB_UUID[uuid] = hcb;
+
+            return uuid;
+        },
+
+        get_lyrn: function(uuid) {
+            return _.indexOf(this._Gx.HCB, uuid);
+        },
+
+        get_lyr_uuid: function(lyrN) {
+            return this._Gx.HCB[lyrN];
+        },
+
+        get_hcb_by_uuid: function(uuid) {
+            return this._Gx.HCB[uuid];
+        },
+
+        get_hcb_by_lyrn: function(lyrN) {
+            return this.get_hcb_by_uuid(this.get_lyr_uuid(lyrN));
         },
 
         add_layer: function(layer) {
@@ -2589,10 +2657,14 @@
          *
          */
 
-        get_layer: function(n) {
+        get_layer: function(lyr) {
             var Gx = this._Gx;
-            if ((n >= 0) && (n < Gx.lyr.length)) {
-                return Gx.lyr[n];
+
+            if (_.has(Gx.HCB_UUID, lyr)) {
+                lyr = this.get_lyrn(lyr);
+            }
+            if ((lyr >= 0) && (lyr < Gx.lyr.length)) {
+                return Gx.lyr[lyr];
             } else {
                 return null;
             }
@@ -2620,7 +2692,19 @@
 
             var basefiles = (Gx.HCB.length === 0);
 
-            Gx.HCB.push(hcb);
+            var lyr_uuid = hcb._uuid;
+            if (lyr_uuid) {
+                // the layer was pre-registered but has already been
+                // deoverlayed, do nothing
+                if (!_.has(Gx.HCB_UUID, lyr_uuid)) {
+                    return;
+                }
+                // Update the HCB
+                Gx.HCB_UUID[lyr_uuid] = hcb;
+            } else {
+                lyr_uuid = this.reg_hcb(hcb);
+            }
+            this._Gx.HCB.push(lyr_uuid);
 
             if (Gx.HCB.length === 1) {
                 basefile(this, true);
@@ -2679,7 +2763,7 @@
                     draw_layer(plot, layer);
                 });
             } else {
-                if (Gx.HCB.length === 0) { // TODO dead code that cannot be reached
+                if (_.size(Gx.HCB_UUID) === 0) { // TODO dead code that cannot be reached
                     basefile(this, false);
                 } else {
                     Gx.basemode = Gx.cmode;
@@ -2718,7 +2802,7 @@
             form_plotnote(this);
             this.refresh();
 
-            return (Gx.HCB.length - 1);
+            return lyr_uuid;
         },
 
         /**
@@ -2758,22 +2842,26 @@
             var Gx = this._Gx;
             var Mx = this._Mx;
 
-            if (Gx.HCB.length > 0) {
-                if (index === undefined) {
-                    for (var n = Gx.HCB.length - 1; n >= 0; n--) {
-                        this.remove_layer(n);
+            if (_.has(Gx.HCB_UUID, index)) {
+                this.remove_layer(index);
+            } else {
+                if (Gx.HCB.length > 0) {
+                    if (index === undefined) {
+                        for (var n = Gx.HCB.length - 1; n >= 0; n--) {
+                            this.remove_layer(this.get_lyr_uuid(n));
+                        }
+                    } else if (index < 0) {
+                        var n = Gx.HCB.length + index;
+                        if (n < 0) {
+                            return;
+                        }
+                        this.remove_layer(this.get_lyr_uuid(n));
+                    } else if (index < Gx.HCB.length) {
+                        this.remove_layer(this.get_lyr_uuid(index));
                     }
-                } else if (index < 0) {
-                    var n = Gx.HCB.length + index;
-                    if (n < 0) {
-                        return;
-                    }
-                    this.remove_layer(n);
-                } else if (index < Gx.HCB.length) {
-                    this.remove_layer(index);
                 }
             }
-            if (Gx.lyr.length === 0) {
+            if (_.size(Gx.HCB_UUID) === 0) {
                 basefile(this, false);
                 scale_base(this, {});
             }
@@ -2785,18 +2873,21 @@
          * @param index
          *            the layer to remove
          */
-        remove_layer: function(index) {
+        remove_layer: function(lyr_uuid) {
             var Gx = this._Gx;
 
+            var HCB = Gx.HCB_UUID[lyr_uuid];
+            delete Gx.HCB_UUID[lyr_uuid];
+
             var fileName = "";
-            var HCB = null;
+            if (HCB) {
+                fileName = HCB.file_name;
+            }
+
+            var index = this.get_lyrn(lyr_uuid);
 
             if ((index >= 0) && (index < Gx.HCB.length)) {
-                fileName = Gx.HCB[index].file_name;
-                // TODO if (Gx.modsource > 0) {
-                //
-                // }
-                HCB = Gx.HCB[index];
+                // delete this UUID and shift the others down
                 Gx.HCB[index] = null;
                 for (var n = index; n < Gx.HCB.length - 1; n++) {
                     Gx.HCB[n] = Gx.HCB[n + 1];
@@ -2804,9 +2895,12 @@
                 Gx.HCB.length -= 1;
             }
 
-            for (var n = Gx.lyr.length - 1; n >= 0; n--) {
-                if (Gx.lyr[n].hcb === HCB) {
-                    delete_layer(this, n);
+            // Find all layers tied to this HCB
+            if (HCB && index >= 0) {
+                for (var n = Gx.lyr.length - 1; n >= 0; n--) {
+                    if (Gx.lyr[n].hcb === HCB) {
+                        delete_layer(this, n);
+                    }
                 }
             }
             form_plotnote(this);
@@ -4143,6 +4237,7 @@
 
         this.lyr = [];
         this.HCB = [];
+        this.HCB_UUID = {};
         this.plugins = [];
 
         this.plotData = document.createElement("canvas");
@@ -4290,14 +4385,15 @@
         if (Gx.lyr.length > 0) {
             //var hcb = Gx.HCB[Gx.lyr[0].hcb];
             var hcb = Gx.lyr[0].hcb; // mmm-TODO-needs investigation
-            if ((hcb["class"] === 1) && ((hcb.xunits === 1) || (hcb.xunits === 4))) {
-                mx.message(Mx, "Time = " + m.sec2tod(hcb.timecode + Gx.retx), true);
-            } else if ((hcb["class"] === 2) && ((hcb.yunits === 1) || (hcb.yunits === 4))) {
-                mx.message(Mx, "Time = " + m.sec2tod(hcb.timecode + Gx.rety), true);
-            } else {
-                mx.message(Mx, "Time = UNK");
+            if (hcb) {
+                if ((hcb["class"] === 1) && ((hcb.xunits === 1) || (hcb.xunits === 4))) {
+                    mx.message(Mx, "Time = " + m.sec2tod(hcb.timecode + Gx.retx), true);
+                } else if ((hcb["class"] === 2) && ((hcb.yunits === 1) || (hcb.yunits === 4))) {
+                    mx.message(Mx, "Time = " + m.sec2tod(hcb.timecode + Gx.rety), true);
+                } else {
+                    mx.message(Mx, "Time = UNK");
+                }
             }
-
         }
 
     }
@@ -7180,13 +7276,22 @@
         // Gx.retx is supposed to be the real X coordinate
         // and Gx.aretx is supposed to be the X coordinate in the
         // current abscissa mode
+        var hcb = plot.get_hcb_by_lyrn(0);
         if (open) {
-            var hcb = Gx.HCB[0];
-            Gx.xstart = hcb.xstart;
-            Gx.xdelta = hcb.xdelta;
+            if (hcb) {
+                Gx.xstart = hcb.xstart;
+                Gx.xdelta = hcb.xdelta;
+            } else {
+                Gx.xstart = 0.0;
+                Gx.xdelta = 1.0;
+            }
             Mx.origin = 1;
-            Gx.zmin = undefined;
-            Gx.zmax = undefined;
+            if (Gx.autoz & 1) {
+                Gx.zmin = undefined;
+            }
+            if (Gx.autoz & 2) {
+                Gx.zmax = undefined;
+            }
         } else {
             Gx.xstart = 0.0;
             Gx.xdelta = 1.0;
@@ -7408,13 +7513,17 @@
         if (Gx.note) {
             return;
         }
-        if (Gx.HCB.length === 0) {
+
+        var hcb0 = plot.get_hcb_by_lyrn(0);
+        if (_.size(Gx.HCB_UUID) === 0) {
             Gx.note = "";
-        } else if (Gx.HCB[0].plotnote === undefined) {
+        } else if (hcb0 && hcb0.plotnote === undefined) {
+            // if layer 0 doesn't have a plot note, build one
             var files = [];
             for (var n = 0; n < Gx.HCB.length; n++) {
-                if (Gx.HCB[n].file_name) {
-                    files.push(Gx.HCB[n].file_name);
+                var hcb = plot.get_hcb_by_lyrn(n);
+                if (hcb.file_name) {
+                    files.push(hcb.file_name);
                 }
             }
             Gx.note = files.join("|").toUpperCase();
@@ -7600,7 +7709,7 @@
         }
         Gx.lyr.length -= 1;
 
-        if (Gx.HCB.length > 0) {
+        if (_.size(Gx.HCB_UUID) > 0) {
             Gx.panxmin = 1.0;
             Gx.panxmax = -1.0;
             Gx.panymin = 1.0;
@@ -7852,7 +7961,7 @@
                     }, Gx.xmin, Gx.xmax);
                 }
             } else {
-                if ((Gx.HCB.length === 0) && (newmode === Gx.basemode)) {
+                if ((_.size(Gx.HCB_UUID) === 0) && (newmode === Gx.basemode)) {
                     Gx.panymin = 1.0;
                     Gx.panymax = -1.0;
                     Mx.stk[0].ymin = Gx.ymin;
