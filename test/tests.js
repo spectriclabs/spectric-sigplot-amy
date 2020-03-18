@@ -1370,11 +1370,11 @@ QUnit.test('sigplot layer1d noautoscale', function(assert) {
     for (var i = 0; i <= 1000; i += 1) {
         pulse.push(0.0);
     }
-    plot.overlay_array(pulse);
+    var lyr_uuid = plot.overlay_array(pulse);
     assert.equal(plot._Gx.panymin, -1.0);
     assert.equal(plot._Gx.panymax, 1.0);
     pulse[0] = 1.0;
-    plot.reload(0, pulse);
+    plot.reload(lyr_uuid, pulse);
     assert.equal(plot._Gx.panymin, -0.02);
     assert.equal(plot._Gx.panymax, 1.02);
     for (var i = 1; i <= 1000; i += 1) {
@@ -1385,6 +1385,9 @@ QUnit.test('sigplot layer1d noautoscale', function(assert) {
     }
 });
 QUnit.test('sigplot layer1d autoscale', function(assert) {
+    // TODO revisit this test.  The autol actually gets called
+    // multiple times when it should only be called twice.
+    // this is evident if you do a sync refresh
     var container = document.getElementById('plot');
     assert.equal(container.childNodes.length, 0);
     assert.equal(fixture.childNodes.length, 1);
@@ -1392,20 +1395,23 @@ QUnit.test('sigplot layer1d autoscale', function(assert) {
         autol: 2
     });
     assert.notEqual(plot, null);
+    assert.equal(plot._Gx.autol, 2);
     var pulse = [];
     for (var i = 0; i <= 1000; i += 1) {
         pulse.push(0.0);
     }
-    plot.overlay_array(pulse);
+    var lyr_uuid = plot.overlay_array(pulse);
+    assert.equal(plot._Gx.autol, 2);
     assert.equal(plot._Gx.panymin, -1.0);
     assert.equal(plot._Gx.panymax, 1.0);
     pulse[0] = 1.0;
-    plot.reload(0, pulse);
+    plot.reload(lyr_uuid, pulse, null, false);
     var expected_ymin = (-0.02 * 0.5) + (-1 * 0.5);
     var expected_ymax = (1.02 * 0.5) + (1 * 0.5);
     assert.equal(plot._Gx.panymin, expected_ymin);
     assert.equal(plot._Gx.panymax, expected_ymax);
     for (var i = 1; i <= 1000; i += 1) {
+        // this code seems to be pointless
         pulse[i - 1] = 0;
         pulse[i] = 1;
         expected_ymin = (expected_ymin * 0.5) + (expected_ymin * 0.5);
@@ -1427,7 +1433,7 @@ QUnit.test('sigplot layer1d autoscale negative', function(assert) {
         pulse.push(-60.0);
     }
     pulse[0] = -10.0;
-    plot.overlay_array(pulse);
+    var lyr_uuid = plot.overlay_array(pulse);
     var expected_ymin = (-61.0 * 0.5) + (-1 * 0.5);
     var expected_ymax = (-9.0 * 0.5) + (1 * 0.5);
     assert.equal(plot._Gx.panymin, expected_ymin);
@@ -1537,28 +1543,28 @@ QUnit.test('sigplot 0px height', function(assert) {
     for (var i = 0; i <= 1000; i += 1) {
         zeros.push(0.0);
     }
-    plot.overlay_array(zeros);
+    var lyr_uuid = plot.overlay_array(zeros);
     assert.notEqual(plot.get_layer(0), null);
     plot.deoverlay();
     assert.equal(plot.get_layer(0), null);
-    plot.overlay_array(zeros, {
+    lyr_uuid = plot.overlay_array(zeros, {
         type: 2000,
         subsize: zeros.length
     });
     assert.notEqual(plot.get_layer(0), null);
     plot.deoverlay();
     assert.equal(plot.get_layer(0), null);
-    plot.overlay_pipe({
+    lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 128
     });
     assert.notEqual(plot.get_layer(0), null);
     assert.equal(plot.get_layer(0).drawmode, "scrolling");
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 0);
     assert.equal(plot.get_layer(0).lps, 1);
     plot.deoverlay();
-    plot.overlay_pipe({
+    lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 128
     }, {
@@ -1566,11 +1572,11 @@ QUnit.test('sigplot 0px height', function(assert) {
     });
     assert.notEqual(plot.get_layer(0), null);
     assert.equal(plot.get_layer(0).drawmode, "rising");
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 0);
     assert.equal(plot.get_layer(0).lps, 1);
     plot.deoverlay();
-    plot.overlay_pipe({
+    lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 128
     }, {
@@ -1578,7 +1584,7 @@ QUnit.test('sigplot 0px height', function(assert) {
     });
     assert.notEqual(plot.get_layer(0), null);
     assert.equal(plot.get_layer(0).drawmode, "falling");
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 0);
     assert.equal(plot.get_layer(0).position, 0);
     assert.equal(plot.get_layer(0).lps, 1);
@@ -1595,16 +1601,16 @@ QUnit.test('sigplot resize raster 0px height', function(assert) {
     for (var i = 0; i <= 128; i += 1) {
         zeros.push(0.0);
     }
-    plot.overlay_pipe({
+    var lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 128
     });
     assert.notEqual(plot.get_layer(0), null);
     assert.equal(plot.get_layer(0).drawmode, "scrolling");
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 1);
     assert.ok(plot.get_layer(0).lps > 1);
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 2);
     assert.ok(plot.get_layer(0).lps > 1);
     container.style.height = "0px";
@@ -1613,7 +1619,7 @@ QUnit.test('sigplot resize raster 0px height', function(assert) {
     plot.checkresize();
     assert.equal(plot._Mx.canvas.height, 0);
     assert.equal(plot.get_layer(0).lps, 1);
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 0);
 });
 QUnit.test('sigplot resize raster larger height', function(assert) {
@@ -1627,7 +1633,7 @@ QUnit.test('sigplot resize raster larger height', function(assert) {
     for (var i = 0; i <= 128; i += 1) {
         zeros.push(0.0);
     }
-    plot.overlay_pipe({
+    var lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 128
     }, {
@@ -1635,10 +1641,10 @@ QUnit.test('sigplot resize raster larger height', function(assert) {
     });
     assert.notEqual(plot.get_layer(0), null);
     assert.equal(plot.get_layer(0).drawmode, "scrolling");
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 1);
     assert.ok(plot.get_layer(0).lps > 1);
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 2);
     assert.ok(plot.get_layer(0).lps > 1);
     var orig_lps = plot.get_layer(0).lps;
@@ -1648,10 +1654,10 @@ QUnit.test('sigplot resize raster larger height', function(assert) {
     plot.checkresize();
     assert.equal(plot._Mx.canvas.height, 600);
     assert.ok(plot.get_layer(0).lps > orig_lps);
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(plot.get_layer(0).position, 3);
     for (var i = 0; i <= plot.get_layer(0).lps; i += 1) {
-        plot.push(0, zeros, null, true);
+        plot.push(lyr_uuid, zeros, null, true);
     }
 });
 QUnit.test('sigplot change raster LPS', function(assert) {
@@ -1664,7 +1670,7 @@ QUnit.test('sigplot change raster LPS', function(assert) {
     for (var i = 0; i <= 128; i += 1) {
         zeros.push(0.0);
     }
-    plot.overlay_pipe({
+    var lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 128,
         lps: 100,
@@ -1672,7 +1678,7 @@ QUnit.test('sigplot change raster LPS', function(assert) {
     });
     assert.notEqual(plot.get_layer(0), null);
     assert.strictEqual(plot.get_layer(0).lps, 100);
-    plot.push(0, zeros, {
+    plot.push(lyr_uuid, zeros, {
         lps: 200
     }, true);
     plot._refresh();
@@ -1762,7 +1768,7 @@ QUnit.test('unit strings test: x -> Power and y -> Angle rad', function(assert) 
     for (var i = 0; i < 20; i++) {
         ramp.push(i);
     }
-    plot.overlay_array(ramp, {
+    var lyr_uuid = plot.overlay_array(ramp, {
         xunits: "Power",
         yunits: "Angle rad"
     }, {
@@ -1771,8 +1777,8 @@ QUnit.test('unit strings test: x -> Power and y -> Angle rad', function(assert) 
         line: 0
     });
 
-    assert.equal(plot._Gx.HCB[0].xunits, 12);
-    assert.equal(plot._Gx.HCB[0].yunits, 33);
+    assert.equal(plot._Gx.HCB_UUID[lyr_uuid].xunits, 12);
+    assert.equal(plot._Gx.HCB_UUID[lyr_uuid].yunits, 33);
     assert.equal(plot._Gx.xlab, 12);
     assert.equal(plot._Gx.ylab, 33);
 });
@@ -1786,7 +1792,7 @@ QUnit.test('unit strings test: x -> Hz and y -> Time_sec', function(assert) {
     for (var i = 0; i < 20; i++) {
         ramp.push(i);
     }
-    plot.overlay_array(ramp, {
+    var lyr_uuid = plot.overlay_array(ramp, {
         xunits: "Hz",
         yunits: "Time_sec"
     }, {
@@ -1795,8 +1801,8 @@ QUnit.test('unit strings test: x -> Hz and y -> Time_sec', function(assert) {
         line: 0
     });
 
-    assert.equal(plot._Gx.HCB[0].xunits, 3);
-    assert.equal(plot._Gx.HCB[0].yunits, 1);
+    assert.equal(plot._Gx.HCB_UUID[lyr_uuid].xunits, 3);
+    assert.equal(plot._Gx.HCB_UUID[lyr_uuid].yunits, 1);
     assert.equal(plot._Gx.xlab, 3);
     assert.equal(plot._Gx.ylab, 1);
 });
@@ -1812,7 +1818,7 @@ QUnit.test('sigplot line push smaller than framesize', function(assert) {
     for (var i = 0; i < 128; i += 1) {
         zeros.push(0.0);
     }
-    plot.overlay_pipe({
+    var lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 64
     }, {
@@ -1827,19 +1833,19 @@ QUnit.test('sigplot line push smaller than framesize', function(assert) {
     // pushing twice the subsize should allow
     // two frames to be written, leaving nothing
     // in the pipe
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 0);
 
     // if we push 63 elements they should remain in the pipe
-    plot.push(0, zeros.slice(0, 63), null, true);
+    plot.push(lyr_uuid, zeros.slice(0, 63), null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 0);
 
     // pushing two should leave one item in the pipe
-    plot.push(0, zeros.slice(0, 2), null, true);
+    plot.push(lyr_uuid, zeros.slice(0, 2), null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 0);
 
     // as does pushing another 128
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 0);
 });
 
@@ -1854,7 +1860,7 @@ QUnit.test('sigplot raster push smaller than framesize', function(assert) {
     for (var i = 0; i < 128; i += 1) {
         zeros.push(0.0);
     }
-    plot.overlay_pipe({
+    var lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: 64
     });
@@ -1867,19 +1873,19 @@ QUnit.test('sigplot raster push smaller than framesize', function(assert) {
     // pushing twice the subsize should allow
     // two frames to be written, leaving nothing
     // in the pipe
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 0);
 
     // if we push 63 elements they should remain in the pipe
-    plot.push(0, zeros.slice(0, 63), null, true);
+    plot.push(lyr_uuid, zeros.slice(0, 63), null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 63);
 
     // pushing two should leave one item in the pipe
-    plot.push(0, zeros.slice(0, 2), null, true);
+    plot.push(lyr_uuid, zeros.slice(0, 2), null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 1);
 
     // as does pushing another 128
-    plot.push(0, zeros, null, true);
+    plot.push(lyr_uuid, zeros, null, true);
     assert.equal(hcb.dview.length - hcb.data_free, 1);
 });
 QUnit.test('sigplot layer user_data', function(assert) {
@@ -2121,6 +2127,9 @@ interactiveTest('sigplot readout stays visible', 'Is the readout visible when th
 
     var cnt = 0;
 
+    var lyr0 = null;
+    var lyr1 = null;
+
     function update_rtplot() {
         var random = [];
         var random2 = [];
@@ -2141,17 +2150,17 @@ interactiveTest('sigplot readout stays visible', 'Is the readout visible when th
                     xmax: -100 + 1000
                   })
                 } */
-            rt_plot.reload(0, random);
-            rt_plot.reload(1, random2);
+            rt_plot.reload(lyr0, random);
+            rt_plot.reload(lyr1, random2);
         } else {
             rt_plot.change_settings({
                 cmode: 3,
                 autol: 1,
             });
-            rt_plot.overlay_array(random, {
+            lyr0 = rt_plot.overlay_array(random, {
                 file_name: "random"
             });
-            rt_plot.overlay_array(random2, {
+            lyr1 = rt_plot.overlay_array(random2, {
                 file_name: "random2"
             });
         }
@@ -2270,10 +2279,10 @@ interactiveTest('empty t1000 array', 'Do you see a plot with two pulses?', funct
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    plot.overlay_array([], {
+    var lyr0 = plot.overlay_array([], {
         file_name: "data1"
     });
-    plot.overlay_array(null, {
+    var lyr1 = plot.overlay_array(null, {
         file_name: "data2"
     });
     var pulse1 = [];
@@ -2290,21 +2299,21 @@ interactiveTest('empty t1000 array', 'Do you see a plot with two pulses?', funct
             pulse2.push(10.0);
         }
     }
-    plot.reload(0, pulse1);
-    plot.reload(1, pulse2);
+    plot.reload(lyr0, pulse1);
+    plot.reload(lyr1, pulse2);
 });
 interactiveTest('empty t2000 array', 'Do you see a plot with two pulses?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    plot.overlay_array([], {
+    var lyr0 = plot.overlay_array([], {
         type: 2000,
         subsize: 1000,
         file_name: "data1"
     }, {
         layerType: sigplot.Layer1D
     });
-    plot.overlay_array([], {
+    var lyr1 = plot.overlay_array([], {
         type: 2000,
         subsize: 1000,
         file_name: "data2"
@@ -2325,8 +2334,8 @@ interactiveTest('empty t2000 array', 'Do you see a plot with two pulses?', funct
             pulse2.push(10.0);
         }
     }
-    plot.reload(0, pulse1);
-    plot.reload(1, pulse2);
+    plot.reload(lyr0, pulse1);
+    plot.reload(lyr1, pulse2);
 });
 interactiveTest('sigplot 2d overlay', 'Do you see a raster? Is alignment of x/y axes correct?', function(assert) {
     var container = document.getElementById('plot');
@@ -2798,11 +2807,11 @@ interactiveTest('check-xaxis-creep-reload', 'Do you see a pulse staying stationa
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(pulse, {
+    var lyr0 = plot.overlay_array(pulse, {
         type: 1000
     });
     ifixture.interval = window.setInterval(function() {
-        plot.reload(0, pulse);
+        plot.reload(lyr0, pulse);
     }, 100);
 });
 interactiveTest('check-xaxis-creep-reload-oddsize', 'Do you see a pulse staying stationary on the x-axis?', function(assert) {
@@ -2819,11 +2828,11 @@ interactiveTest('check-xaxis-creep-reload-oddsize', 'Do you see a pulse staying 
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(pulse, {
+    var lyr0 = plot.overlay_array(pulse, {
         type: 1000
     });
     ifixture.interval = window.setInterval(function() {
-        plot.reload(0, pulse);
+        plot.reload(lyr0, pulse);
     }, 100);
 });
 interactiveTest('check-xaxis-creep-push', 'Do you see a pulse staying stationary on the x-axis?', function(assert) {
@@ -2913,7 +2922,7 @@ interactiveTest('reload', 'Do you see a pulse scrolling right?', function(assert
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(pulse, {
+    var lyr0 = plot.overlay_array(pulse, {
         type: 1000
     });
     ifixture.interval = window.setInterval(function() {
@@ -2925,7 +2934,7 @@ interactiveTest('reload', 'Do you see a pulse scrolling right?', function(assert
                 pulse[i] = -10.0;
             }
         }
-        plot.reload(0, pulse);
+        plot.reload(lyr0, pulse);
     }, 100);
 });
 interactiveTest('xtimecode', 'Do you see a pulse scrolling right with an xtimecode axis?', function(assert) {
@@ -2944,7 +2953,7 @@ interactiveTest('xtimecode', 'Do you see a pulse scrolling right with an xtimeco
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(pulse, {
+    var lyr0 = plot.overlay_array(pulse, {
         type: 1000,
         xstart: currentTime,
         xunits: 4
@@ -2959,7 +2968,7 @@ interactiveTest('xtimecode', 'Do you see a pulse scrolling right with an xtimeco
             }
         }
         currentTime = (new Date().getTime() + epochDelta) / 1000;
-        plot.reload(0, pulse, {
+        plot.reload(lyr0, pulse, {
             xstart: currentTime + 1
         });
     }, 100);
@@ -2978,7 +2987,7 @@ interactiveTest('t2000 odd-size layer1D (reload)', 'Do you see a stationary puls
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(null, {
+    var lyr0 = plot.overlay_array(null, {
         type: 2000,
         subsize: 16385
     }, {
@@ -2993,7 +3002,7 @@ interactiveTest('t2000 odd-size layer1D (reload)', 'Do you see a stationary puls
                 pulse.push(-10.0);
             }
         }
-        plot.reload(0, pulse);
+        plot.reload(lyr0, pulse);
     }, 100);
 });
 interactiveTest('t2000 odd-size layer1D (push)', 'Do you see a stationary pulse?', function(assert) {
@@ -3042,7 +3051,7 @@ interactiveTest('t2000 layer1D', 'Do you see a pulse scrolling right (type 2000)
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(null, {
+    var lyr0 = plot.overlay_array(null, {
         type: 2000,
         subsize: 1000
     }, {
@@ -3057,7 +3066,7 @@ interactiveTest('t2000 layer1D', 'Do you see a pulse scrolling right (type 2000)
                 pulse[i] = -10.0;
             }
         }
-        plot.reload(0, pulse);
+        plot.reload(lyr0, pulse);
     }, 100);
 });
 interactiveTest('zoom-xdelta', 'Is the plot fully scaled displaying a ramp?', function(assert) {
@@ -3068,7 +3077,7 @@ interactiveTest('zoom-xdelta', 'Is the plot fully scaled displaying a ramp?', fu
     for (var i = 0; i < 1000; i++) {
         ramp.push(i);
     }
-    plot.overlay_array(ramp, {
+    var lyr0 = plot.overlay_array(ramp, {
         type: 1000,
         xstart: -500
     });
@@ -3079,7 +3088,7 @@ interactiveTest('zoom-xdelta', 'Is the plot fully scaled displaying a ramp?', fu
         x: 250,
         y: -5
     });
-    plot.reload(0, ramp, {
+    plot.reload(lyr0, ramp, {
         xstart: 0,
         xdelta: 50
     });
@@ -3101,7 +3110,7 @@ interactiveTest('reload', 'Do you see a pulse stationary at 0 while the axis shi
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(pulse, {
+    var lyr0 = plot.overlay_array(pulse, {
         type: 1000,
         xstart: xstart
     });
@@ -3118,7 +3127,7 @@ interactiveTest('reload', 'Do you see a pulse stationary at 0 while the axis shi
                 pulse[i] = -10.0;
             }
         }
-        plot.reload(0, pulse, {
+        plot.reload(lyr0, pulse, {
             xstart: xstart
         });
     }, 1000);
@@ -3139,7 +3148,7 @@ interactiveTest('reload', 'Do you see a pulse stationary at 0 while the axis gro
             pulse.push(-10.0);
         }
     }
-    plot.overlay_array(pulse, {
+    var lyr0 = plot.overlay_array(pulse, {
         type: 1000,
         xstart: -500,
         xdelta: xdelta
@@ -3147,7 +3156,7 @@ interactiveTest('reload', 'Do you see a pulse stationary at 0 while the axis gro
     ifixture.interval = window.setInterval(function() {
         xdelta = xdelta * 2;
         xstart = -500 * xdelta;
-        plot.reload(0, pulse, {
+        plot.reload(lyr0, pulse, {
             xstart: xstart,
             xdelta: xdelta
         });
@@ -3961,7 +3970,7 @@ interactiveTest('scrolling raster two pipes', 'Do you see a scrolling raster wit
         file_name: "layer0",
         ydelta: 0.25
     });
-    assert.equal(layer_0, 0);
+    assert.equal(plot.get_lyrn(layer_0), 0);
     var layer_1 = plot.overlay_pipe({
         type: 2000,
         subsize: Math.floor(framesize / 3),
@@ -3970,7 +3979,7 @@ interactiveTest('scrolling raster two pipes', 'Do you see a scrolling raster wit
     }, {
         opacity: 0.5
     });
-    assert.equal(layer_1, 1);
+    assert.equal(plot.get_lyrn(layer_1), 1);
 
     ifixture.interval = window.setInterval(function() {
         var ramp = [];
@@ -4320,7 +4329,7 @@ interactiveTest('raster changing LPS', 'Do you see a falling raster redrawn with
         autol: 5
     });
     var framesize = 128;
-    plot.overlay_pipe({
+    var lyr_uuid = plot.overlay_pipe({
         type: 2000,
         subsize: framesize,
         file_name: "ramp",
@@ -4334,7 +4343,7 @@ interactiveTest('raster changing LPS', 'Do you see a falling raster redrawn with
         } else {
             currentLps = lpsVals[0];
         }
-        plot.deoverlay(0);
+        plot.deoverlay(lyr_uuid);
         plot.overlay_pipe({
             type: 2000,
             subsize: framesize,
@@ -4354,7 +4363,7 @@ interactiveTest('raster changing LPS', 'Do you see a falling raster redrawn with
         if (count % 20 === 0) {
             toggleLps();
         }
-        plot.push(0, ramp, {
+        plot.push(lyr_uuid, ramp, {
             lps: currentLps
         });
     }, 500);
@@ -5026,7 +5035,7 @@ interactiveTest('vertical accordion', 'Do you see a vertical accordion that stay
             strokeStyle: "#FF2400"
         }
     });
-    plot.overlay_array(zeros, {
+    var lyr0 = plot.overlay_array(zeros, {
         type: 2000,
         subsize: framesize,
         file_name: "zeros",
@@ -5045,7 +5054,7 @@ interactiveTest('vertical accordion', 'Do you see a vertical accordion that stay
             xstart_chng = xstart_chng * -1;
         }
         xstart += xstart_chng;
-        plot.reload(0, zeros, {
+        plot.reload(lyr0, zeros, {
             xstart: xstart
         });
     }, 500);
@@ -5108,7 +5117,7 @@ interactiveTest('vertical accordion relative placement', "Do you see a vertical 
         autol: 5
     });
     var framesize = 128;
-    plot.overlay_array(null, {
+    var lyr0 = plot.overlay_array(null, {
         type: 2000,
         subsize: framesize,
         file_name: "zeros",
@@ -5140,7 +5149,7 @@ interactiveTest('vertical accordion relative placement', "Do you see a vertical 
             xstart_chng = xstart_chng * -1;
         }
         xstart += xstart_chng;
-        plot.reload(0, zeros, {
+        plot.reload(lyr0, zeros, {
             xstart: xstart
         });
     }, 500);
@@ -5801,14 +5810,14 @@ interactiveTest('change_settings', 'does the plot show a range 200-2200', functi
         framesize: 1024
     };
 
-    plot.overlay_pipe(hcb, layerOptions);
+    var lyr_uuid = plot.overlay_pipe(hcb, layerOptions);
 
     var ramp = [];
     for (var i = 0; i < 1024; i += 1) {
         ramp.push(i + 1);
     }
     // do a syncronous push so we can make some assertions
-    plot.push(0, ramp, null, true);
+    plot.push(lyr_uuid, ramp, null, true);
     assert.strictEqual(plot._Mx.stk[0].xmin, 0);
     assert.strictEqual(plot._Mx.stk[0].xmax, 20460);
 
@@ -5828,7 +5837,7 @@ interactiveTest('change_settings', 'does the plot show a range 200-2200', functi
     assert.strictEqual(plot._Mx.stk[0].xmax, 2200);
 
     // and another push
-    plot.push(0, ramp, null, true);
+    plot.push(lyr_uuid, ramp, null, true);
     assert.strictEqual(plot._Mx.stk[0].xmin, 200);
     assert.strictEqual(plot._Mx.stk[0].xmax, 2200);
 
@@ -5852,21 +5861,21 @@ interactiveTest('headermod', 'does the plot show a range 200-2200', function(ass
         framesize: 1024
     };
 
-    plot.overlay_pipe(hcb, layerOptions);
+    var lyr_uuid = plot.overlay_pipe(hcb, layerOptions);
 
     var ramp = [];
     for (var i = 0; i < 1024; i += 1) {
         ramp.push(i + 1);
     }
     // do a syncronous push so we can make some assertions
-    plot.push(0, ramp, null, true);
+    plot.push(lyr_uuid, ramp, null, true);
     assert.strictEqual(plot._Mx.stk[0].xmin, 0);
     assert.strictEqual(plot._Mx.stk[0].xmax, 20460);
 
     assert.strictEqual(plot._Gx.lyr[0].xmin, 0);
     assert.strictEqual(plot._Gx.lyr[0].xmax, 20460);
 
-    plot.headermod(0, {
+    plot.headermod(lyr_uuid, {
         xmin: 200,
         xmax: 2200
     });
@@ -5882,7 +5891,7 @@ interactiveTest('headermod', 'does the plot show a range 200-2200', function(ass
     assert.strictEqual(plot._Mx.stk[0].xmax, 2200);
 
     // and another push
-    plot.push(0, ramp, null, true);
+    plot.push(lyr_uuid, ramp, null, true);
     assert.strictEqual(plot._Mx.stk[0].xmin, 200);
     assert.strictEqual(plot._Mx.stk[0].xmax, 2200);
 
