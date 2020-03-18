@@ -1872,7 +1872,7 @@
                     (cmode === "ABRI") || (cmode === "ABIR") || (cmode === "__RI") ||
                     (cmode === "__IR") || (cmode === "IMAG/REAL") || (cmode === "REAL/IMAG") || (cmode === 5)) {
                     if (Gx.index) {
-                        alert("Imag/Real mode not permitted in INDEX mode");
+                        m.log.error("Imag/Real mode not permitted in INDEX mode");
                     } else {
                         cmode = 5;
                     }
@@ -2503,7 +2503,7 @@
                     return function(hcb) {
                         try {
                             if (!hcb) {
-                                alert("Failed to load data");
+                                m.log.error("Failed to load data: " + href);
                             } else {
                                 hcb._uuid = lyr_uuid;
                                 common.update(hcb, overrides);
@@ -2530,7 +2530,7 @@
                         try {
                             var i = null;
                             if (!hcb) {
-                                alert("Failed to load data");
+                                m.log.error("Failed to load data: " + href);
                             } else {
                                 hcb._uuid = lyr_uuid;
                                 common.update(hcb, overrides);
@@ -6949,7 +6949,7 @@
             (cmode === "ABRI") || (cmode === "ABIR") || (cmode === "__RI") ||
             (cmode === "__IR") || (cmode === "IMAG/REAL") || (cmode === "REAL/IMAG")) {
             if (Gx.index) {
-                alert("Imag/Real mode not permitted in INDEX mode");
+                m.log.error("Imag/Real mode not permitted in INDEX mode");
             } else {
                 Gx.cmode = 5;
             }
@@ -7920,7 +7920,7 @@
         if (newmode === Gx.cmode) {
             return;
         } else if (newmode === 5 && Gx.index) {
-            alert("Imag/Real mode not permitted in INDEX mode");
+            m.log.error("Imag/Real mode not permitted in INDEX mode");
         } else if (Gx.lyr.length <= 0) {
             Gx.cmode = newmode;
             // The call to display specs isn't found in sigplot.for;
