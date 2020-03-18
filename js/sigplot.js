@@ -7192,8 +7192,12 @@
             Gx.xdelta = 1.0;
             Gx.autol = -1;
             Mx.origin = 1;
-            Gx.zmin = undefined;
-            Gx.zmax = undefined;
+            if (Gx.autoz & 1) {
+                Gx.zmin = undefined;
+            }
+            if (Gx.autoz & 2) {
+                Gx.zmax = undefined;
+            }
         }
 
         // if (!open) {
