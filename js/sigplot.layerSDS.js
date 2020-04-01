@@ -31,6 +31,22 @@
     var m = require("./m");
     var mx = require("./mx");
     var common = require("./common");
+
+    var decimationModeLookup ={
+        1: 1,
+        2:2,
+        4:3,
+        8:4,
+        16:5,
+        32:6,
+        64:7,
+        128:8,
+        256:9,
+        1512:10,
+    };
+
+    var decimationPossibilities = [512,256,128,64,32,16,8,4,2,1];
+
     /**
      * @constructor
      * @param plot
@@ -113,8 +129,10 @@
                 this.lps = this.hcb.lps || Math.ceil(hcb.size);
             }
             
+            var LRU = require("lru-cache");
 
-            this.cache = {};
+            this.cache = new LRU(500);
+
 
             if (Gx.index) {
                 this.xstart = 1.0;
@@ -206,6 +224,9 @@
                     this.xcompression = settings.xcmp;
                 }
             }
+            if (settings.usetiles !==undefined) {
+                this.usetiles = settings.usetiles;
+            }
         },
 
         reload: function(data, hdrmod) {
@@ -236,6 +257,175 @@
             }
 
             return this.lps;
+        },
+
+        // load_sds: function(oEvent) { // This is loading an entire SDS non-tiled...maybe not necessary
+            
+        //     if (oReq.readyState === 4) {
+        //         if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
+        //             var zmin = oReq.getResponseHeader("Zmin");
+        //             var zmax = oReq.getResponseHeader("Zmax");
+                    
+        //             if ((Mx.level === 0) && (Gx.zmin === undefined)) {
+        //                 if (((Gx.autoz & 1) !== 0)) {
+        //                     Gx.zmin = zmin;
+        //                 }
+        //             }
+        //             if ((Mx.level === 0) && (Gx.zmax === undefined)) {
+        //                 if (((Gx.autoz & 2) !== 0)) {
+        //                     Gx.zmax = zmax;
+        //                 }
+        //             }
+        //             var arrayBuffer = null; // Note: not oReq.responseText
+        //             if (oReq.response) {
+        //                 arrayBuffer = oReq.response;
+        //             }
+
+        //             //let imgd = new Uint8ClampedArray(arrayBuffer);
+        //             arrayBuffer.width = oReq.getResponseHeader("Outxsize"); 
+        //             arrayBuffer.height = oReq.getResponseHeader("Outysize");
+        //             arrayBuffer.contents = "rgba";
+        //             that.cache[url] = arrayBuffer;
+
+        //             mx.draw_image(Mx,
+        //                 arrayBuffer,
+        //                 xmin+(xsizeperfulltile*tileX), // xmin
+        //                 ymin+(ysizeperfulltile*tileY), // ymin
+        //                 xmin+(xsizeperfulltile*(arrayBuffer.width/maxtilesize)), // xmax 
+        //                 ymax+(ysizeperfulltile*(arrayBuffer.height/maxtilesize)), // ymax
+        //                 1.0,
+        //                 false,
+        //                 true
+        //             );
+        //             return;
+        //         }
+        //     }
+        // },
+
+        load_tile: function(url, oReq, oEvent) {
+            var arrayBuffer;
+            var Mx = this.plot._Mx;
+            var Gx = this.plot._Gx;
+            if (oReq.readyState === 4) {
+                if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
+                    // var zmin = parseFloat(oReq.getResponseHeader("Zmin"));
+                    // var zmax = parseFloat(oReq.getResponseHeader("Zmax"));
+                    
+                    // if ((Mx.level === 0) && (Gx.zmin === undefined)) {
+                    //     if (((Gx.autoz & 1) !== 0)) {
+                    //         Gx.zmin = zmin;
+                    //     }
+                    // }
+                    // if ((Mx.level === 0) && (Gx.zmax === undefined)) {
+                    //     if (((Gx.autoz & 2) !== 0)) {
+                    //         Gx.zmax = zmax;
+                    //     }
+                    // }
+                    arrayBuffer = null; // Note: not oReq.responseText
+                    if (oReq.response) {
+                        arrayBuffer = oReq.response;
+                    }
+
+                    var xmin= parseFloat(oReq.getResponseHeader("Xmin"));
+                    var xmax = parseFloat(oReq.getResponseHeader("Xmax"));
+                    var ymin = parseFloat(oReq.getResponseHeader("Ymin"));
+                    var ymax = parseFloat( oReq.getResponseHeader("Ymax"));
+                    //let imgd = new Uint8ClampedArray(arrayBuffer);
+                    arrayBuffer.width = oReq.getResponseHeader("Outxsize"); 
+                    arrayBuffer.height = oReq.getResponseHeader("Outysize");
+                    arrayBuffer.contents = "rgba";
+                    arrayBuffer.xmin = xmin;
+                    arrayBuffer.ymin = ymin;
+                    arrayBuffer.xmax = xmax;
+                    arrayBuffer.ymax = ymax;
+                    this.cache.set(url, arrayBuffer);
+
+                    mx.draw_image(Mx,
+                        arrayBuffer,
+                        xmin,
+                        ymin,
+                        xmax,
+                        ymax,
+                        1.0,
+                        false,
+                        true
+                    );
+                    return;
+                }
+            }
+        },
+
+        sendTileRequest: function(HCB, tileX, tileY, decx, decy) {
+            var Mx = this.plot._Mx;
+            var Gx = this.plot._Gx;
+
+            var url;
+            var oReq;
+            var cxm = ["Ma", "Ph", "Re", "Im", "IR", "Lo", "L2"];
+            var xcmp = ["first", "mean", "min", "max", "first", "absmax"];
+
+            oReq = new XMLHttpRequest();
+            
+            url = this.hcb.url + 
+                "?mode=rdstile" +
+            //    "&x1=" + Math.floor((xmin -HCB.xstart)/ HCB.xdelta) +
+            //    "&y1=" + Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) +
+            //    "&x2=" + (Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1) +
+            //     "&y2=" + (Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1) +
+            //    "&outxsize=" + iw +
+            //    "&outysize=" + ih +
+                "&decx=" +decx +
+                "&decy=" +decy +
+                "&tilex=" +tileX +
+                "&tiley=" +tileY +
+                "&outfmt=RGBA" +
+                "&colormap=RampColormap" +
+                "&subsize="+HCB.subsize;
+
+            if (Gx.zmin !== undefined) {
+                url = url+"&zmin=" + Gx.zmin;
+            }
+            if (Gx.zmax !== undefined) {
+                url = url+"&zmax=" + Gx.zmax;
+            }
+
+            if (Gx.cmode !== undefined) {
+                url = url+"&cxmode=" + cxm[Gx.cmode-1];
+            }
+            
+            if (this.xcompression !== undefined) {
+                url = url + "&transform=" + xcmp[this.xcompression];
+            }
+
+
+            var img = this.cache.get(url);
+            if (img) {
+                mx.draw_image(Mx,
+                    img,
+                    img.xmin, // xmin
+                    img.ymin, // ymin
+                    img.xmax, // xmax
+                    img.ymax, // ymax
+                    1.0,
+                    false,
+                    true
+                );
+                //return;
+            } else {
+                oReq.open("GET", url, true);
+                oReq.responseType = "arraybuffer";
+                oReq.overrideMimeType('text\/plain; charset=x-user-defined');
+
+                var that = this;
+                oReq.onload = function(oEvent) {
+                    // `this` will be oReq within this context
+                    that.load_tile(url, this, oEvent);
+                };
+                oReq.onerror = function(oEvent) {
+                };
+                oReq.send(null);
+            // this.debounceSend(oReq);
+            }
         },
 
         draw: function() {
@@ -285,103 +475,154 @@
             Gx.xe = Math.max(1, Math.round(rx));
             Gx.ye = Math.max(1, Math.round(ry));
 
-            var oReq = new XMLHttpRequest();
+            if (this.usetiles) { 
+                var maxtilesize = 100;
 
-            var url = this.hcb.url + 
-                "?mode=rds" +
-                "&x1=" + Math.floor((xmin -HCB.xstart)/ HCB.xdelta) +
-                "&y1=" + Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) +
-                "&x2=" + (Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1) +
-                "&y2=" + (Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1) +
-                "&outxsize=" + iw +
-                "&outysize=" + ih +
-                "&outfmt=RGBA" +
-                "&colormap=RampColormap" +
-                "&subsize="+HCB.subsize;
+                var requestedDecx = Math.max(1,(w/iw)*1.2);  //Allow for upscaling the number of pixels needed by 20% otherwise request the next zoom level
+                var requestedDecy = Math.max(1,(h/ih)*1.2);
+                var i = 0;
+                while (decimationPossibilities[i]>requestedDecx) {
+                    i++;
+                }
+                var decfactorx = decimationPossibilities[i];
+                i = 0;
+                while (decimationPossibilities[i]>requestedDecy) {
+                    i++;
+                }
+                var decfactory = decimationPossibilities[i];
+    
+                var decx = decimationModeLookup[decfactorx];
+                var decy = decimationModeLookup[decfactory];
+    
+                var tilexsize = maxtilesize*decfactorx;
+                var tileysize = maxtilesize*decfactory;
+    
+                // Index values of xmax,xmin, ymax,ymin
+                var x1= Math.floor((xmin -HCB.xstart)/ HCB.xdelta); 
+                var y1= Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) ;
+                var x2= Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1;
+                var y2= Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1;
+    
+                var firstcolumn = Math.floor(x1/tilexsize);
+                var fistrow = Math.floor(y1/tileysize);
+                var lastcolumn = Math.floor(x2/tilexsize);
+                var lastrow = Math.floor(y2/tileysize);
+    
+                //var numtilesx = Math.ceil(w/decfactorx/maxtilesize);
+                //var numtilesy = Math.ceil(h/decfactory/maxtilesize);
+                // var xsize = xmax-xmin;
+                // var ysize = ymax-ymin;
+                // var xsizeperfulltile = xsize*(maxtilesize/w); 
+                // var ysizeperfulltile = ysize*(maxtilesize/h);
+    
+                
+    
+                for (var tileY = fistrow; tileY < (lastrow+1); tileY++) { 
+                    for (var tileX = firstcolumn; tileX < (lastcolumn+1); tileX++) {
+                        this.sendTileRequest(HCB, tileX, tileY, decx, decy);
+                    }
+                }
 
-            if (Gx.zmin !== undefined) {
-                url = url+"&zmin=" + Gx.zmin;
-            }
-            if (Gx.zmax !== undefined) {
-                url = url+"&zmax=" + Gx.zmax;
-            }
+            } else {
+                var oReq = new XMLHttpRequest();
 
-            if (Gx.cmode !== undefined) {
-                var cxm = ["Ma", "Ph", "Re", "Im", "IR", "Lo", "L2"];
-                url = url+"&cxmode=" + cxm[Gx.cmode-1];
+                var url = this.hcb.url + 
+                    "?mode=rds" +
+                    "&x1=" + Math.floor((xmin -HCB.xstart)/ HCB.xdelta) +
+                    "&y1=" + Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) +
+                    "&x2=" + (Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1) +
+                    "&y2=" + (Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1) +
+                    "&outxsize=" + iw +
+                    "&outysize=" + ih +
+                    "&outfmt=RGBA" +
+                    "&colormap=RampColormap" +
+                    "&subsize="+HCB.subsize;
+    
+                if (Gx.zmin !== undefined) {
+                    url = url+"&zmin=" + Gx.zmin;
+                }
+                if (Gx.zmax !== undefined) {
+                    url = url+"&zmax=" + Gx.zmax;
+                }
+    
+                if (Gx.cmode !== undefined) {
+                    var cxm = ["Ma", "Ph", "Re", "Im", "IR", "Lo", "L2"];
+                    url = url+"&cxmode=" + cxm[Gx.cmode-1];
+                }
+                
+                if (this.xcompression !== undefined) {
+                    var xcmp = ["first", "mean", "min", "max", "first", "absmax"];
+                    url = url + "&transform=" + xcmp[this.xcompression];
+                }
+    
+    
+                var img = this.cache.get(url);
+                if (img) {
+                    mx.draw_image(Mx,
+                        img,
+                        xmin, // xmin
+                        ymin, // ymin
+                        xmax, // xmax
+                        ymax, // ymax
+                        1.0,
+                        false,
+                        true
+                    );
+                } else {
+                    oReq.open("GET", url, true);
+                    oReq.responseType = "arraybuffer";
+                    oReq.overrideMimeType('text\/plain; charset=x-user-defined');
+        
+                    var that = this;
+                    oReq.onload = function(oEvent) {
+                        if (oReq.readyState === 4) {
+                            if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
+                                var zmin = oReq.getResponseHeader("Zmin");
+                                var zmax = oReq.getResponseHeader("Zmax");
+                                
+                                if ((Mx.level === 0) && (Gx.zmin === undefined)) {
+                                    if (((Gx.autoz & 1) !== 0)) {
+                                        Gx.zmin = zmin;
+                                    }
+                                }
+                                if ((Mx.level === 0) && (Gx.zmax === undefined)) {
+                                    if (((Gx.autoz & 2) !== 0)) {
+                                        Gx.zmax = zmax;
+                                    }
+                                }
+                                var arrayBuffer = null; // Note: not oReq.responseText
+                                if (oReq.response) {
+                                    arrayBuffer = oReq.response;
+                                }
+        
+                                //let imgd = new Uint8ClampedArray(arrayBuffer);
+                                arrayBuffer.width = iw;
+                                arrayBuffer.height = ih;
+                                arrayBuffer.contents = "rgba";
+                                this.cache.set(url, arrayBuffer);
+                                mx.draw_image(Mx,
+                                    arrayBuffer,
+                                    xmin, // xmin
+                                    ymin, // ymin
+                                    xmax, // xmax
+                                    ymax, // ymax
+                                    1.0,
+                                    false,
+                                    true
+                                );
+                                return;
+                            }
+                        }
+                    };
+                    oReq.onerror = function(oEvent) {
+                    };
+    
+                    this.debounceSend(oReq);
+    
+                }
+
             }
             
-            if (this.xcompression !== undefined) {
-                var xcmp = ["first", "mean", "min", "max", "first", "absmax"];
-                url = url + "&transform=" + xcmp[this.xcompression];
-            }
-
-
-            var img = this.cache[url];
-            if (img) {
-                mx.draw_image(Mx,
-                    img,
-                    xmin, // xmin
-                    ymin, // ymin
-                    xmax, // xmax
-                    ymax, // ymax
-                    1.0,
-                    false,
-                    true
-                );
-            } else {
-                oReq.open("GET", url, true);
-                oReq.responseType = "arraybuffer";
-                oReq.overrideMimeType('text\/plain; charset=x-user-defined');
-    
-                var that = this;
-                oReq.onload = function(oEvent) {
-                    if (oReq.readyState === 4) {
-                        if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
-                            var zmin = oReq.getResponseHeader("Zmin");
-                            var zmax = oReq.getResponseHeader("Zmax");
-                            
-                            if ((Mx.level === 0) && (Gx.zmin === undefined)) {
-                                if (((Gx.autoz & 1) !== 0)) {
-                                    Gx.zmin = zmin;
-                                }
-                            }
-                            if ((Mx.level === 0) && (Gx.zmax === undefined)) {
-                                if (((Gx.autoz & 2) !== 0)) {
-                                    Gx.zmax = zmax;
-                                }
-                            }
-                            var arrayBuffer = null; // Note: not oReq.responseText
-                            if (oReq.response) {
-                                arrayBuffer = oReq.response;
-                            }
-    
-                            //let imgd = new Uint8ClampedArray(arrayBuffer);
-                            arrayBuffer.width = iw;
-                            arrayBuffer.height = ih;
-                            arrayBuffer.contents = "rgba";
-                            that.cache[url] = arrayBuffer;
-                            mx.draw_image(Mx,
-                                arrayBuffer,
-                                xmin, // xmin
-                                ymin, // ymin
-                                xmax, // xmax
-                                ymax, // ymax
-                                1.0,
-                                false,
-                                true
-                            );
-                            return;
-                        }
-                    }
-                };
-                oReq.onerror = function(oEvent) {
-                };
-
-                this.debounceSend(oReq);
-
-            }
-
 
         }
     };
