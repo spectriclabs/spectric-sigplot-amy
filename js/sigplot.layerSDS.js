@@ -599,7 +599,7 @@
                                 arrayBuffer.width = iw;
                                 arrayBuffer.height = ih;
                                 arrayBuffer.contents = "rgba";
-                                this.cache.set(url, arrayBuffer);
+                                that.cache.set(url, arrayBuffer);
                                 mx.draw_image(Mx,
                                     arrayBuffer,
                                     xmin, // xmin
