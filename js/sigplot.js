@@ -2555,7 +2555,7 @@
                     // TODO it would be nice to not check layerType here but either
                     // peek at the URL contents OR use something in the URL
                     oReq = new XMLHttpRequest();
-                    oReq.open("GET", href + "?mode=hdr", true);
+                    oReq.open("GET", href , true);
                     oReq.responseType = "";
                     oReq.onload = function(oEvent) {
                         var hcb = JSON.parse(oReq.responseText);

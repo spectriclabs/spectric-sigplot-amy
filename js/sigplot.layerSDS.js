@@ -259,49 +259,6 @@
             return this.lps;
         },
 
-        // load_sds: function(oEvent) { // This is loading an entire SDS non-tiled...maybe not necessary
-            
-        //     if (oReq.readyState === 4) {
-        //         if ((oReq.status === 200) || (oReq.status === 0)) { // status = 0 is necessary for file URL
-        //             var zmin = oReq.getResponseHeader("Zmin");
-        //             var zmax = oReq.getResponseHeader("Zmax");
-                    
-        //             if ((Mx.level === 0) && (Gx.zmin === undefined)) {
-        //                 if (((Gx.autoz & 1) !== 0)) {
-        //                     Gx.zmin = zmin;
-        //                 }
-        //             }
-        //             if ((Mx.level === 0) && (Gx.zmax === undefined)) {
-        //                 if (((Gx.autoz & 2) !== 0)) {
-        //                     Gx.zmax = zmax;
-        //                 }
-        //             }
-        //             var arrayBuffer = null; // Note: not oReq.responseText
-        //             if (oReq.response) {
-        //                 arrayBuffer = oReq.response;
-        //             }
-
-        //             //let imgd = new Uint8ClampedArray(arrayBuffer);
-        //             arrayBuffer.width = oReq.getResponseHeader("Outxsize"); 
-        //             arrayBuffer.height = oReq.getResponseHeader("Outysize");
-        //             arrayBuffer.contents = "rgba";
-        //             that.cache[url] = arrayBuffer;
-
-        //             mx.draw_image(Mx,
-        //                 arrayBuffer,
-        //                 xmin+(xsizeperfulltile*tileX), // xmin
-        //                 ymin+(ysizeperfulltile*tileY), // ymin
-        //                 xmin+(xsizeperfulltile*(arrayBuffer.width/maxtilesize)), // xmax 
-        //                 ymax+(ysizeperfulltile*(arrayBuffer.height/maxtilesize)), // ymax
-        //                 1.0,
-        //                 false,
-        //                 true
-        //             );
-        //             return;
-        //         }
-        //     }
-        // },
-
         load_tile: function(url, oReq, oEvent) {
             var arrayBuffer;
             var Mx = this.plot._Mx;
@@ -355,7 +312,7 @@
             }
         },
 
-        sendTileRequest: function(HCB, tileX, tileY, decx, decy) {
+        sendTileRequest: function(HCB, tileXsize, tileYsize,  decx, decy, tileX, tileY) {
             var Mx = this.plot._Mx;
             var Gx = this.plot._Gx;
 
@@ -366,19 +323,16 @@
 
             oReq = new XMLHttpRequest();
             
-            url = this.hcb.url + 
-                "?mode=rdstile" +
-            //    "&x1=" + Math.floor((xmin -HCB.xstart)/ HCB.xdelta) +
-            //    "&y1=" + Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) +
-            //    "&x2=" + (Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1) +
-            //     "&y2=" + (Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1) +
-            //    "&outxsize=" + iw +
-            //    "&outysize=" + ih +
-                "&decx=" +decx +
-                "&decy=" +decy +
-                "&tilex=" +tileX +
-                "&tiley=" +tileY +
-                "&outfmt=RGBA" +
+            var urlsplit = this.hcb.url.split("/sds/hdr/");
+            url = urlsplit[0]+"/sds/rdstile/" +
+                 tileXsize + "/" +
+                 tileYsize + "/" +
+                 decx + "/" +
+                 decy + "/" +
+                 tileX + "/" +
+                 tileY + "/" +
+                 urlsplit[1] +
+                "?outfmt=RGBA" +
                 "&colormap=RampColormap" +
                 "&subsize="+HCB.subsize;
 
@@ -444,12 +398,15 @@
             var ymax = Math.min(this.ymax, Mx.stk[Mx.level].ymax);
 
             // Figure out width/height based on the real-world coordinates
-            var w = Math.abs(xmax - xmin) + 1;
-            var h = Math.abs(ymax - ymin) + 1;
+            //var w = Math.abs(xmax - xmin) + 1;
+            //var h = Math.abs(ymax - ymin) + 1;
+
+            var w = Math.abs(xmax - xmin);
+            var h = Math.abs(ymax - ymin);
 
             // Convert w/h to elements
-            w = Math.floor(w / HCB.xdelta);
-            h = Math.floor(h / HCB.ydelta);
+            w = Math.ceil(w / HCB.xdelta);
+            h = Math.ceil(h / HCB.ydelta);
 
             // Make sure w/h remain within limits
             w = Math.min(w, HCB.subsize);
@@ -475,11 +432,25 @@
             Gx.xe = Math.max(1, Math.round(rx));
             Gx.ye = Math.max(1, Math.round(ry));
 
-            if (this.usetiles) { 
-                var maxtilesize = 100;
+            // Index values of xmax,xmin, ymax,ymin
+            var x1= Math.floor((xmin -HCB.xstart)/ HCB.xdelta); 
+            var y1= Math.floor((ymin - HCB.ystart)/ HCB.ydelta) ;
+            var x2= x1+w;
+            var y2= y1+h;
 
-                var requestedDecx = Math.max(1,(w/iw)*1.2);  //Allow for upscaling the number of pixels needed by 20% otherwise request the next zoom level
-                var requestedDecy = Math.max(1,(h/ih)*1.2);
+            if (this.usetiles) { 
+                //var maxtileXsize = 200;
+                //var  maxtileYsize = 200;
+                var maxtileXsize = Math.min(Math.max(Math.ceil(iw/300)*100,100),500);
+                var maxtileYsize = Math.min(Math.max(Math.ceil(ih/300)*100,100),500);
+
+                //var tileXsize = maxtilesize;
+                //var tileYsize = maxtilesize;
+
+                //var requestedDecx = Math.max(1,(w/iw)*1.2);  //Allow for upscaling the number of pixels needed by 20% otherwise request the next zoom level
+               // var requestedDecy = Math.max(1,(h/ih)*1.2);
+                var requestedDecx = Math.max(1,(w/iw));  
+                var requestedDecy = Math.max(1,(h/ih));
                 var i = 0;
                 while (decimationPossibilities[i]>requestedDecx) {
                     i++;
@@ -494,14 +465,8 @@
                 var decx = decimationModeLookup[decfactorx];
                 var decy = decimationModeLookup[decfactory];
     
-                var tilexsize = maxtilesize*decfactorx;
-                var tileysize = maxtilesize*decfactory;
-    
-                // Index values of xmax,xmin, ymax,ymin
-                var x1= Math.floor((xmin -HCB.xstart)/ HCB.xdelta); 
-                var y1= Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) ;
-                var x2= Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1;
-                var y2= Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1;
+                var tilexsize = maxtileXsize*decfactorx;
+                var tileysize = maxtileYsize*decfactory;
     
                 var firstcolumn = Math.floor(x1/tilexsize);
                 var fistrow = Math.floor(y1/tileysize);
@@ -516,25 +481,26 @@
                 // var ysizeperfulltile = ysize*(maxtilesize/h);
     
                 
-    
+
                 for (var tileY = fistrow; tileY < (lastrow+1); tileY++) { 
                     for (var tileX = firstcolumn; tileX < (lastcolumn+1); tileX++) {
-                        this.sendTileRequest(HCB, tileX, tileY, decx, decy);
+                        this.sendTileRequest(HCB, maxtileXsize, maxtileYsize,  decx, decy, tileX, tileY);
                     }
                 }
 
             } else {
                 var oReq = new XMLHttpRequest();
 
-                var url = this.hcb.url + 
-                    "?mode=rds" +
-                    "&x1=" + Math.floor((xmin -HCB.xstart)/ HCB.xdelta) +
-                    "&y1=" + Math.ceil((ymin - HCB.ystart)/ HCB.ydelta) +
-                    "&x2=" + (Math.floor((xmax - HCB.xstart) / HCB.xdelta) -1) +
-                    "&y2=" + (Math.ceil((ymax - HCB.ystart) / HCB.ydelta) -1) +
-                    "&outxsize=" + iw +
-                    "&outysize=" + ih +
-                    "&outfmt=RGBA" +
+                var urlsplit = this.hcb.url.split("/sds/hdr/");
+                var url = urlsplit[0]+"/sds/rds/" +
+                    x1 + "/" +
+                    y1 + "/" +
+                    x2 + "/" +
+                    y2 + "/" +
+                    iw + "/" +
+                    ih + "/" +
+                    urlsplit[1] +
+                    "?outfmt=RGBA" +
                     "&colormap=RampColormap" +
                     "&subsize="+HCB.subsize;
     
