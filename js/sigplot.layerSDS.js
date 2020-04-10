@@ -333,7 +333,7 @@
                  tileY + "/" +
                  urlsplit[1] +
                 "?outfmt=RGBA" +
-                "&colormap=RampColormap" +
+                "&colormap="+ m.Mc.colormap[Gx.cmap].name+
                 "&subsize="+HCB.subsize;
 
             if (Gx.zmin !== undefined) {
@@ -501,7 +501,7 @@
                     ih + "/" +
                     urlsplit[1] +
                     "?outfmt=RGBA" +
-                    "&colormap=RampColormap" +
+                    "&colormap="+ m.Mc.colormap[Gx.cmap].name+
                     "&subsize="+HCB.subsize;
     
                 if (Gx.zmin !== undefined) {
