@@ -470,8 +470,8 @@
     
                 var firstcolumn = Math.floor(x1/tilexsize);
                 var fistrow = Math.floor(y1/tileysize);
-                var lastcolumn = Math.floor(x2/tilexsize);
-                var lastrow = Math.floor(y2/tileysize);
+                var lastcolumn = Math.ceil(x2/tilexsize);
+                var lastrow = Math.ceil(y2/tileysize);
     
                 //var numtilesx = Math.ceil(w/decfactorx/maxtilesize);
                 //var numtilesy = Math.ceil(h/decfactory/maxtilesize);
@@ -482,8 +482,8 @@
     
                 
 
-                for (var tileY = fistrow; tileY < (lastrow+1); tileY++) { 
-                    for (var tileX = firstcolumn; tileX < (lastcolumn+1); tileX++) {
+                for (var tileY = fistrow; tileY < (lastrow); tileY++) { 
+                    for (var tileX = firstcolumn; tileX < (lastcolumn); tileX++) {
                         this.sendTileRequest(HCB, maxtileXsize, maxtileYsize,  decx, decy, tileX, tileY);
                     }
                 }
