@@ -182,13 +182,15 @@
             if (settings.subsize) {
                 this.hcb.subsize = settings.subsize;
                 this.hcb.ape = settings.subsize;
-                this.hcb.size = this.hcb.dview.length / (this.hcb.spa * this.hcb.ape);
                 if (this.hcb.file_type ===1000) {
                     this.lps = Math.ceil(this.hcb.size/this.hcb.subsize);
                 } else {
                     this.lps = Math.ceil(this.hcb.size);
                 }
-                    
+                var d = this.hcb.xstart + (this.hcb.xdelta * this.hcb.subsize);
+                this.xmin = this.hcb.xmin || Math.min(this.hcb.xstart, d);
+                this.xmax = this.hcb.xmax || Math.max(this.hcb.xstart, d);
+
                 var d = this.hcb.ystart + (this.hcb.ydelta * this.lps);
                 this.ymin = this.hcb.ymin || Math.min(this.hcb.ystart, d);
                 this.ymax = this.hcb.ymax || Math.max(this.hcb.ystart, d);
