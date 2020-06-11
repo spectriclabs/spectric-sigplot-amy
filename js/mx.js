@@ -1467,6 +1467,17 @@
         var ymin = Math.min(stk4.ymin, stk4.ymax);
         var xmax = xmin + dx;
         var ymax = ymin + dy;
+        if (options.pixels) {
+            xscl = 1.0;
+            xxmin = 0;
+            yscl = 1.0;
+            yymin = 0;
+            xmin = 0;
+            ymin = 0;
+            xmax = Math.round(Mx.r-Mx.l);
+            ymax = Math.round(Mx.b-Mx.t);
+
+        }
         //dx = dx * 0.5;
         //if ((line == -1) || (line == 1)) {
         //	dy = dy * 10.0;

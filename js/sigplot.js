@@ -41,6 +41,7 @@
     var mx = require("./mx");
     var Layer1D = require("./sigplot.layer1d");
     var Layer2D = require("./sigplot.layer2d");
+    var Layer1DSDS = require("./sigplot.layer1dSDS");
     var LayerSDS = require("./sigplot.layerSDS");
 
     function sigplot(element, options) {
@@ -2525,7 +2526,7 @@
                 }(this, onload));
 
                 var handleSDS = (function(plot, onload) {
-                    return function(hcb) {
+                    return function(hcb, layertype) {
                         // LOWER CASE CRAP THAT GRANT SENT US
                         try {
                             var i = null;
@@ -2534,7 +2535,7 @@
                             } else {
                                 hcb._uuid = lyr_uuid;
                                 common.update(hcb, overrides);
-                                layerOptions.layerType = "SDS";
+                                layerOptions.layerType = layertype;
                                 i = plot.overlay_bluefile(hcb, layerOptions);
                                 if (onload) {
                                     onload(hcb, i);
@@ -2551,18 +2552,18 @@
                 if (href.endsWith(".mat")) {
                     reader = new matfile.MatFileReader();
                     oReq = reader.read_http(href, handleHeader);
-                } else if (layerOptions && layerOptions.layerType === "SDS") {
+                } else if (layerOptions && (layerOptions.layerType === "SDS" || layerOptions.layerType === "1DSDS")) {
                     // TODO it would be nice to not check layerType here but either
                     // peek at the URL contents OR use something in the URL
                     oReq = new XMLHttpRequest();
-                    oReq.open("GET", href , true);
+                    oReq.open("GET", href, true);
                     oReq.responseType = "";
                     oReq.onload = function(oEvent) {
                         var hcb = JSON.parse(oReq.responseText);
                         if (hcb) {
                             hcb.url = href;
                         }
-                        handleSDS(hcb);
+                        handleSDS(hcb, layerOptions.layerType);
 
                     };
                     oReq.onerror = function(oEvent) {
@@ -2730,6 +2731,8 @@
                     layers = Layer1D.overlay(this, hcb, layerOptions);
                 } else if (layerOptions.layerType === "2D") {
                     layers = Layer2D.overlay(this, hcb, layerOptions);
+                } else if (layerOptions.layerType === "1DSDS") {
+                    layers = Layer1DSDS.overlay(this, hcb, layerOptions);
                 } else if (layerOptions.layerType === "SDS") {
                     layers = LayerSDS.overlay(this, hcb, layerOptions);
                 } else {
