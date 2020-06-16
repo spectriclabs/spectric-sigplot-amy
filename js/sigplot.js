@@ -8790,8 +8790,12 @@
         if (((Gx.autox & 1) !== 0) && noxmin) {
             Mx.stk[0].xmin = Gx.panxmin;
         }
+        // If autox is set to allow auto-xmax _and_ xmax was not provided by scale_base
         if (((Gx.autox & 2) !== 0) && noxmax) {
+            // the top-level stack xmax becomes the panxmax
             Mx.stk[0].xmax = Gx.panxmax;
+            // unless 'All' mode is set or 'xdata' mode is used
+            // we emulate XPLOT by only showing the first 32768 points
             if (!(Gx.all || Gx.xdata)) {
                 for (var n = 0; n < Gx.lyr.length; n++) {
                     xmax = Math.min(Gx.lyr[n].xmax, Mx.stk[0].xmax);
