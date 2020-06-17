@@ -211,10 +211,6 @@
                 }
                 tl = tle * this.hcb.spa;
             }
-
-            if (this.plot._Gx.autol !== 0) {
-                this.plot.rescale();
-            }
         },
 
         get_data: function(xmin, xmax) {
@@ -394,6 +390,8 @@
             var Gx = this.plot._Gx;
             var Mx = this.plot._Mx;
 
+            this.get_data(xmin, xmax);
+
             var npts = Math.ceil(this.size);
 
             var skip = this.skip;
@@ -486,14 +484,6 @@
                 }
             }
 
-            if (Gx.panxmin > Gx.panxmax) {
-                Gx.panxmin = qmin;
-                Gx.panxmax = qmax;
-            } else {
-                Gx.panxmin = Math.min(Gx.panxmin, qmin);
-                Gx.panxmax = Math.max(Gx.panxmax, qmax);
-            }
-
             if (npts <= 0) {
                 m.log.debug("Nothing to plot");
                 return {
@@ -561,30 +551,89 @@
                 qmin = qmin - 1.0;
                 qmax = qmax + 1.0;
             } else {
+                // TODO move exansion of qmin/qmax nito
                 qmin = qmin - 0.02 * yran;
                 qmax = qmax + 0.02 * yran;
-            }
-
-            if (Mx.level === 0) {
-                if (Gx.panymin > Gx.panymax) {
-                    Gx.panymin = qmin;
-                    Gx.panymax = qmax;
-                } else {
-                    Gx.panymin = Math.min(Gx.panymin, qmin);
-                    Gx.panymax = Math.max(Gx.panymax, qmax);
-                }
-
-                if (Gx.autol > 1) {
-                    var fac = 1.0 / (Math.max(Gx.autol, 1));
-                    Gx.panymin = Gx.panymin * fac + Mx.stk[0].ymin * (1.0 - fac);
-                    Gx.panymax = Gx.panymax * fac + Mx.stk[0].ymax * (1.0 - fac);
-                }
             }
 
             return {
                 num: npts,
                 start: n1,
-                end: n2
+                end: n2,
+                panxmin: this.xmin,
+                panxmax: this.xmax,
+                panymin: qmin,
+                panymax: qmax
+            };
+        },
+
+        /**
+         * Get the pan-boundaries for the layer.
+         * 
+         * @param {*} view 
+         *   - a specific view to calculate the bounds against
+         */
+        get_pan_bounds: function(view) {
+            var Mx = this.plot._Mx;
+            var Gx = this.plot._Gx;
+
+            // If we already have a view, the 1D
+            // plot will only attempt to figure-out the
+            // new pany using the current view-box
+            var xmin = this.xmin;
+            // Minic legacy XPLOT behavior; by default the 
+            // pan boundaries are based off the first bufmax of
+            // points.
+            var xmax = xmin + (Gx.bufmax * this.xdelta);
+
+            if (view) {
+                xmin = view.xmin;
+                xmax = view.xmax;
+            } else if (Gx.all && Gx.expand) {
+                // If we are expanding, then xmin/xmax need to be the full range
+                xmin = this.xmin;
+                xmax = this.xmax;
+            }
+
+            let panymin;
+            let panymax;
+            let num = 0;
+
+            while (xmin < xmax) {
+                let prep = this.prep(xmin, xmax);
+
+                panymin = (panymin === undefined) ? prep.panymin : Math.min(panymin, prep.panymin);
+                panymax = (panymax === undefined) ? prep.panymax : Math.max(panymax, prep.panymax);
+                num += prep.num;
+
+                if (Gx.all) {
+                    if (this.size === 0) {
+                        xmin = xmax;
+                    } else {
+                        if (Gx.index) {
+                            xmin = xmin + prep.num;
+                        } else {
+                            if (this.xdelta >= 0) {
+                                xmin = xmin + (prep.num * this.xdelta);
+                            } else {
+                                xmax = xmax + (prep.num * this.xdelta);
+                            }
+                        }
+                    }
+                } else {
+                    xmin = xmax;
+                }
+            }
+
+            this.ymin = panymin;
+            this.ymax = panymax;
+
+            return {
+                num: num,
+                xmin: this.xmin,
+                xmax: this.xmax,
+                ymin: this.ymin,
+                ymax: this.ymax
             };
         },
 
@@ -659,22 +708,29 @@
 
             if ((line === 0) && (symbol === 0)) {
                 // Nothing to draw
-                return;
+                return {
+                    num: 0,
+                };
             }
+
+            let panymin;
+            let panymax;
+            let num = 0;
+
             while (xmin < xmax) {
                 //if (Gx.all) {
                 // TODO allow interrupt of all by mouse clicks
                 //}
 
-                if (!this.hcb.pipe) {
-                    // get_data fills in the layer xbuf/ybuf with data
-                    this.get_data(xmin, xmax);
-                }
-
                 // sigplot_prep fills in this.xptr and this.yptr (both m.PointArray)
                 // with the data to be plotted
 
                 var pts = this.prep(xmin, xmax);
+
+                panymin = (panymin === undefined) ? pts.panymin : Math.min(panymin, pts.panymin);
+                panymax = (panymax === undefined) ? pts.panymax : Math.max(panymax, pts.panymax);
+                num += pts.num;
+
                 if (pts.num > 0) {
                     if (segment) {
                         // TODO
@@ -718,6 +774,17 @@
                     mx.draw_line(Mx, "white", pnt.x, Mx.t, pnt.x, Mx.b);
                 }
             }
+
+            this.ymin = panymin;
+            this.ymax = panymax;
+
+            return {
+                num: num,
+                xmin: this.xmin,
+                xmax: this.xmax,
+                ymin: this.ymin,
+                ymax: this.ymax
+            };
         },
 
         /**

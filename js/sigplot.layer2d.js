@@ -617,6 +617,24 @@
 
         },
 
+        get_pan_bounds: function(view) {
+            let prep = this.prep();
+
+            if (prep) {
+                return {
+                    num: prep.num,
+                    xmin: this.xmin,
+                    xmax: this.xmax,
+                    ymin: this.ymin,
+                    ymax: this.ymax
+                };
+            } else {
+                return {
+                    num: 0
+                };
+            }
+        },
+
         prep: function(xmin, xmax) {
             var Gx = this.plot._Gx;
             var Mx = this.plot._Mx;
@@ -634,7 +652,7 @@
                 xsize = Math.min(this.hcb.subsize, Math.ceil(Mx.r - Mx.l));
             }
 
-            this.get_data(xmin, xmax);
+            this.get_data();
 
             if (!this.hcb.pipe) {
                 // if we aren't a pipe we do a full prep
@@ -661,14 +679,6 @@
                         m.log.debug("Nothing to plot");
                         npts = 0;
                     }
-                }
-
-                if (Gx.panxmin > Gx.panxmax) {
-                    Gx.panxmin = qmin;
-                    Gx.panxmax = qmax;
-                } else {
-                    Gx.panxmin = Math.min(Gx.panxmin, qmin);
-                    Gx.panxmax = Math.max(Gx.panxmax, qmax);
                 }
 
                 if (npts <= 0) {
@@ -698,14 +708,6 @@
                         m.log.debug("Nothing to plot");
                         npts = 0;
                     }
-                }
-
-                if (Gx.panymin > Gx.panymax) {
-                    Gx.panymin = this.ymin;
-                    Gx.panymax = this.ymax;
-                } else {
-                    Gx.panymin = Math.min(Gx.panymin, this.ymin);
-                    Gx.panymax = Math.max(Gx.panymax, this.ymax);
                 }
 
                 if (this.cx) {
@@ -847,20 +849,6 @@
                 }
             } else {
                 // Setup image for pipe-mode
-                if (Gx.panxmin > Gx.panxmax) {
-                    Gx.panxmin = qmin;
-                    Gx.panxmax = qmax;
-                } else {
-                    Gx.panxmin = Math.min(Gx.panxmin, qmin);
-                    Gx.panxmax = Math.max(Gx.panxmax, qmax);
-                }
-                if (Gx.panymin > Gx.panxmax) {
-                    Gx.panymin = this.ymin;
-                    Gx.panymax = this.ymax;
-                } else {
-                    Gx.panymin = Math.min(Gx.panymin, this.ymin);
-                    Gx.panymax = Math.max(Gx.panymax, this.ymax);
-                }
 
                 if (!this.img) {
                     if (Gx.zmin === undefined) {
@@ -898,7 +886,13 @@
                 }
             }
 
-            return npts;
+            return {
+                num: npts,
+                panxmin: this.xmin,
+                panxmax: this.xmax,
+                panymin: this.ymin,
+                panymax: this.ymax
+            };
         },
 
         draw: function() {

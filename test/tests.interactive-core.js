@@ -53,7 +53,7 @@ interactiveTest('sigplot 1d overlay', 'Do you see a ramp from 0 to 1023?', funct
     assert.equal(plot._Mx.stk[0].ymax,  1043.46); 
 });
 
-interactiveTest('sigplot 1d overlay (over bufmax)', 'Do you see a small portion of the line in the upper left?', function(assert) {
+interactiveTest('sigplot 1d overlay (over bufmax)', 'Do you see a small portion of the line in the upper left and can you pan x/y?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
@@ -89,7 +89,7 @@ interactiveTest('sigplot 1d overlay (over bufmax)', 'Do you see a small portion 
     assert.equal(plot._Mx.stk[0].ymax, 33422.34);}
 );
 
-interactiveTest('sigplot 1d overlay (all)', 'Is the x-axis 0-65535 while the y-axis approximately 33400?', function(assert) {
+interactiveTest('sigplot 1d overlay (all)', 'Is the x-axis 0-65535 while the y-axis approximately 33400 and can you pan the y-axis up?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {all: true});
     assert.notEqual(plot, null);
@@ -192,7 +192,10 @@ interactiveTest('scrolling line', 'Do you see a scrolling random data plot (0 to
     }, 100);
 });
 
-interactiveTest('autoy with all zeros', 'Does the autoscaling properly work and keep both magenta and blue lines fully visible?', function(assert) {
+/**
+ * Test that auto-scaling works correctly using reload.
+ */
+interactiveTest('autoy (reload)', 'Does the autoscaling properly work and keep both magenta and blue lines fully visible?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {
         autoy: 3
@@ -222,7 +225,10 @@ interactiveTest('autoy with all zeros', 'Does the autoscaling properly work and 
     }, 500);
 });
 
-interactiveTest('autoy with all zeros (pipe)', 'Does the autoscaling properly work?', function(assert) {
+/**
+ * Test that auto-scaling works correctly using push.
+ */
+interactiveTest('autoy fast (pipe)', 'Does the autoscaling properly work and keep both magenta and blue lines fully visible?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {
         autol: 2,
@@ -231,7 +237,7 @@ interactiveTest('autoy with all zeros (pipe)', 'Does the autoscaling properly wo
     assert.notEqual(plot, null);
     var random = [];
     var zeros = [];
-    for (var i = 0; i <= 1000; i += 1) {
+    for (var i = 0; i < 1000; i += 1) {
         random.push(Math.random());
         zeros.push(0);
     }
@@ -247,11 +253,91 @@ interactiveTest('autoy with all zeros (pipe)', 'Does the autoscaling properly wo
     var iter = 1;
     ifixture.interval = window.setInterval(function() {
         plot.push(zeros_lyr, zeros);
-        for (var i = 0; i <= 1000; i += 1) {
+        for (var i = 0; i < 1000; i += 1) {
             random[i] = iter * Math.random();
         }
         plot.push(rand1_lyr, random);
-        for (var i = 0; i <= 1000; i += 1) {
+        for (var i = 0; i < 1000; i += 1) {
+            random[i] = -1 * iter * Math.random();
+        }
+        plot.push(rand2_lyr, random);
+        iter += 1;
+    }, 500);
+});
+
+/**
+ * Test that auto-scaling works correctly using push.
+ */
+interactiveTest('autoy slow (pipe)', 'Does the autoscaling properly work and keep both magenta and blue lines fully visible?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        autol: 100,
+        autoy: 3
+    });
+    assert.notEqual(plot, null);
+    var random = [];
+    var zeros = [];
+    for (var i = 0; i < 1000; i += 1) {
+        random.push(Math.random());
+        zeros.push(0);
+    }
+    var zeros_lyr = plot.overlay_pipe({}, {
+        framesize: 1000
+    });
+    var rand1_lyr = plot.overlay_pipe({}, {
+        framesize: 1000
+    });
+    var rand2_lyr = plot.overlay_pipe({}, {
+        framesize: 1000
+    });
+    var iter = 1;
+    ifixture.interval = window.setInterval(function() {
+        plot.push(zeros_lyr, zeros);
+        for (var i = 0; i < 1000; i += 1) {
+            random[i] = iter * Math.random();
+        }
+        plot.push(rand1_lyr, random);
+        for (var i = 0; i < 1000; i += 1) {
+            random[i] = -1 * iter * Math.random();
+        }
+        plot.push(rand2_lyr, random);
+        iter += 1;
+    }, 500);
+});
+
+/**
+ * Test that auto-scaling works correctly using push.
+ */
+interactiveTest('autoy off (pipe)', 'Is the plot pan and view not auto-scaling?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        autol: 0,
+        autoy: 3
+    });
+    assert.notEqual(plot, null);
+    var random = [];
+    var zeros = [];
+    for (var i = 0; i < 1000; i += 1) {
+        random.push(Math.random());
+        zeros.push(0);
+    }
+    var zeros_lyr = plot.overlay_pipe({}, {
+        framesize: 1000
+    });
+    var rand1_lyr = plot.overlay_pipe({}, {
+        framesize: 1000
+    });
+    var rand2_lyr = plot.overlay_pipe({}, {
+        framesize: 1000
+    });
+    var iter = 1;
+    ifixture.interval = window.setInterval(function() {
+        plot.push(zeros_lyr, zeros);
+        for (var i = 0; i < 1000; i += 1) {
+            random[i] = iter * Math.random();
+        }
+        plot.push(rand1_lyr, random);
+        for (var i = 0; i < 1000; i += 1) {
             random[i] = -1 * iter * Math.random();
         }
         plot.push(rand2_lyr, random);
