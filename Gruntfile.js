@@ -214,7 +214,8 @@ module.exports = function (grunt) {
                 dest: 'dist/bluefile.js',
                 options: {
                     browserifyOptions: {
-                      standalone: 'bluefile'
+                      standalone: 'bluefile',
+                      debug: true
                     },
                     transform: [
                         [
@@ -230,7 +231,8 @@ module.exports = function (grunt) {
                 dest: 'dist/matfile.js',
                 options: {
                     browserifyOptions: {
-                      standalone: 'matfile'
+                      standalone: 'matfile',
+                      debug: true
                     },
                     transform: [
                         [
@@ -246,7 +248,8 @@ module.exports = function (grunt) {
                 dest: 'dist/sigplot.js',
                 options: {
                     browserifyOptions: {
-                      standalone: 'sigplot'
+                      standalone: 'sigplot',
+                      debug: true
                     },
                     transform: [
                         [
@@ -262,7 +265,8 @@ module.exports = function (grunt) {
                 dest: 'dist/sigplot.plugins.js',
                 options: {
                     browserifyOptions: {
-                      standalone: 'sigplot_plugins'
+                      standalone: 'sigplot_plugins',
+                      debug: true
                     },
                     transform: [
                         [
