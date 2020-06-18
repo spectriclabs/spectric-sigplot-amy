@@ -42,7 +42,101 @@ interactiveTest('sigplot 1d overlay', 'Do you see a ramp from 0 to 1023?', funct
     plot.overlay_array(ramp, {
         file_name: "ramp"
     });
+
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 1023);
+    assert.equal(plot._Gx.panymin, -20.46);
+    assert.equal(plot._Gx.panymax, 1043.46);
+    assert.equal(plot._Mx.stk[0].xmin, 0);
+    assert.equal(plot._Mx.stk[0].xmax, 1023);
+    assert.equal(plot._Mx.stk[0].ymin, -20.46);
+    assert.equal(plot._Mx.stk[0].ymax,  1043.46); 
 });
+
+interactiveTest('sigplot 1d overlay (over bufmax)', 'Do you see a small portion of the line in the upper left?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 0; i < (plot._Gx.bufmax * 2); i++) {
+        ramp.push(i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp"
+    });
+    // if we are over bufmax, then only the first buffer is read and used for scaling the y-axis
+    // you have to scroll to get the full y-axis
+    assert.equal(plot._Gx.bufmax, 32768);
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 65535);
+    assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Gx.panymax, 33422.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Mx.stk[0].xmin, 0);
+    assert.equal(plot._Mx.stk[0].xmax, 32767);
+    assert.equal(plot._Mx.stk[0].ymin, -655.34);
+    assert.equal(plot._Mx.stk[0].ymax, 33422.34);
+
+    plot.set_view({xmin: 32678, xmax: 65535});
+    plot._refresh(); // force a syncronous refresh to ensure that rescaling happens
+    assert.equal(plot._Gx.bufmax, 32768);
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 65535);
+    assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Gx.panymax, 66099.34);
+    assert.equal(plot._Mx.stk[0].xmin, 32678);
+    assert.equal(plot._Mx.stk[0].xmax, 65535);
+    assert.equal(plot._Mx.stk[0].ymin, -655.34);
+    assert.equal(plot._Mx.stk[0].ymax, 33422.34);}
+);
+
+interactiveTest('sigplot 1d overlay (all)', 'Is the x-axis 0-65535 while the y-axis approximately 33400?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {all: true});
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 0; i < (plot._Gx.bufmax * 2); i++) {
+        ramp.push(i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp"
+    });
+    //plot._refresh();
+    assert.equal(plot._Gx.bufmax, 32768);
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 65535);
+    assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Gx.panymax, 33422.34); // TODO : might be wrong 65534+0.02*32767
+    assert.equal(plot._Mx.stk[0].xmin, 0);
+    assert.equal(plot._Mx.stk[0].xmax, 65535);
+    assert.equal(plot._Mx.stk[0].ymin, -655.34);
+    assert.equal(plot._Mx.stk[0].ymax, 33422.34);
+});
+   
+
+interactiveTest('sigplot 1d overlay (expand)', 'Do you see a ramp from 0 to 65535?', function(assert) {
+    // Using all and expand means that the entire range of data
+     // will be read (i.e. the x-axis will be all the data) and the
+     // y-axis will be the full-scale
+     var container = document.getElementById('plot');
+     var plot = new sigplot.Plot(container, {all: true, expand: true});
+     assert.notEqual(plot, null);
+     var ramp = [];
+     for (var i = 0; i < (plot._Gx.bufmax * 2); i++) {
+         ramp.push(i);
+     }
+     plot.overlay_array(ramp, {
+         file_name: "ramp"
+     });
+     assert.equal(plot._Gx.bufmax, 32768);
+     assert.equal(plot._Gx.panxmin, 0);
+     assert.equal(plot._Gx.panxmax, 65535);
+     assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
+     assert.equal(plot._Gx.panymax, 66189.34); // TODO : might be wrong 65534+0.02*32767
+     assert.equal(plot._Mx.stk[0].xmin, 0);
+     assert.equal(plot._Mx.stk[0].xmax, 65535);
+     assert.equal(plot._Mx.stk[0].ymin, -655.34);
+     assert.equal(plot._Mx.stk[0].ymax, 66189.34);}
+ );
 
 interactiveTest('sigplot 1d reload', 'Do you see a ramp from 0 to 1023?', function(assert) {
     var container = document.getElementById('plot');

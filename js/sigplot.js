@@ -3072,6 +3072,70 @@
         },
 
         /**
+         * Set the current view bounds, if any bounds are not defined
+         * then they are kept as currently set.
+         * 
+         * Will call an asyncronous refresh() after the new view box
+         * values have been set.
+         * 
+         * @param {Object} ViewBounds 
+         * @returns {number} ViewBounds.xmin
+         *     the abscissa X minimum value of the view box
+         * @returns {number} ViewBounds.xmax
+         *     the abscissa X maximum value of the view box
+         * @returns {number} ViewBounds.ymin
+         *     the abscissa Y minimum value of the view box
+         * @returns {number} ViewBounds.ymax
+         *     the abscissa Y maximum value of the view box
+         */
+        set_view: function({xmin, xmax, ymin, ymax}) {
+            var Mx = this._Mx;
+            var Gx = this._Gx;
+            var k = Mx.level;
+
+            if (xmin !== undefined) {
+                Mx.stk[k].xmin = xmin;
+            }
+            if (xmax !== undefined) {
+                Mx.stk[k].xmax = xmax;
+            }
+            if (ymin !== undefined) {
+                Mx.stk[k].ymin = ymin;
+            }
+            if (ymax !== undefined) {
+                Mx.stk[k].ymax = ymax;
+            }
+            this.refresh();
+        },
+
+        /**
+         * Get the current view bounds
+         * 
+         * @returns {Object} ViewBounds
+         *     the view bounds
+         * @returns {number} ViewBounds.xmin
+         *     the abscissa X minimum value of the view box
+         * @returns {number} ViewBounds.xmax
+         *     the abscissa X maximum value of the view box
+         * @returns {number} ViewBounds.ymin
+         *     the abscissa Y minimum value of the view box
+         * @returns {number} ViewBounds.ymax
+         *     the abscissa Y maximum value of the view box
+         */
+        get_view: function() {
+            var Mx = this._Mx;
+            var Gx = this._Gx;
+            var k = Mx.level;
+
+            return {
+                xmin: Mx.stk[k].xmin,
+                xmax: Mx.stk[k].xmax,
+                ymin: Mx.stk[k].ymin,
+                ymax: Mx.stk[k].ymax
+            };
+        },
+
+        /**
          * Register this plot to mimic zoom/unzoom of other plot
          *
          * @param other
