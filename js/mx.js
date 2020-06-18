@@ -1486,6 +1486,7 @@
 
         var ib = 0;
         if ((line === 0) && (symb !== 0)) {
+            // We are drawing symbols only
             for (var n = (skip - 1); n < npts; n += skip) {
                 var x = xpoint[n];
                 var y = ypoint[n];
@@ -1498,6 +1499,7 @@
             }
         }
         if (options.vertsym === true) {
+            // we are drawing verticle lines on each symbol
             for (var n = (skip - 1); n < npts; n += skip) {
                 var x = xpoint[n];
                 var y = ypoint[n];
@@ -1513,6 +1515,7 @@
             }
         }
         if (options.horzsym === true) {
+            // we are drawing horizontal lines on each symbol
             for (var n = (skip - 1); n < npts; n += skip) {
                 var x = xpoint[n];
                 var y = ypoint[n];
@@ -1703,16 +1706,11 @@
                     ie = ie + 1;
                 }
                 if (symb !== 0 && (ib - ie) > 1) {
-                    // TODO ib - 1 is used below because
-                    // otherwise the last point has undefined
-                    // for it's x/y coordinates...but this may
-                    // be a bug because it may neglect drawing
-                    // the last data point
                     mx.draw_symbols(Mx,
                         color,
-                        pixx.subarray(ie - 1, ib),
-                        pixy.subarray(ie - 1, ib),
-                        ib - ie - 1,
+                        pixx.subarray(ie, ib),
+                        pixy.subarray(ie, ib),
+                        ib - ie,
                         symb,
                         rad,
                         n - ib + istart);
