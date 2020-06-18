@@ -17,7 +17,7 @@ module.exports = function (grunt) {
                 options: {
                     jshintrc: 'js/.jshintrc'
                 },
-                src: ['js/**/*.js', 'test/tests.js']
+                src: ['js/**/*.js', 'test/tests*.js']
             },
         },
         qunit: {
@@ -166,7 +166,23 @@ module.exports = function (grunt) {
                         'js/sigplot.boxes.js',
                         'js/sigplot.playback.js',
                         'js/sigplot.plugin.js',
-                        'test/tests.js'
+                        'test/tests.js',
+                        'test/tests.bluefile.js',
+                        'test/tests.colormap.js',
+                        'test/tests.interactive-accordion.js',
+                        'test/tests.interactive-appearance.js',
+                        'test/tests.interactive-boxes.js',
+                        'test/tests.interactive-core.js',
+                        'test/tests.interactive-cuts.js',
+                        'test/tests.interactive-layer1d.js',
+                        'test/tests.interactive-layer2d.js',
+                        'test/tests.interactive-menu.js',
+                        'test/tests.interactive-mouse.js',
+                        'test/tests.interactive-slider.js',
+                        'test/tests.interactive-symbols.js',
+                        'test/tests.m.js',
+                        'test/tests.mx.js',
+                        'test/tests.sigplot.js'
                 ],
                 options: {
                     mode: "VERIFY_ONLY",
@@ -189,7 +205,23 @@ module.exports = function (grunt) {
                         'js/sigplot.boxes.js',
                         'js/sigplot.playback.js',
                         'js/sigplot.plugin.js',
-                        'test/tests.js'
+                        'test/tests.js',
+                        'test/tests.bluefile.js',
+                        'test/tests.colormap.js',
+                        'test/tests.interactive-accordion.js',
+                        'test/tests.interactive-appearance.js',
+                        'test/tests.interactive-boxes.js',
+                        'test/tests.interactive-core.js',
+                        'test/tests.interactive-cuts.js',
+                        'test/tests.interactive-layer1d.js',
+                        'test/tests.interactive-layer2d.js',
+                        'test/tests.interactive-menu.js',
+                        'test/tests.interactive-mouse.js',
+                        'test/tests.interactive-slider.js',
+                        'test/tests.interactive-symbols.js',
+                        'test/tests.m.js',
+                        'test/tests.mx.js',
+                        'test/tests.sigplot.js'
                 ],
                 options: {
                     config: ".jsbeautifyrc"
