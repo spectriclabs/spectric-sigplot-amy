@@ -2,6 +2,7 @@
  * @license
  * File: tests.js
  * Copyright (c) 2012-2017, LGS Innovations Inc., All rights reserved.
+ * Copyright (c) 2019-2020, Spectric Labs Inc., All rights reserved.
  *
  * This file is part of SigPlot.
  *
@@ -23,9 +24,7 @@
  * under the License.
  */
 
-/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws */
-
-
+/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
 //////////////////////////////////////////////////////////////////////////////
 // QUnit 'm' module
 //////////////////////////////////////////////////////////////////////////////

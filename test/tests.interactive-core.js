@@ -1,3 +1,30 @@
+/**
+ * @license
+ * File: tests.js
+ * Copyright (c) 2012-2017, LGS Innovations Inc., All rights reserved.
+ * Copyright (c) 2019-2020, Spectric Labs Inc., All rights reserved.
+ *
+ * This file is part of SigPlot.
+ *
+ * Licensed to the LGS Innovations (LGS) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  LGS licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
 //////////////////////////////////////////////////////////////////////////////
 // QUnit 'sigplot-interactive-core' module
 //
@@ -50,7 +77,7 @@ interactiveTest('sigplot 1d overlay', 'Do you see a ramp from 0 to 1023?', funct
     assert.equal(plot._Mx.stk[0].xmin, 0);
     assert.equal(plot._Mx.stk[0].xmax, 1023);
     assert.equal(plot._Mx.stk[0].ymin, -20.46);
-    assert.equal(plot._Mx.stk[0].ymax,  1043.46); 
+    assert.equal(plot._Mx.stk[0].ymax, 1043.46);
 });
 
 interactiveTest('sigplot 1d overlay (over bufmax)', 'Do you see a small portion of the line in the upper left and can you pan x/y?', function(assert) {
@@ -76,7 +103,10 @@ interactiveTest('sigplot 1d overlay (over bufmax)', 'Do you see a small portion 
     assert.equal(plot._Mx.stk[0].ymin, -655.34);
     assert.equal(plot._Mx.stk[0].ymax, 33422.34);
 
-    plot.set_view({xmin: 32678, xmax: 65535});
+    plot.set_view({
+        xmin: 32678,
+        xmax: 65535
+    });
     plot._refresh(); // force a syncronous refresh to ensure that rescaling happens
     assert.equal(plot._Gx.bufmax, 32768);
     assert.equal(plot._Gx.panxmin, 0);
@@ -86,12 +116,14 @@ interactiveTest('sigplot 1d overlay (over bufmax)', 'Do you see a small portion 
     assert.equal(plot._Mx.stk[0].xmin, 32678);
     assert.equal(plot._Mx.stk[0].xmax, 65535);
     assert.equal(plot._Mx.stk[0].ymin, -655.34);
-    assert.equal(plot._Mx.stk[0].ymax, 33422.34);}
-);
+    assert.equal(plot._Mx.stk[0].ymax, 33422.34);
+});
 
 interactiveTest('sigplot 1d overlay (all)', 'Is the x-axis 0-65535 while the y-axis approximately 33400 and can you pan the y-axis up?', function(assert) {
     var container = document.getElementById('plot');
-    var plot = new sigplot.Plot(container, {all: true});
+    var plot = new sigplot.Plot(container, {
+        all: true
+    });
     assert.notEqual(plot, null);
     var ramp = [];
     for (var i = 0; i < (plot._Gx.bufmax * 2); i++) {
@@ -111,32 +143,35 @@ interactiveTest('sigplot 1d overlay (all)', 'Is the x-axis 0-65535 while the y-a
     assert.equal(plot._Mx.stk[0].ymin, -655.34);
     assert.equal(plot._Mx.stk[0].ymax, 33422.34);
 });
-   
+
 
 interactiveTest('sigplot 1d overlay (expand)', 'Do you see a ramp from 0 to 65535?', function(assert) {
     // Using all and expand means that the entire range of data
-     // will be read (i.e. the x-axis will be all the data) and the
-     // y-axis will be the full-scale
-     var container = document.getElementById('plot');
-     var plot = new sigplot.Plot(container, {all: true, expand: true});
-     assert.notEqual(plot, null);
-     var ramp = [];
-     for (var i = 0; i < (plot._Gx.bufmax * 2); i++) {
-         ramp.push(i);
-     }
-     plot.overlay_array(ramp, {
-         file_name: "ramp"
-     });
-     assert.equal(plot._Gx.bufmax, 32768);
-     assert.equal(plot._Gx.panxmin, 0);
-     assert.equal(plot._Gx.panxmax, 65535);
-     assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
-     assert.equal(plot._Gx.panymax, 66189.34); // TODO : might be wrong 65534+0.02*32767
-     assert.equal(plot._Mx.stk[0].xmin, 0);
-     assert.equal(plot._Mx.stk[0].xmax, 65535);
-     assert.equal(plot._Mx.stk[0].ymin, -655.34);
-     assert.equal(plot._Mx.stk[0].ymax, 66189.34);}
- );
+    // will be read (i.e. the x-axis will be all the data) and the
+    // y-axis will be the full-scale
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        all: true,
+        expand: true
+    });
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 0; i < (plot._Gx.bufmax * 2); i++) {
+        ramp.push(i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp"
+    });
+    assert.equal(plot._Gx.bufmax, 32768);
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 65535);
+    assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Gx.panymax, 66189.34); // TODO : might be wrong 65534+0.02*32767
+    assert.equal(plot._Mx.stk[0].xmin, 0);
+    assert.equal(plot._Mx.stk[0].xmax, 65535);
+    assert.equal(plot._Mx.stk[0].ymin, -655.34);
+    assert.equal(plot._Mx.stk[0].ymax, 66189.34);
+});
 
 interactiveTest('sigplot 1d reload', 'Do you see a ramp from 0 to 1023?', function(assert) {
     var container = document.getElementById('plot');
@@ -649,4 +684,3 @@ interactiveTest('complex data falling raster', 'Do you see a falling raster?', f
         plot.push(lyr0, ramp);
     }, 100);
 });
-
