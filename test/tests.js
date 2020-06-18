@@ -1909,7 +1909,7 @@ QUnit.test('Plot y-cut preserves pan values', function(assert) {
     assert.notEqual(plot, null);
 
     var done = assert.async();
-    plot.overlay_href("dat/raster.tmp", function() {
+    plot.overlay_href("dat/raster.tmp", function(hcb, lyr_n) {
         plot.zoom({
             x: 600e6,
             y: 80
@@ -1922,16 +1922,18 @@ QUnit.test('Plot y-cut preserves pan values', function(assert) {
         var orig_panymin = plot._Gx.panymin;
         var orig_panymax = plot._Gx.panymax;
 
-        plot.yCut(625000000);
-        plot.yCut();
+        var lyr = plot.get_layer(lyr_n);
+        lyr.yCut(625000000);
+        lyr.yCut();
 
         assert.equal(orig_panxmin, plot._Gx.panxmin);
         assert.equal(orig_panxmax, plot._Gx.panxmax);
         assert.equal(orig_panymin, plot._Gx.panymin);
         assert.equal(orig_panymax, plot._Gx.panymax);
 
-        plot.xCut(100);
-        plot.xCut();
+        var lyr = plot.get_layer(lyr_n);
+        lyr.xCut(100);
+        lyr.xCut();
 
         assert.equal(orig_panxmin, plot._Gx.panxmin);
         assert.equal(orig_panxmax, plot._Gx.panxmax);
@@ -2000,19 +2002,22 @@ interactiveTest('SDS small', 'does the SDS plot work', function(assert) {
 interactiveTest('SDS large', 'does the SDS plot work', function(assert) {
 
     var container = document.getElementById('plot');
-    container.style.width = "376px";
-    container.style.height = "378px";
+    container.style.width = "1000px";
+    container.style.height = "600px";
 
     var plot = new sigplot.Plot(container, {
-        zmin: 0,
-        zmax: 10
+        //    zmin: -50,
+        //    zmax: 30
     });
     assert.notEqual(plot, null);
 
     plot.overlay_href(
-        "http://localhost:5055/sds/ServiceDir/mydata_SB_6000_6000.tmp",
+        "http://localhost:5058/sds/hdr/ServiceDirData/mydata_SB_6000_6000.tmp",
+        //    "http://localhost:5055/sds/ServiceDir/penny.prm",
         null, {
-            layerType: "SDS"
+            layerType: "SDS",
+            //subsize: 6000,
+            usetiles: true
         }, {}
     );
 });
@@ -5986,7 +5991,8 @@ interactiveTest('Plot x-cut', 'Does x-cut render correctly with a valid y-axis?'
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
     plot.overlay_href("dat/raster.tmp", function() {
-        plot.xCut(100);
+        var lyr = plot.get_layer(0);
+        lyr.xCut(100);
     }, {});
 });
 interactiveTest('Plot x-cut zoom', 'Does x-cut render with a zoomed x-axis?', function(assert) {
@@ -6002,7 +6008,8 @@ interactiveTest('Plot x-cut zoom', 'Does x-cut render with a zoomed x-axis?', fu
             x: 70e6,
             y: 110
         });
-        plot.xCut(100);
+        var lyr = plot.get_layer(0);
+        lyr.xCut(100);
     }, {});
 });
 interactiveTest('Plot x-cut zoom 2', 'Does x-cut render a line at 30?', function(assert) {
@@ -6039,7 +6046,8 @@ interactiveTest('Plot x-cut zoom 2', 'Does x-cut render a line at 30?', function
         x: 20,
         y: 20
     });
-    x_plot.xCut(15);
+    var lyr = x_plot.get_layer(0);
+    lyr.xCut(15);
 });
 interactiveTest('Plot x-cut issue #25', 'Does p-cut render correctly?', function(assert) {
     var container = document.getElementById('plot');
@@ -6055,7 +6063,8 @@ interactiveTest('Plot y-cut', 'Does y-cut render correctly?', function(assert) {
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
     plot.overlay_href("dat/raster.tmp", function() {
-        plot.yCut(70000000);
+        var lyr = plot.get_layer(0);
+        lyr.yCut(70000000);
     }, {});
 });
 interactiveTest('Plot y-cut zoom', 'Does y-cut render correctly with a valid axis?', function(assert) {
@@ -6070,7 +6079,8 @@ interactiveTest('Plot y-cut zoom', 'Does y-cut render correctly with a valid axi
             x: 650e6,
             y: 110
         });
-        plot.yCut(625000000);
+        var lyr = plot.get_layer(0);
+        lyr.yCut(625000000);
     }, {});
 });
 interactiveTest('Plot y-cut zoom 2', 'Does y-cut render a line at 30?', function(assert) {
@@ -6107,7 +6117,8 @@ interactiveTest('Plot y-cut zoom 2', 'Does y-cut render a line at 30?', function
         x: 20,
         y: 20
     });
-    y_plot.yCut(15);
+    var lyr = y_plot.get_layer(0);
+    lyr.yCut(15);
 });
 interactiveTest('correct scale after cmode change', 'is the plot correctly scaled with full scroll bars', function(assert) {
     var done = assert.async();
@@ -6458,4 +6469,53 @@ interactiveTest('Raster downscale minmax zoom', 'Do you see a line at 16000 and 
         });
 
     }, 300);
+});
+interactiveTest('overlay pixels', "overlay pixels", function(assert) {
+
+    var data = [10, 50, 50, 10, 10, 10, 50, 50]; // draw a box with corners at 10,10 and 50,50
+    //var data = [10, 20, 30, 40, 50, 60, 70, 80];
+    var plot = new sigplot.Plot(document.getElementById('plot'), {});
+    assert.notEqual(plot, null);
+    plot.overlay_array(data, {}, {
+        pixels: true
+    });
+});
+
+interactiveTest('1D SDS', 'does the 1D SDS plot work', function(assert) {
+
+    var container = document.getElementById('plot');
+    container.style.width = "1000px";
+    container.style.height = "600px";
+
+    var plot = new sigplot.Plot(container, {
+
+    });
+    assert.notEqual(plot, null);
+
+    plot.overlay_href(
+        "http://localhost:5058/sds/hdr/ServiceDirData/sinsqutri.tmp",
+        //    "http://localhost:5055/sds/ServiceDir/penny.prm",
+        null, {
+            layerType: "1DSDS",
+        }, {}
+    );
+});
+
+interactiveTest('1D SDS Big', 'does the 1D SDS plot work', function(assert) {
+
+    var container = document.getElementById('plot');
+    container.style.width = "1000px";
+    container.style.height = "600px";
+
+    var plot = new sigplot.Plot(container, {
+
+    });
+    assert.notEqual(plot, null);
+
+    plot.overlay_href(
+        "http://localhost:5058/sds/hdr/ServiceDirData/sinsqutri_big.tmp",
+        null, {
+            layerType: "1DSDS",
+        }, {}
+    );
 });

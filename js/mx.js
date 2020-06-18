@@ -1474,8 +1474,8 @@
             yymin = 0;
             xmin = 0;
             ymin = 0;
-            xmax = Math.round(Mx.r-Mx.l);
-            ymax = Math.round(Mx.b-Mx.t);
+            xmax = Math.round(Mx.r - Mx.l);
+            ymax = Math.round(Mx.b - Mx.t);
 
         }
         //dx = dx * 0.5;
