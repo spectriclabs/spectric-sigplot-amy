@@ -1,7 +1,7 @@
 {
   "name": "sigplot",
   "description": "Advanced plotting for signal processing applications",
-  "version": "2.0.0-rc15",
+  "version": "2.0.0-rc17",
   "homepage": "http://sigplot.lgsinnovations.com",
   "main": "js/sigplot.js",
   "files": [
@@ -44,7 +44,8 @@
     "lru-cache": "^5.1.1",
     "spin": "0.0.1",
     "tinycolor2": "^1.4.1",
-    "travis": "^0.1.1"
+    "travis": "^0.1.1",
+    "underscore": "^1.9.2"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",

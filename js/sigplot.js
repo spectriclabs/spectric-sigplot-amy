@@ -1366,7 +1366,7 @@
                                     Gx.x_pop_now = false;
                                 }
                             } else if ((Gx.xyKeys !== "disable") && (Gx.lyr[0].hcb["class"] === 2)) {
-                                // show xCut if xyKeys aren't disabled and the first layer is 
+                                // show xCut if xyKeys aren't disabled and the first layer is
                                 // type 2000 and y-cut isn't currently enabled (we already checked
                                 // that x_cut above)
                                 if (!Gx.y_cut_press_on) {
@@ -1401,7 +1401,7 @@
                                     Gx.y_pop_now = false;
                                 }
                             } else if ((Gx.xyKeys !== "disable") && (Gx.lyr[0].hcb["class"] === 2)) {
-                                // show xCut if xyKeys aren't disabled and the first layer is 
+                                // show xCut if xyKeys aren't disabled and the first layer is
                                 // type 2000 and y-cut isn't currently enabled (we already checked
                                 // that y_cut above)
                                 if (!Gx.x_cut_press_on) {
@@ -1674,7 +1674,6 @@
          * @param {Boolean}
          *            settings.p_cuts true displays p_cuts on a 2D plot
          */
-
         change_settings: function(settings) {
             var Gx = this._Gx;
             var Mx = this._Mx;
@@ -2599,7 +2598,6 @@
                     this._Gx.HCB_RDR[lyr_uuid] = oReq;
                 }
             } catch (error) {
-                console.error(error);
                 this.hide_spinner();
             }
 
@@ -3139,6 +3137,75 @@
             this.inZoom = false;
 
             this.refresh();
+        },
+
+        /**
+         * Set the current view bounds, if any bounds are not defined
+         * then they are kept as currently set.
+         * 
+         * Will call an asyncronous refresh() after the new view box
+         * values have been set.
+         * 
+         * @param {Object} ViewBounds 
+         * @returns {number} ViewBounds.xmin
+         *     the abscissa X minimum value of the view box
+         * @returns {number} ViewBounds.xmax
+         *     the abscissa X maximum value of the view box
+         * @returns {number} ViewBounds.ymin
+         *     the abscissa Y minimum value of the view box
+         * @returns {number} ViewBounds.ymax
+         *     the abscissa Y maximum value of the view box
+         */
+        set_view: function({
+            xmin,
+            xmax,
+            ymin,
+            ymax
+        }) {
+            var Mx = this._Mx;
+            var Gx = this._Gx;
+            var k = Mx.level;
+
+            if (xmin !== undefined) {
+                Mx.stk[k].xmin = xmin;
+            }
+            if (xmax !== undefined) {
+                Mx.stk[k].xmax = xmax;
+            }
+            if (ymin !== undefined) {
+                Mx.stk[k].ymin = ymin;
+            }
+            if (ymax !== undefined) {
+                Mx.stk[k].ymax = ymax;
+            }
+            this.refresh();
+        },
+
+        /**
+         * Get the current view bounds
+         * 
+         * @returns {Object} ViewBounds
+         *     the view bounds
+         * @returns {number} ViewBounds.xmin
+         *     the abscissa X minimum value of the view box
+         * @returns {number} ViewBounds.xmax
+         *     the abscissa X maximum value of the view box
+         * @returns {number} ViewBounds.ymin
+         *     the abscissa Y minimum value of the view box
+         * @returns {number} ViewBounds.ymax
+         *     the abscissa Y maximum value of the view box
+         */
+        get_view: function() {
+            var Mx = this._Mx;
+            var Gx = this._Gx;
+            var k = Mx.level;
+
+            return {
+                xmin: Mx.stk[k].xmin,
+                xmax: Mx.stk[k].xmax,
+                ymin: Mx.stk[k].ymin,
+                ymax: Mx.stk[k].ymax
+            };
         },
 
         /**
@@ -4520,14 +4587,15 @@
                                 "Z Axis Max:",
                                 mx.floatValidator,
                                 function(finalValue) {
-                                    if (parseFloat(finalValue) !== Gx.zmax) {
+                                    var floatFinalValue = parseFloat(finalValue);
+                                    if (floatFinalValue !== Gx.zmax) {
                                         // Only update if different
                                         // value
                                         if (finalValue === "") {
-                                            finalValue = 0;
+                                            floatFinalValue = 0;
                                         }
                                         plot.change_settings({
-                                            zmax: finalValue
+                                            zmax: floatFinalValue
                                         });
                                     }
                                 }, Gx.zmax,
@@ -4539,12 +4607,13 @@
                             "Z Axis Min:",
                             mx.floatValidator,
                             function(finalValue) {
-                                if (parseFloat(finalValue) !== Gx.zmin) {
+                                var floatFinalValue = parseFloat(finalValue);
+                                if (floatFinalValue !== Gx.zmin) {
                                     if (finalValue === "") {
-                                        finalValue = 0;
+                                        floatFinalValue = 0;
                                     }
                                     plot.change_settings({
-                                        zmin: finalValue
+                                        zmin: floatFinalValue
                                     });
                                 }
                             }, Gx.zmin, undefined,
@@ -7384,12 +7453,30 @@
     }
 
     function draw_layers(plot) {
-        var layers = plot._Gx.lyr;
+        let Gx = plot._Gx;
+        let Mx = plot._Mx;
+
+        var layers = Gx.lyr;
         for (var n = 0; n < layers.length; n++) {
             //if (Gx.sections !== 0) {
             // TODO
             //}
             draw_layer(plot, layers[n]);
+        }
+
+        // if we are allowing auto-scaling on y
+        if (Gx.autol > 1) {
+            var fac = 1.0 / (Math.max(Gx.autol, 1));
+
+            Gx.panymin = Gx.panymin * fac + Mx.stk[0].ymin * (1.0 - fac);
+            Gx.panymax = Gx.panymax * fac + Mx.stk[0].ymax * (1.0 - fac);
+
+            if (((Gx.autoy & 1) !== 0)) {
+                Mx.stk[0].ymin = Gx.panymin;
+            }
+            if (((Gx.autoy & 2) !== 0)) {
+                Mx.stk[0].ymax = Gx.panymax;
+            }
         }
     }
 
@@ -7413,7 +7500,10 @@
             return;
         }
 
-        layer.draw();
+        let lyr_bnds = layer.draw();
+        if (lyr_bnds && Gx.autol !== 0) {
+            set_panbounds(plot, lyr_bnds);
+        }
 
         // TODO consider if this is a source of performance
         // issues on streaming plots
@@ -8409,29 +8499,54 @@
     }
 
     /**
+     * Determine the effective bounds of the plottable area, which is defined
+     * via the pan-boundaries (panxmin/panxmax/panymin/panymax).  Then check
+     * the stack (i.e. the viewable area) and update accordingly.
+     *  
      * @memberOf sigplot
      * @private
+     * 
+     * @param plot
+     *         the plot to scale
+     * @param mode
+     *         various mode options (deprecated)
+     * @param xxmin
+     *         the xmin to begin scaling at
+     * @param xxmax
+     *         the xmax to end scaling at
+     * @param xlab
+     *         force a specific x-label
+     * @param ylab
+     *         force a specific y-label
      */
     function scale_base(plot, mode, xxmin, xxmax, xlab, ylab) {
-        var Mx = plot._Mx;
-        var Gx = plot._Gx;
+        const Mx = plot._Mx;
+        const Gx = plot._Gx;
 
-        var load = (mode.get_data === true);
+        // Reset pan boundaries
+        Gx.panxmin = undefined;
+        Gx.panxmax = undefined;
+        Gx.panymin = undefined;
+        Gx.panymax = undefined;
 
-        Gx.panxmin = 1.0;
-        Gx.panxmax = -1.0;
-        Gx.panymin = 1.0;
-        Gx.panymax = -1.0;
-        var xmin = xxmin;
-        var xmax = xxmax;
-        var noxmin = (xmin === undefined);
-        var noxmax = (xmax === undefined);
+        // Determine if we have been requested to only scale a subset of the xrange
+        // TODO - this is kinda holdover from 1D only mode and should be reconsidered
+        // given that SigPlot can do both 1D and 2D
+        let xmin = xxmin;
+        let xmax = xxmax;
+        const noxmin = (xmin === undefined);
+        const noxmax = (xmax === undefined);
+
         if (Gx.lyr.length === 0) {
+            // If there are no layers we simply show -1 to 1 on each axis
             Gx.panxmin = -1.0;
             Gx.panxmax = 1.0;
             Gx.panymin = -1.0;
             Gx.panymax = 1.0;
         } else {
+            // If there is at least on layer
+
+            // If specific xlabel/ylabel wasn't provided use the first layer
             if (xlab === undefined) {
                 Gx.xlab = Gx.lyr[0].xlab;
             }
@@ -8439,22 +8554,26 @@
                 Gx.ylab = Gx.lyr[0].ylab;
             }
 
+            // Iterate over each layer
             for (var n = 0; n < Gx.lyr.length; n++) {
+                // If a layer isn't displayed it's not considered as part of rescaling
                 if (Gx.lyr[n].display === false) {
                     continue;
                 }
+                // If xmin wasn't provided as an argument, grab the layers
                 if (noxmin) {
                     xmin = Gx.lyr[n].xmin;
                 } else {
                     xmin = xxmin;
                 }
-
+                // If xmax wasn't provided as an argument, grab the layers
                 if (noxmax) {
                     xmax = Gx.lyr[n].xmax;
                 } else {
                     xmax = xxmax;
                 }
 
+                // If the labels between layers aren't consistent, use None instead
                 if (Gx.xlab !== Gx.lyr[n].xlab) {
                     Gx.xlab = 0; // If the layers aren't consistent use None
                 }
@@ -8462,45 +8581,11 @@
                     Gx.ylab = 0; // If the layers aren't consistent use None
                 }
 
-                if (load) {
-                    Gx.lyr[n].get_data(xmin, xmax);
-                }
-
-                if (Gx.autox > 0 || Gx.autoy > 0) {
-                    while (xmin < xmax) {
-                        // get_data fills in the layer xbuf/ybuf with data
-                        Gx.lyr[n].get_data(xmin, xmax);
-
-                        // have the layer prep it's data to be rendered; NOTE
-                        // the layer needs to propertly set panxmin/max and panymin/max
-                        // here.  This should probably be change to avoid inversion of
-                        // control
-                        var npts = Gx.lyr[n].prep(xmin, xmax);
-
-                        // If both All and Expand are provided we
-                        // need to look at the entire file to auto-scale it
-                        if (Gx.all && Gx.expand) {
-                            if (Gx.lyr[n].size === 0) {
-                                xmin = xmax;
-                            } else {
-                                if (Gx.index) {
-                                    xmin = xmin + npts;
-                                } else {
-                                    if (Gx.lyr[n].xdelta >= 0) {
-                                        xmin = xmin + (Gx.lyr[n].size * Gx.lyr[n].xdelta);
-                                    } else {
-                                        xmax = xmax + (Gx.lyr[n].size * Gx.lyr[n].xdelta);
-                                    }
-                                }
-                            }
-                        } else {
-                            xmin = xmax;
-                        }
-                    }
-                } else {
-                    Gx.lyr[n].prep(1.0, -1.0);
-                }
-            }
+                // Ask the layer for it's bounds
+                let lyr_bnds = Gx.lyr[n].get_pan_bounds();
+                // And update the boundaries accordingly
+                set_panbounds(plot, lyr_bnds);
+            } // end per-layer iteration
         }
 
         var xran = Gx.panxmax - Gx.panxmin;
@@ -8521,8 +8606,12 @@
         if (((Gx.autox & 1) !== 0) && noxmin) {
             Mx.stk[0].xmin = Gx.panxmin;
         }
+        // If autox is set to allow auto-xmax _and_ xmax was not provided by scale_base
         if (((Gx.autox & 2) !== 0) && noxmax) {
+            // the top-level stack xmax becomes the panxmax
             Mx.stk[0].xmax = Gx.panxmax;
+            // unless 'All' mode is set or 'xdata' mode is used
+            // we emulate XPLOT by only showing the first 32768 points
             if (!(Gx.all || Gx.xdata)) {
                 for (var n = 0; n < Gx.lyr.length; n++) {
                     xmax = Math.min(Gx.lyr[n].xmax, Mx.stk[0].xmax);
@@ -8545,6 +8634,48 @@
         Gx.panymin -= m.pad(yran, Gx.panypad);
         Gx.panymax += m.pad(yran, Gx.panypad);
 
+    }
+
+    /**
+     * @memberOf sigplot
+     * @private
+     */
+    function set_panbounds(plot, {
+        xmin,
+        xmax,
+        ymin,
+        ymax
+    }) {
+        var Gx = plot._Gx;
+
+        if (xmin !== undefined) {
+            if (Gx.panxmin === undefined) {
+                Gx.panxmin = xmin;
+            } else {
+                Gx.panxmin = Math.min(Gx.panxmin, xmin);
+            }
+        }
+        if (xmax !== undefined) {
+            if (Gx.panxmax === undefined) {
+                Gx.panxmax = xmax;
+            } else {
+                Gx.panxmax = Math.max(Gx.panxmax, xmax);
+            }
+        }
+        if (ymin !== undefined) {
+            if (Gx.panymin === undefined) {
+                Gx.panymin = ymin;
+            } else {
+                Gx.panymin = Math.min(Gx.panymin, ymin);
+            }
+        }
+        if (ymax !== undefined) {
+            if (Gx.panymax === undefined) {
+                Gx.panymax = ymax;
+            } else {
+                Gx.panymax = Math.max(Gx.panymax, ymax);
+            }
+        }
     }
 
     /**
