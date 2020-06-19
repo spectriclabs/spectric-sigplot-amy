@@ -174,7 +174,8 @@ interactiveTest('Plot x-cut', 'Does x-cut render correctly with a valid y-axis?'
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
     plot.overlay_href("dat/raster.tmp", function() {
-        plot.xCut(100);
+        var lyr = plot.get_layer(0);
+        lyr.xCut(100);
     }, {});
 });
 
@@ -191,7 +192,8 @@ interactiveTest('Plot x-cut zoom', 'Does x-cut render with a zoomed x-axis?', fu
             x: 70e6,
             y: 110
         });
-        plot.xCut(100);
+        var lyr = plot.get_layer(0);
+        lyr.xCut(100);
     }, {});
 });
 
@@ -229,7 +231,8 @@ interactiveTest('Plot x-cut zoom 2', 'Does x-cut render a line at 30?', function
         x: 20,
         y: 20
     });
-    x_plot.xCut(15);
+    var lyr = x_plot.get_layer(0);
+    lyr.xCut(15);
 });
 
 interactiveTest('Plot x-cut issue #25', 'Does p-cut render correctly?', function(assert) {
@@ -247,7 +250,8 @@ interactiveTest('Plot y-cut', 'Does y-cut render correctly?', function(assert) {
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
     plot.overlay_href("dat/raster.tmp", function() {
-        plot.yCut(70000000);
+        var lyr = plot.get_layer(0);
+        lyr.yCut(70000000);
     }, {});
 });
 
@@ -263,7 +267,8 @@ interactiveTest('Plot y-cut zoom', 'Does y-cut render correctly with a valid axi
             x: 650e6,
             y: 110
         });
-        plot.yCut(625000000);
+        var lyr = plot.get_layer(0);
+        lyr.yCut(625000000);
     }, {});
 });
 
@@ -301,5 +306,6 @@ interactiveTest('Plot y-cut zoom 2', 'Does y-cut render a line at 30?', function
         x: 20,
         y: 20
     });
-    y_plot.yCut(15);
+    var lyr = y_plot.get_layer(0);
+    lyr.yCut(15);
 });

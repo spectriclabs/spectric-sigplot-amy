@@ -842,7 +842,7 @@ QUnit.test('Plot y-cut preserves pan values', function(assert) {
     assert.notEqual(plot, null);
 
     var done = assert.async();
-    plot.overlay_href("dat/raster.tmp", function() {
+    plot.overlay_href("dat/raster.tmp", function(hcb, lyr_n) {
         plot.zoom({
             x: 600e6,
             y: 80
@@ -855,16 +855,18 @@ QUnit.test('Plot y-cut preserves pan values', function(assert) {
         var orig_panymin = plot._Gx.panymin;
         var orig_panymax = plot._Gx.panymax;
 
-        plot.yCut(625000000);
-        plot.yCut();
+        var lyr = plot.get_layer(lyr_n);
+        lyr.yCut(625000000);
+        lyr.yCut();
 
         assert.equal(orig_panxmin, plot._Gx.panxmin);
         assert.equal(orig_panxmax, plot._Gx.panxmax);
         assert.equal(orig_panymin, plot._Gx.panymin);
         assert.equal(orig_panymax, plot._Gx.panymax);
 
-        plot.xCut(100);
-        plot.xCut();
+        var lyr = plot.get_layer(lyr_n);
+        lyr.xCut(100);
+        lyr.xCut();
 
         assert.equal(orig_panxmin, plot._Gx.panxmin);
         assert.equal(orig_panxmax, plot._Gx.panxmax);
