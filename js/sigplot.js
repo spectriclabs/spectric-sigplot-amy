@@ -43,7 +43,7 @@
     var Layer1D = require("./sigplot.layer1d");
     var Layer2D = require("./sigplot.layer2d");
     var Layer1DSDS = require("./sigplot.layer1dSDS");
-    var LayerSDS = require("./sigplot.layerSDS");
+    var Layer2DSDS = require("./sigplot.layer2dSDS");
 
     function sigplot(element, options) {
         if (!(this instanceof sigplot)) {
@@ -2555,7 +2555,16 @@
                             } else {
                                 hcb._uuid = lyr_uuid;
                                 common.update(hcb, overrides);
-                                layerOptions.layerType = layertype;
+                                if (layertype === "SDS") {
+                                    if (hcb.file_type===1000) {
+                                        layerOptions.layerType = "1DSDS";
+                                    } else {
+                                        layerOptions.layerType = "2DSDS";
+                                    }
+                                } else {
+                                    layerOptions.layerType = layertype;
+                                }
+                                
                                 i = plot.overlay_bluefile(hcb, layerOptions);
                                 if (onload) {
                                     onload(hcb, i);
@@ -2572,7 +2581,7 @@
                 if (href.endsWith(".mat")) {
                     reader = new matfile.MatFileReader();
                     oReq = reader.read_http(href, handleHeader);
-                } else if (layerOptions && (layerOptions.layerType === "SDS" || layerOptions.layerType === "1DSDS")) {
+                } else if (layerOptions && (layerOptions.layerType === "2DSDS" || layerOptions.layerType === "1DSDS"  || layerOptions.layerType === "SDS")) {
                     // TODO it would be nice to not check layerType here but either
                     // peek at the URL contents OR use something in the URL
                     oReq = new XMLHttpRequest();
@@ -2752,8 +2761,8 @@
                     layers = Layer2D.overlay(this, hcb, layerOptions);
                 } else if (layerOptions.layerType === "1DSDS") {
                     layers = Layer1DSDS.overlay(this, hcb, layerOptions);
-                } else if (layerOptions.layerType === "SDS") {
-                    layers = LayerSDS.overlay(this, hcb, layerOptions);
+                } else if (layerOptions.layerType === "2DSDS") {
+                    layers = Layer2DSDS.overlay(this, hcb, layerOptions);
                 } else {
                     layers = layerOptions.layerType.overlay(this, hcb, layerOptions);
                 }
