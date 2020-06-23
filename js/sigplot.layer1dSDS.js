@@ -67,7 +67,6 @@
         this.ylab = 0;
         this.mode = "lds";
         this.xypos_index = 0;
-        this.bottom_level = 0;
         this.y_value_change = false;
         this.pendingurl = "";
     };
@@ -92,7 +91,6 @@
             this.hcb = hcb;
             this.hcb.buf_type = "I";
 
-            //TODO - in xy cut mode this might have undesireable effects. 
             if (hcb["file_type"] === 2000) {
                 m.force1000(hcb);
                 this.size = hcb.subsize;
@@ -111,7 +109,6 @@
                     this.xmax = this.hcb.ystart + this.hcb.ydelta*(this.hcb.size/this.hcb.subsize);
                 }
             }
-
             this.set_pan_values();
 
             this.cache = new LRU(20);
@@ -124,7 +121,7 @@
         },
 
         get_data: function() {
-            this.set_pan_values();
+
         },
 
         change_settings: function(settings) {
@@ -140,7 +137,6 @@
         },
 
         set_pan_values() {
-            var Gx = this.plot._Gx;
 
             if (this.localpanxmin > this.localpanxmax) {
                 this.localpanxmin = this.xmin;
@@ -158,29 +154,10 @@
                 this.localpanymax = Math.max(this.localpanymax, this.ymax);
             }
 
-
-            //set panx and pany 
-            if (Gx.panxmin > Gx.panxmax) {
-                Gx.panxmin = this.localpanxmin;
-                Gx.panxmax = this.localpanxmax;
-            } else {
-                Gx.panxmin = Math.min(Gx.panxmin, this.localpanxmin);
-                Gx.panxmax = Math.max(Gx.panxmax, this.localpanxmax);
-            }
-
-            if (Gx.panymin > Gx.panymax) {
-                Gx.panymin = this.localpanymin;
-                Gx.panymax = this.localpanymax;
-            } else {
-                Gx.panymin = Math.min(Gx.panymin, this.localpanymin);
-                Gx.panymax = Math.max(Gx.panymax, this.localpanymax);
-            }
         },
 
         prep: function(xmin,xmax) {
-            this.set_pan_values();
 
-            //return number of points between xmin and xmax based on hcb.xstart and hcb.xdelta
         },
 
         make_request_url: function(x1,y1,x2,y2,zmin,zmax) {
@@ -282,28 +259,8 @@
 
                     var ymin = parseFloat(oReq.getResponseHeader("Zmin"));
                     var ymax = parseFloat(oReq.getResponseHeader("Zmax"));
-                    if (this.ymin !== ymin || this.ymax !==ymax) {
-                        this.ymin = ymin;
-                        this.ymax = ymax;
-                        this.set_pan_values();
-                        this.y_value_change = true;
-                        
-                        // TODO - This should be removed after a refactor of scale_base that will do this for us. 
-                        // If the ymin and ymax are not set for a stk level then set them to the payn values.
-                        for (var h = 0; h < Mx.stk.length; h++) {
-                            if (Mx.stk[h].ymin === undefined) {
-                                Mx.stk[h].ymin = Gx.panymin;
-                            }
-                            if (Mx.stk[h].ymax === undefined) {
-                                Mx.stk[h].ymax = Gx.panymax;
-                            }
-                            if (Mx.stk[h].ymin >= Mx.stk[h].ymax ) {
-                                Mx.stk[h].ymin = Gx.panymin;
-                                Mx.stk[h].ymax = Gx.panymax;
-                            }
-                            Mx.stk[h].yscl = (Mx.stk[h].ymax-Mx.stk[h].ymin) / (Mx.b - Mx.t);
-                        }
-                    }
+                    this.ymin = ymin;
+                    this.ymax = ymax;
                     this.set_pan_values();
 
                     //cache the data for later
@@ -377,11 +334,27 @@
                 this.symbol,
                 this.radius,
                 traceoptions);
-            // if (this.y_value_change) {
-            //     this.y_value_change = false;
-            //     this.plot.rescale();
-            // }
             
+        },
+        
+        get_pan_bounds: function(view) {
+
+            var xmin,xmax,ymin,ymax;
+            if (this.localpanxmin<this.localpanxmax) {
+                xmin = this.localpanxmin;
+                xmax = this.localpanxmax;
+            }
+            if (this.localpanymin <this.localpanymax) {
+                ymin = this.localpanymin;
+                ymax = this.localpanymax;
+            }
+
+            return {
+                xmin: xmin,
+                xmax: xmax,
+                ymin: ymin,
+                ymax: ymax
+            };
         },
 
         draw: function() {
@@ -400,16 +373,6 @@
                 ymin = Mx.stk[Mx.level].ymin;
                 ymax = Mx.stk[Mx.level].ymax;
             }
-            // if ((Gx.autoy & 1) === 0 || Mx.level>this.bottom_level) {
-            //     ymin = Mx.stk[Mx.level].ymin;
-            // }
-            // if ((Gx.autoy & 2) === 0 || Mx.level>this.bottom_level) {
-            //     ymax = Mx.stk[Mx.level].ymax;
-            // }
-            // if (Mx.level<this.bottom_level) {
-            //     this.bottom_level = Mx.level;
-            // }
-
             var url;
             url = this.make_request_url(x1,y1,x2,y2,ymin,ymax);
             var plotData = this.cache.get(url);
@@ -427,21 +390,16 @@
             if (plotData) {
                 this.server_data = new Int16Array(plotData);
 
-
-                //TODO - Remove after refactor
-
                 this.ymin = plotData.zmin;
                 this.ymax = plotData.zmax;
                 this.set_pan_values();
-            
-                // if (this.ymin !== plotData.zmin || this.ymax !==plotData.zmax) {
-                //     this.ymin = plotData.zmin;
-                //     this.ymax = plotData.zmax;
-                //     this.set_pan_values();
-                //     this.y_value_change = true;
-                // }
-                               
                 this.process_plot_data();
+                return {
+                    xmin: this.xmin,
+                    xmax: this.xmax,
+                    ymin: this.ymin,
+                    ymax: this.ymax
+                };
 
             } else { // We don't already have this data so we need to ask for it.
                 this.send_request_to_server(url);

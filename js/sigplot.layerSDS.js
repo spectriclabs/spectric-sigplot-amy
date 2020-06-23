@@ -238,29 +238,25 @@
         },
 
         prep: function(xmin, xmax) {
-            var Gx = this.plot._Gx;
-            var Mx = this.plot._Mx;
-
-            var qmin = this.xmin;
-            var qmax = this.xmax;
-
-            if (Gx.panxmin > Gx.panxmax) {
-                Gx.panxmin = qmin;
-                Gx.panxmax = qmax;
-            } else {
-                Gx.panxmin = Math.min(Gx.panxmin, qmin);
-                Gx.panxmax = Math.max(Gx.panxmax, qmax);
-            }
-
-            if (Gx.panymin > Gx.panymax) {
-                Gx.panymin = this.ymin;
-                Gx.panymax = this.ymax;
-            } else {
-                Gx.panymin = Math.min(Gx.panymin, this.ymin);
-                Gx.panymax = Math.max(Gx.panymax, this.ymax);
-            }
-
             return this.lps;
+        },
+        get_pan_bounds: function(view) {
+            var xmin,xmax,ymin,ymax;
+            if (this.xmin<this.xmax) {
+                xmin = this.xmin;
+                xmax = this.xmax;
+            }
+            if (this.ymin <this.ymax) {
+                ymin = this.ymin;
+                ymax = this.ymax;
+            }
+
+            return {
+                xmin: xmin,
+                xmax: xmax,
+                ymin: ymin,
+                ymax: ymax
+            };
         },
 
         load_tile: function(url, oReq, oEvent) {
@@ -364,9 +360,7 @@
 
             var xmin = Math.max(this.xmin, Mx.stk[Mx.level].xmin);
             var xmax = Math.min(this.xmax, Mx.stk[Mx.level].xmax);
-            if (xmin >= xmax) { // no data but do scaling
-                Gx.panxmin = Math.min(Gx.panxmin, this.xmin);
-                Gx.panxmax = Math.max(Gx.panxmax, this.xmax);
+            if (xmin >= xmax) { // no data 
                 return;
             }
             var ymin = Math.max(this.ymin, Mx.stk[Mx.level].ymin);
@@ -568,6 +562,7 @@
                                     false,
                                     true
                                 );
+                                
                                 return;
                             }
                         }
@@ -578,8 +573,14 @@
                     this.debounceSend(oReq);
     
                 }
-
+               
             }
+            return {
+                xmin: this.xmin,
+                xmax: this.xmax,
+                ymin: this.ymin,
+                ymax: this.ymax
+            };
             
 
         },
@@ -603,27 +604,20 @@
                 this.cut_stash.xlabel = Gx.xlabel;
                 this.cut_stash.level = Mx.level;
                 this.cut_stash.stk = JSON.parse(JSON.stringify(Mx.stk));
-                this.cut_stash.panymin = Gx.panymin;
-                this.cut_stash.panymax = Gx.panymax;
-                this.cut_stash.panxmin = Gx.panxmin;
-                this.cut_stash.panxmax = Gx.panxmax;
+
 
                 var row = Math.round((ypos - this.ystart) / this.ydelta);
                 if ((row < 0) || (row > this.lps)) {
                     return;
                 }
 
-                //Reset the pan xy and let the new layer set them. 
-                Gx.panymin = 1;
-                Gx.panymax = 0;
-                Gx.panxmin = 1;
-                Gx.panxmax = 0;
-
                 //Adjust the zoom stack to adjust y values to be undefined. 
                 for (var stk_num = 0; stk_num < Mx.stk.length; stk_num ++ ) {
                     Mx.stk[stk_num].ymin = undefined;
                     Mx.stk[stk_num].ymax = undefined;
                 }
+                Gx.panymax = undefined;
+                Gx.panymin = undefined;
 
                 this.xcut_layer = this.plot.overlay_href(this.hcb.url, null, {
                     name: "x_cut_data",
@@ -645,7 +639,6 @@
                 }
                 Gx.x_cut_press_on = true;
 
-
             } else if (Gx.x_cut_press_on) {
                 // ypos wasn't provided so turn x-cut off
                 Gx.x_cut_press_on = false;
@@ -661,10 +654,6 @@
                     Gx.ylabel = this.cut_stash.ylabel;
                     Mx.level = this.cut_stash.level;
                     Mx.stk = JSON.parse(JSON.stringify(this.cut_stash.stk));
-                    Gx.panymin = this.cut_stash.panymin;
-                    Gx.panymax = this.cut_stash.panymax;
-                    Gx.panxmin = this.cut_stash.panxmin;
-                    Gx.panxmax = this.cut_stash.panxmax;
                     this.cut_stash = undefined;
                     Mx.origin = 4;
 
@@ -710,11 +699,6 @@
                     return;
                 }
 
-                //Reset the pan xy and let the new layer set them. 
-                Gx.panymin = 1;
-                Gx.panymax = 0;
-                Gx.panxmin = 1;
-                Gx.panxmax = 0;
 
                 //Adjust the zoom stack to move y vales to x and adjust y values to be undefined. 
                 for (var stk_num = 0; stk_num < Mx.stk.length; stk_num ++ ) {
@@ -723,6 +707,9 @@
                     Mx.stk[stk_num].ymin = undefined;
                     Mx.stk[stk_num].ymax = undefined;
                 }
+
+                Gx.panymax = undefined;
+                Gx.panymin = undefined;
 
                 this.ycut_layer = this.plot.overlay_href(this.hcb.url, null,  
                     {

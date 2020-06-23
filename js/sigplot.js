@@ -3682,6 +3682,10 @@
                 Mx.t = 0;
             }
 
+            if ((Gx.panymin === undefined) || (Gx.panymax === undefined)) {
+                scale_base(this, {});
+            }
+
             // set virtual window size/pos/scaling for current level
             var k = Mx.level;
             Mx.stk[k].x1 = Mx.l;
@@ -7466,7 +7470,7 @@
         }
 
         // if we are allowing auto-scaling on y
-        if (Gx.autol > 1) {
+        if ((Gx.autol > 1) && (Gx.panymin !== undefined) && (Gx.panymax !== undefined)) {
             var fac = 1.0 / (Math.max(Gx.autol, 1));
 
             Gx.panymin = Gx.panymin * fac + Mx.stk[0].ymin * (1.0 - fac);
@@ -8626,14 +8630,26 @@
 
         if (((Gx.autoy & 1) !== 0)) {
             Mx.stk[0].ymin = Gx.panymin;
+            for (var i = 0; i < Mx.stk.length; i++) {
+                if (Mx.stk[i].ymin === undefined) {
+                    Mx.stk[i].ymin = Gx.panymin;
+                }
+            }
         }
         if (((Gx.autoy & 2) !== 0)) {
             Mx.stk[0].ymax = Gx.panymax;
+            for (var j = 0; j < Mx.stk.length; j++) {
+                if (Mx.stk[j].ymax === undefined) {
+                    Mx.stk[j].ymax = Gx.panymax;
+                }
+            }
         }
 
-        var yran = (Gx.panymax - Gx.panymin);
-        Gx.panymin -= m.pad(yran, Gx.panypad);
-        Gx.panymax += m.pad(yran, Gx.panypad);
+        if ((Gx.panymin !== undefined) && (Gx.panymax !== undefined)) {
+            var yran = (Gx.panymax - Gx.panymin);
+            Gx.panymin -= m.pad(yran, Gx.panypad);
+            Gx.panymax += m.pad(yran, Gx.panypad);
+        }
 
     }
 
