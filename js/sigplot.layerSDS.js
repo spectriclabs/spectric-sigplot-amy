@@ -704,10 +704,13 @@
                 for (var stk_num = 0; stk_num < Mx.stk.length; stk_num ++ ) {
                     Mx.stk[stk_num].xmin = Mx.stk[stk_num].ymin;
                     Mx.stk[stk_num].xmax = Mx.stk[stk_num].ymax;
+                    Mx.stk[stk_num].xscl = Mx.stk[stk_num].yscl;
                     Mx.stk[stk_num].ymin = undefined;
                     Mx.stk[stk_num].ymax = undefined;
+                    Mx.stk[stk_num].yscl = undefined;
                 }
-
+                Gx.panxmax = Gx.panymax;
+                Gx.panxmin = Gx.panymin;
                 Gx.panymax = undefined;
                 Gx.panymin = undefined;
 

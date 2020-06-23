@@ -8619,6 +8619,9 @@
             // we emulate XPLOT by only showing the first 32768 points
             if (!(Gx.all || Gx.xdata)) {
                 for (var n = 0; n < Gx.lyr.length; n++) {
+                    if (Gx.lyr[n].display === false) {
+                        continue;
+                    }
                     xmax = Math.min(Gx.lyr[n].xmax, Mx.stk[0].xmax);
                     var dpts = Math.abs((xmax - Gx.lyr[n].xmin) / Gx.lyr[n].xdelta) - Gx.bufmax + 1.0;
                     if (dpts > 0) {
