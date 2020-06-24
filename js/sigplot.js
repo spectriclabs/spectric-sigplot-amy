@@ -1647,7 +1647,7 @@
          *            settings.phunits The phase units "D" = Degrees, "R" = Radians,
          *            "C" = Cycles
          *
-         * @ param {Boolean}
+         * @param {Boolean}
          *            settings.lg_colorbar true displays the large colorbar
          *
          * @param {Boolean}
