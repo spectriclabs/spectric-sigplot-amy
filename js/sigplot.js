@@ -2556,7 +2556,7 @@
                                 hcb._uuid = lyr_uuid;
                                 common.update(hcb, overrides);
                                 if (layertype === "SDS") {
-                                    if (hcb.file_type===1000) {
+                                    if (hcb.file_type === 1000) {
                                         layerOptions.layerType = "1DSDS";
                                     } else {
                                         layerOptions.layerType = "2DSDS";
@@ -2564,7 +2564,7 @@
                                 } else {
                                     layerOptions.layerType = layertype;
                                 }
-                                
+
                                 i = plot.overlay_bluefile(hcb, layerOptions);
                                 if (onload) {
                                     onload(hcb, i);
@@ -2581,7 +2581,7 @@
                 if (href.endsWith(".mat")) {
                     reader = new matfile.MatFileReader();
                     oReq = reader.read_http(href, handleHeader);
-                } else if (layerOptions && (layerOptions.layerType === "2DSDS" || layerOptions.layerType === "1DSDS"  || layerOptions.layerType === "SDS")) {
+                } else if (layerOptions && (layerOptions.layerType === "2DSDS" || layerOptions.layerType === "1DSDS" || layerOptions.layerType === "SDS")) {
                     // TODO it would be nice to not check layerType here but either
                     // peek at the URL contents OR use something in the URL
                     oReq = new XMLHttpRequest();
@@ -8676,6 +8676,7 @@
         ymax
     }) {
         var Gx = plot._Gx;
+        var Mx = plot._Mx;
 
         if (xmin !== undefined) {
             if (Gx.panxmin === undefined) {

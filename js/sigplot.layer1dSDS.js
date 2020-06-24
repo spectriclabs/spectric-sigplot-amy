@@ -125,8 +125,18 @@
         },
 
         change_settings: function(settings) {
-            var localsettings = settings;
-
+            var Gx = this.plot._Gx;
+            if (settings.cmode !== undefined) { // If setting a new cmode then reset y values. 
+ 
+                if (((Gx.autoz & 1) !== 0)) {
+                    this.ymin = 0;
+                    this.localpanymin = 0;
+                }
+                if (((Gx.autoz & 2) !== 0)) {
+                    this.ymax = -1;
+                    this.localpanymax = -1;
+                }
+            }
         },
 
         reload: function(data, hdrmod) {
@@ -338,7 +348,12 @@
         },
         
         get_pan_bounds: function(view) {
-
+            var cacheData = this.get_data_from_cache();
+            if (cacheData.plotData) {
+                this.ymin = cacheData.plotData.zmin;
+                this.ymax = cacheData.plotData.zmax;
+                this.set_pan_values();
+            }
             var xmin,xmax,ymin,ymax;
             if (this.localpanxmin<this.localpanxmax) {
                 xmin = this.localpanxmin;
@@ -357,10 +372,8 @@
             };
         },
 
-        draw: function() {
+        get_data_from_cache() {
             var Mx = this.plot._Mx;
-            var Gx = this.plot._Gx;
-
 
             var x1 =  Math.round((Mx.stk[Mx.level].xmin - this.xmin)/this.hcb.xdelta) ;
             var x2 = Math.round((Mx.stk[Mx.level].xmax - this.xmin)/this.hcb.xdelta) ;
@@ -386,12 +399,20 @@
                     }
                 }
             }
+            return {
+                url: url,
+                plotData: plotData
+            };
+        },
 
-            if (plotData) {
-                this.server_data = new Int16Array(plotData);
+        draw: function() {
+            var cacheData = this.get_data_from_cache();
 
-                this.ymin = plotData.zmin;
-                this.ymax = plotData.zmax;
+            if (cacheData.plotData) {
+                this.server_data = new Int16Array(cacheData.plotData);
+
+                this.ymin = cacheData.plotData.zmin;
+                this.ymax = cacheData.plotData.zmax;
                 this.set_pan_values();
                 this.process_plot_data();
                 return {
@@ -402,7 +423,7 @@
                 };
 
             } else { // We don't already have this data so we need to ask for it.
-                this.send_request_to_server(url);
+                this.send_request_to_server(cacheData.url);
             }
 
             
