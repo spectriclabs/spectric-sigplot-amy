@@ -302,6 +302,7 @@ interactiveTest('sigplot custom function xlabel/ylabel', 'Do you see custom xlab
     });
 });
 
+// TODO  this test seems broken
 interactiveTest('sigplot expand full', 'Do you see a fully expanded plot?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {
