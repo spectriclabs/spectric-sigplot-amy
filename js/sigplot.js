@@ -3073,6 +3073,25 @@
         },
 
         /**
+         * Expand pan-bars to the full range
+         */
+        expand_full: function(xpan, ypan) {
+            if (xpan) {
+                updateViewbox(this, this._Gx.panxmin, this._Gx.panxmax, "X");
+                // syncronous refresh is necessary, because expanding the xrange
+                // may cause more data to be read
+                this._refresh();
+            }
+
+            if (ypan) {
+                updateViewbox(this, this._Gx.panymin, this._Gx.panymax, "Y");
+            }
+
+            // async refresh is find here
+            this.refresh();
+        },
+
+        /**
          * Set the current view bounds, if any bounds are not defined
          * then they are kept as currently set.
          * 
