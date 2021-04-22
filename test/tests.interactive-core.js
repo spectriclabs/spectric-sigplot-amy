@@ -181,6 +181,11 @@ interactiveTest('sigplot 1d reload', 'Do you see a ramp from 0 to 1023?', functi
         layerType: sigplot.Layer1D
     });
 
+    assert.equal(plot._Gx.panxmin, -1);
+    assert.equal(plot._Gx.panxmax, 1);
+    assert.equal(plot._Gx.panymin, 0);
+    assert.equal(plot._Gx.panymax, 0);
+
     var ramp = [];
     for (var i = 0; i < 1024; i++) {
         ramp.push(i);
@@ -189,6 +194,21 @@ interactiveTest('sigplot 1d reload', 'Do you see a ramp from 0 to 1023?', functi
     plot.reload(lyr_n, ramp, {
         file_name: "ramp"
     });
+
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 1023);
+    assert.equal(plot._Gx.panymin, -20.46);
+    assert.equal(plot._Gx.panymax, 1043.46);
+
+    plot.reload(lyr_n, ramp, {
+        file_name: "ramp2",
+        xstart: 10000
+    });
+
+    assert.equal(plot._Gx.panxmin, 10000);
+    assert.equal(plot._Gx.panxmax, 11023);
+    assert.equal(plot._Gx.panymin, -20.46);
+    assert.equal(plot._Gx.panymax, 1043.46);
 });
 
 interactiveTest('sigplot file overlay', 'Do you see a sin wave?', function(assert) {
@@ -409,7 +429,7 @@ interactiveTest('sigplot symbol', 'Do you see 5 triangle symbols?', function(ass
     });
 });
 
-interactiveTest('complex dots', 'Do you see a cluster of dots near 0,0?', function(assert) {
+interactiveTest('complex dots', 'Do you see dots constrained to a box?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);

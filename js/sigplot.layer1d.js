@@ -144,9 +144,19 @@
 
             this.xstart = hcb.xstart;
             this.xdelta = hcb.xdelta;
-            var d = hcb.xstart + hcb.xdelta * (this.size - 1.0);
-            this.xmin = Math.min(hcb.xstart, d);
-            this.xmax = Math.max(hcb.xstart, d);
+
+            if (this.size > 0) {
+                // a single data-point is not infintesimally small, so xmin/xmax
+                // are defined as the start of the data point, hence we subtract
+                // one from the size.  This logic works if xdelta is postive or
+                // negagive
+                var d = hcb.xstart + hcb.xdelta * (this.size - 1.0);
+                this.xmin = Math.min(hcb.xstart, d);
+                this.xmax = Math.max(hcb.xstart, d);
+            } else {
+                this.xmin = 0;
+                this.xmax = 0;
+            }
 
             this.xlab = hcb.xunits;
             this.ylab = hcb.yunits; // might be undefined
@@ -240,7 +250,7 @@
                 imax = Math.floor((xmin - HCB.xstart) / HCB.xdelta + 0.5);
             }
             imin = Math.max(0.0, imin);
-            imax = Math.min(size, imax);
+            imax = Math.min(size - 1, imax);
 
             var npts = Math.max(0.0, Math.min(imax - imin + 1, Gx.bufmax));
             if (HCB.xdelta < 0) {
@@ -325,9 +335,8 @@
             this.hcb.setData(data);
 
             // Setting these causes refresh() to refetch
-            this.imin = 0;
-            this.xstart = undefined;
-            this.size = 0;
+            this.imin = -1;
+            this.size = this.hcb.size;
 
             var xmin = this.xmin;
             var xmax = this.xmax;
@@ -584,7 +593,10 @@
             // Minic legacy XPLOT behavior; by default the 
             // pan boundaries are based off the first bufmax of
             // points.
-            var xmax = xmin + (Gx.bufmax * this.xdelta);
+            var xmax = Math.min(
+                xmin + (this.size * this.xdelta),
+                xmin + (Gx.bufmax * this.xdelta)
+            );
 
             if (view) {
                 xmin = view.xmin;
@@ -625,6 +637,12 @@
                 }
             }
 
+            if (panymin === undefined) {
+                panymin = 0;
+            }
+            if (panymax === undefined) {
+                panymax = 0;
+            }
             this.ymin = panymin;
             this.ymax = panymax;
 
@@ -697,15 +715,6 @@
                 }
             }
 
-            if (!Gx.all) {
-                var xran = (Gx.bufmax - 1.0) * xdelta;
-                if (xran >= -0.0) {
-                    xmax = Math.min(xmax, xmin + xran);
-                } else {
-                    xmin = Math.max(xmin, xmax + xran);
-                }
-            }
-
             if ((line === 0) && (symbol === 0)) {
                 // Nothing to draw
                 return {
@@ -749,22 +758,18 @@
                     }
                 }
 
-                if (Gx.all) {
-                    if (this.size === 0) {
-                        xmin = xmax;
+                if (this.size === 0) {
+                    xmin = xmax;
+                } else {
+                    if (Gx.index) {
+                        xmin = xmin + pts.num;
                     } else {
-                        if (Gx.index) {
-                            xmin = xmin + pts.num;
+                        if (xdelta >= 0) {
+                            xmin = xmin + (this.size * xdelta);
                         } else {
-                            if (xdelta >= 0) {
-                                xmin = xmin + (this.size * xdelta);
-                            } else {
-                                xmax = xmax + (this.size * xdelta);
-                            }
+                            xmax = xmax + (this.size * xdelta);
                         }
                     }
-                } else {
-                    xmin = xmax;
                 }
             }
 

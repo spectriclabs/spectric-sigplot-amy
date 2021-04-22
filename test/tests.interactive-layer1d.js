@@ -302,6 +302,7 @@ interactiveTest('sigplot custom function xlabel/ylabel', 'Do you see custom xlab
     });
 });
 
+// TODO  this test seems broken
 interactiveTest('sigplot expand full', 'Do you see a fully expanded plot?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {
@@ -346,6 +347,42 @@ interactiveTest('sigplot expand full', 'Do you see a fully expanded plot?', func
     }
     plot1(plot);
     plot2(plot);
+});
+
+interactiveTest('sigplot expand full on command', 'Do you see a fully expanded plot?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    assert.notEqual(plot, null);
+    var ramp = [];
+    for (var i = 0; i < (plot._Gx.bufmax * 2); i++) {
+        ramp.push(i);
+    }
+    plot.overlay_array(ramp, {
+        file_name: "ramp"
+    });
+    // if we are over bufmax, then only the first buffer is read and used for scaling the y-axis
+    // you have to scroll to get the full y-axis
+    assert.equal(plot._Gx.bufmax, 32768);
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 65535);
+    assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Gx.panymax, 33422.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Mx.stk[0].xmin, 0);
+    assert.equal(plot._Mx.stk[0].xmax, 32767);
+    assert.equal(plot._Mx.stk[0].ymin, -655.34);
+    assert.equal(plot._Mx.stk[0].ymax, 33422.34);
+
+    plot.expand_full(true, true);
+
+    assert.equal(plot._Gx.bufmax, 32768);
+    assert.equal(plot._Gx.panxmin, 0);
+    assert.equal(plot._Gx.panxmax, 65535);
+    assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Gx.panymax, 66189.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Mx.stk[0].xmin, 0);
+    assert.equal(plot._Mx.stk[0].xmax, 65535);
+    assert.equal(plot._Mx.stk[0].ymin, -655.34);
+    assert.equal(plot._Mx.stk[0].ymax, 66189.34);
 });
 
 interactiveTest('sigplot custom axis label', 'Do you see the axis label "CustomY (a) vs. Time code format"?', function(assert) {
