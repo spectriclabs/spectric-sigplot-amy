@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "loglevel": "^1.4.1",
+    "lru": "^3.1.0",
     "sigfile": "^0.1.9",
     "spin": "0.0.1",
     "tinycolor2": "^1.4.1",
@@ -48,8 +49,8 @@
     "underscore": "^1.9.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.3.3",
-    "@babel/preset-env": "^7.3.1",
+    "@babel/core": "^7.10.5",
+    "@babel/preset-env": "^7.10.4",
     "babelify": "^10.0.0",
     "catharsis": "^0.8.9",
     "express": "^4.13.4",
@@ -81,6 +82,7 @@
     "minami": "^1.2.3",
     "qunit-assert-close": "^2.1.2",
     "qunitjs": "^2.4.1",
-    "taffydb": "^2.7.3"
+    "taffydb": "^2.7.3",
+    "underscore": "^1.9.2"
   }
 }

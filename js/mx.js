@@ -1467,6 +1467,17 @@
         var ymin = Math.min(stk4.ymin, stk4.ymax);
         var xmax = xmin + dx;
         var ymax = ymin + dy;
+        if (options.pixels) {
+            xscl = 1.0;
+            xxmin = 0;
+            yscl = 1.0;
+            yymin = 0;
+            xmin = 0;
+            ymin = 0;
+            xmax = Math.round(Mx.r - Mx.l);
+            ymax = Math.round(Mx.b - Mx.t);
+
+        }
         //dx = dx * 0.5;
         //if ((line == -1) || (line == 1)) {
         //	dy = dy * 10.0;
@@ -1486,6 +1497,7 @@
 
         var ib = 0;
         if ((line === 0) && (symb !== 0)) {
+            // We are drawing symbols only
             for (var n = (skip - 1); n < npts; n += skip) {
                 var x = xpoint[n];
                 var y = ypoint[n];
@@ -1498,6 +1510,7 @@
             }
         }
         if (options.vertsym === true) {
+            // we are drawing verticle lines on each symbol
             for (var n = (skip - 1); n < npts; n += skip) {
                 var x = xpoint[n];
                 var y = ypoint[n];
@@ -1513,6 +1526,7 @@
             }
         }
         if (options.horzsym === true) {
+            // we are drawing horizontal lines on each symbol
             for (var n = (skip - 1); n < npts; n += skip) {
                 var x = xpoint[n];
                 var y = ypoint[n];
@@ -1703,16 +1717,11 @@
                     ie = ie + 1;
                 }
                 if (symb !== 0 && (ib - ie) > 1) {
-                    // TODO ib - 1 is used below because
-                    // otherwise the last point has undefined
-                    // for it's x/y coordinates...but this may
-                    // be a bug because it may neglect drawing
-                    // the last data point
                     mx.draw_symbols(Mx,
                         color,
-                        pixx.subarray(ie - 1, ib),
-                        pixy.subarray(ie - 1, ib),
-                        ib - ie - 1,
+                        pixx.subarray(ie, ib),
+                        pixy.subarray(ie, ib),
+                        ib - ie,
                         symb,
                         rad,
                         n - ib + istart);
@@ -5169,9 +5178,16 @@
             // for-loop based approach
             var src = new Uint32Array(buf);
             var dst = new Uint32Array(imgd.data.buffer);
-            for (var ii = 0; ii < src.length; ii++) {
-                dst[ii] = Mx.pixel.getColorByIndex(src[ii]).color;
+            if (buf.contents !== "rgba") {
+                for (var ii = 0; ii < src.length; ii++) {
+                    dst[ii] = Mx.pixel.getColorByIndex(src[ii]).color;
+                }
+            } else {
+                for (var ii = 0; ii < src.length; ii++) {
+                    dst[ii] = src[ii];
+                }
             }
+
             imgctx.putImageData(imgd, 0, 0);
         } else {
             if (!downscaling) {
@@ -5270,14 +5286,18 @@
         // one loop with the downscaling if condition inside; but benchmarking
         // has shown this approach to be almost twice as fast for the condition
         // where downscaling isn't used
-        if (!downscaling) {
+        if (!downscaling || buf.contents === "rgba") {
             for (var ii = 0; ii < dest.length; ii++) {
                 xx = Math.floor(ii % w * width_scaling) + sx;
                 yy = Math.floor(ii / w * height_scaling) + sy;
                 jj = Math.floor((yy * buf.width) + xx);
 
                 value = src[jj];
-                dest[ii] = colorMap.getColorByIndex(value).color;
+                if (buf.contents !== "rgba") {
+                    dest[ii] = colorMap.getColorByIndex(value).color;
+                } else {
+                    dest[ii] = src[jj];
+                }
             }
         } else {
             for (var ii = 0; ii < dest.length; ii++) {
@@ -5482,7 +5502,7 @@
 
     /**
      * @param Mx
-     * @param data
+     * @param data array of data
      * @param nx
      * @param ny
      * @param nex
