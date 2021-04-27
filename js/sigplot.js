@@ -989,7 +989,17 @@
                             mtagevt.w = undefined;
                             mtagevt.h = undefined;
                             mtagevt.shift = event.shiftKey;
-                            mx.dispatchEvent(Mx, mtagevt);
+                            if (mx.dispatchEvent(Mx, mtagevt)) {
+                                var mclkevt = document.createEvent('Event');
+                                mclkevt.initEvent('mclick', true, true);
+                                mclkevt.originalEvent = event;
+                                mclkevt.xpos = mtagevt.xpos;
+                                mclkevt.ypos = mtagevt.ypos;
+                                mclkevt.x = mtagevt.x;
+                                mclkevt.y = mtagevt.y;
+                                mclkevt.which = 1;
+                                mx.dispatchEvent(Mx, mclkevt);
+                            }
 
                             // Refresh to draw the new marker position
                             //if (Gx.always_show_marker || Gx.show_marker) {
@@ -1053,17 +1063,6 @@
                 // Update Mx event fields
                 mx.ifevent(plot._Mx, event);
 
-                var evt = document.createEvent('Event');
-                evt.initEvent('mclick', true, true);
-                evt.originalEvent = event;
-                evt.xpos = Mx.xpos;
-                evt.ypos = Mx.ypos;
-                evt.x = Gx.retx;
-                evt.y = Gx.rety;
-                evt.which = event.which; // not always available on all browser
-                if (mx.dispatchEvent(Mx, evt)) {
-                    // currently there isn't a default for mouseclick to cancel
-                }
                 return false;
             };
         }(this));
@@ -6761,7 +6760,16 @@
                     evt.wpxl = w;
                     evt.hpxl = h;
                     evt.shift = event.shiftKey;
-                    mx.dispatchEvent(Mx, evt);
+                    if (mx.dispatchEvent(Mx, evt)) {
+                        var mclkevt = document.createEvent('Event');
+                        mclkevt.initEvent('mclick', true, true);
+                        mclkevt.originalEvent = event;
+                        mclkevt.xpos = evt.xpos;
+                        mclkevt.ypos = evt.ypos;
+                        mclkevt.x = evt.x;
+                        mclkevt.y = evt.y;
+                        mclkevt.which = event.which; // not always available on all browser
+                    }
                 }
             }
         };
