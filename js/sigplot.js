@@ -713,7 +713,15 @@
                         }
                     } else if (event.which === 2) {
                         if (!Gx.nomenu) {
-                            sigplot_mainmenu(plot);
+                            var evt = document.createEvent('Event');
+                            evt.initEvent('showmenu', true, true);
+                            evt.originalEvent = event;
+                            evt.x = Mx.x;
+                            evt.y = Mx.y;
+                            var executeDefault = mx.dispatchEvent(Mx, evt);
+                            if (executeDefault) {
+                                sigplot_mainmenu(plot);
+                            }
                         }
                     }
                 }
