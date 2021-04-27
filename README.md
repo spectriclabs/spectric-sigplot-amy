@@ -32,9 +32,15 @@ Getting Started
 </html>
 ```
 
-See [this jsFiddle](https://jsfiddle.net/ha09baqu/) as an example.  Additional
-[examples and demos](http://sigplot.lgsinnovations.com/).
+Demos
+=================
+Execute
 
+```
+npm run serve
+```
+
+Then open http://localhost:1337/examples.
 
 WebPack Quick Start
 ================================
