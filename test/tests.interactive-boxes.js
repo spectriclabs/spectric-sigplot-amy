@@ -24,7 +24,7 @@
  * under the License.
  */
 
-/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
+/* globals QUnit, sigplot, ColorMap, sigplot.plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
 QUnit.module('sigplot-interactive-boxes', {
     beforeEach: interactiveBeforeEach,
     afterEach: interactiveAfterEach
@@ -34,7 +34,7 @@ interactiveTest('boxes', 'Do you see a boxes?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    var boxes = new sigplot_plugins.BoxesPlugin();
+    var boxes = new sigplot.plugins.BoxesPlugin();
     plot.add_plugin(boxes);
     boxes.add_box({
         x: 0,
@@ -73,7 +73,7 @@ interactiveTest('clear boxes', 'Do you see one box?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    var boxes = new sigplot_plugins.BoxesPlugin();
+    var boxes = new sigplot.plugins.BoxesPlugin();
     plot.add_plugin(boxes);
     boxes.add_box({
         x: 0,

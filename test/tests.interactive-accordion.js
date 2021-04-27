@@ -24,7 +24,7 @@
  * under the License.
  */
 
-/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
+/* globals QUnit, sigplot, ColorMap, sigplot.plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
 QUnit.module('sigplot-interactive-accordion', {
     beforeEach: interactiveBeforeEach,
     afterEach: interactiveAfterEach
@@ -39,7 +39,7 @@ interactiveTest('vertical accordion', 'Do you see a vertical accordion that stay
     for (var i = 0; i < framesize; i += 1) {
         zeros.push(0);
     }
-    var accordion = new sigplot_plugins.AccordionPlugin({
+    var accordion = new sigplot.plugins.AccordionPlugin({
         draw_center_line: true,
         shade_area: true,
         draw_edge_lines: true,
@@ -93,7 +93,7 @@ interactiveTest('horizontal accordion', 'Do you see a horizontal accordion at ze
     });
     var acc;
     var accordion = function(y) {
-        acc = new sigplot_plugins.AccordionPlugin({
+        acc = new sigplot.plugins.AccordionPlugin({
             draw_center_line: true,
             shade_area: true,
             draw_edge_lines: true,
@@ -140,7 +140,7 @@ interactiveTest('vertical accordion relative placement', "Do you see a vertical 
     }, {
         layerType: sigplot.Layer1D
     });
-    var accordion = new sigplot_plugins.AccordionPlugin({
+    var accordion = new sigplot.plugins.AccordionPlugin({
         mode: "relative",
         draw_center_line: true,
         shade_area: true,
@@ -191,7 +191,7 @@ interactiveTest('horizontal accordion relative placement', "Do you see a horizon
     }, {
         drawmode: 'rising'
     });
-    var accordion = new sigplot_plugins.AccordionPlugin({
+    var accordion = new sigplot.plugins.AccordionPlugin({
         mode: "relative",
         draw_center_line: true,
         shade_area: true,
@@ -219,7 +219,7 @@ interactiveTest('horizontal and vertical accordions absolute placement zoom', 'D
         zeros.push(0);
     }
     plot.overlay_array(zeros, {});
-    var vert_accordion = new sigplot_plugins.AccordionPlugin({
+    var vert_accordion = new sigplot.plugins.AccordionPlugin({
         mode: "absolute",
         draw_center_line: true,
         shade_area: true,
@@ -229,7 +229,7 @@ interactiveTest('horizontal and vertical accordions absolute placement zoom', 'D
             strokeStyle: "#FF2400"
         }
     });
-    var horiz_accordion = new sigplot_plugins.AccordionPlugin({
+    var horiz_accordion = new sigplot.plugins.AccordionPlugin({
         mode: "absolute",
         draw_center_line: true,
         shade_area: true,
@@ -256,7 +256,7 @@ interactiveTest('horizontal and vertical accordions relative placement zoom', 'D
         zeros.push(0);
     }
     plot.overlay_array(zeros, {});
-    var vert_accordion = new sigplot_plugins.AccordionPlugin({
+    var vert_accordion = new sigplot.plugins.AccordionPlugin({
         mode: "relative",
         draw_center_line: true,
         shade_area: true,
@@ -266,7 +266,7 @@ interactiveTest('horizontal and vertical accordions relative placement zoom', 'D
             strokeStyle: "#FF2400"
         }
     });
-    var horiz_accordion = new sigplot_plugins.AccordionPlugin({
+    var horiz_accordion = new sigplot.plugins.AccordionPlugin({
         mode: "relative",
         draw_center_line: true,
         shade_area: true,

@@ -44,6 +44,13 @@
     var Layer2D = require("./sigplot.layer2d");
     var Layer1DSDS = require("./sigplot.layer1dSDS");
     var Layer2DSDS = require("./sigplot.layer2dSDS");
+    var Plugin = require("./sigplot.plugin");
+    var AccordionPlugin = require("./sigplot.accordion");
+    var AnnotationPlugin = require("./sigplot.annotations");
+    var BoxesPlugin = require("./sigplot.boxes");
+    var PlaybackControlsPlugin = require("./sigplot.playback");
+    var SliderPlugin = require("./sigplot.slider");
+
 
     function sigplot(element, options) {
         if (!(this instanceof sigplot)) {
@@ -9182,6 +9189,13 @@
     }
 
     sigplot.Plot = Plot;
+    sigplot.plugins = {
+        AccordionPlugin,
+        AnnotationPlugin,
+        BoxesPlugin,
+        PlaybackControlsPlugin,
+        SliderPlugin,
+    };
     module.exports = sigplot;
 
 }());
