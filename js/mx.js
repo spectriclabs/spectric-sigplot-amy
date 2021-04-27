@@ -4903,6 +4903,47 @@
         sv.sw = sw;
     };
 
+    mx.real_distance_to_pixel = function(Mx, x1, y1, x2, y2, clip) {
+        var pos1 = mx.real_to_pixel(Mx, x1, y1, clip);
+        var pos2 = mx.real_to_pixel(Mx, x2, y2, clip);
+
+        var dx = pos2.x - pos1.x;
+        var dy = pos2.y - pos1.y;
+
+        return {
+            x: dx,
+            y: dy,
+            d: Math.sqrt((dx * dx) + (dy * dy))
+        };
+    };
+
+    mx.real_box_to_pixel = function(Mx, x, y, w, h, clip) {
+        var ul, lr;
+        if (Mx.origin === 1) {
+            // regular x, regular y
+            ul = mx.real_to_pixel(Mx, x, y);
+            lr = mx.real_to_pixel(Mx, x + w, y - h);
+        } else if (Mx.origin === 2) {
+            // inverted x, regular y
+            ul = mx.real_to_pixel(Mx, x, y);
+            lr = mx.real_to_pixel(Mx, x - w, y - h);
+        } else if (Mx.origin === 3) {
+            // inverted x, inverted y
+            ul = mx.real_to_pixel(Mx, x, y);
+            lr = mx.real_to_pixel(Mx, x - w, y + h);
+        } else if (Mx.origin === 4) {
+            // regular x, inverted y
+            ul = mx.real_to_pixel(Mx, x, y);
+            lr = mx.real_to_pixel(Mx, x + w, y + h);
+        }
+        return {
+            ul: ul,
+            lr: lr,
+            w: lr.x - ul.x,
+            h: lr.y - ul.y
+        };
+    };
+
     /**
      * @param {Object} Mx - the Mx object
      * @param {number} x - the real-world x coordinate
