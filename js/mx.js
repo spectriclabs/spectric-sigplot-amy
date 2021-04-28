@@ -4913,7 +4913,8 @@
         return {
             x: dx,
             y: dy,
-            d: Math.sqrt((dx * dx) + (dy * dy))
+            d: Math.sqrt((dx * dx) + (dy * dy)),
+            clipped: pos1.clipped || pos2.clipped
         };
     };
 
@@ -4921,26 +4922,27 @@
         var ul, lr;
         if (Mx.origin === 1) {
             // regular x, regular y
-            ul = mx.real_to_pixel(Mx, x, y);
-            lr = mx.real_to_pixel(Mx, x + w, y - h);
+            ul = mx.real_to_pixel(Mx, x, y, clip);
+            lr = mx.real_to_pixel(Mx, x + w, y - h, clip);
         } else if (Mx.origin === 2) {
             // inverted x, regular y
-            ul = mx.real_to_pixel(Mx, x, y);
-            lr = mx.real_to_pixel(Mx, x - w, y - h);
+            ul = mx.real_to_pixel(Mx, x, y, clip);
+            lr = mx.real_to_pixel(Mx, x - w, y - h, clip);
         } else if (Mx.origin === 3) {
             // inverted x, inverted y
-            ul = mx.real_to_pixel(Mx, x, y);
-            lr = mx.real_to_pixel(Mx, x - w, y + h);
+            ul = mx.real_to_pixel(Mx, x, y, clip);
+            lr = mx.real_to_pixel(Mx, x - w, y + h, clip);
         } else if (Mx.origin === 4) {
             // regular x, inverted y
-            ul = mx.real_to_pixel(Mx, x, y);
-            lr = mx.real_to_pixel(Mx, x + w, y + h);
+            ul = mx.real_to_pixel(Mx, x, y, clip);
+            lr = mx.real_to_pixel(Mx, x + w, y + h, clip);
         }
         return {
             ul: ul,
             lr: lr,
             w: lr.x - ul.x,
-            h: lr.y - ul.y
+            h: lr.y - ul.y,
+            clipped: ul.clipped || lr.clipped
         };
     };
 
@@ -4975,18 +4977,34 @@
         var clipped_y = false;
 
         if (x !== null) {
-            clipped_x = ((x > stk4.xmax) || (x < stk4.xmin));
-            if (clip) {
-                x = Math.min(x, stk4.xmax);
-                x = Math.max(x, stk4.xmin);
+            if ((Mx.origin === 1) || (Mx.origin === 4)) {
+                clipped_x = ((x > stk4.xmax) || (x < stk4.xmin));
+                if (clip) {
+                    x = Math.min(x, stk4.xmax);
+                    x = Math.max(x, stk4.xmin);
+                }
+            } else {
+                clipped_x = ((x < stk4.xmax) || (x > stk4.xmin));
+                if (clip) {
+                    x = Math.max(x, stk4.xmax);
+                    x = Math.min(x, stk4.xmin);
+                }
             }
             x = Math.round((x - xxmin) * xscl) + left;
         }
         if (y !== null) {
-            clipped_y = ((y > stk4.ymin) || (y < stk4.ymax));
-            if (clip) {
-                y = Math.min(y, stk4.ymin);
-                y = Math.max(y, stk4.ymax);
+            if ((Mx.origin === 1) || (Mx.origin === 2)) {
+                clipped_y = ((y > stk4.ymin) || (y < stk4.ymax));
+                if (clip) {
+                    y = Math.min(y, stk4.ymin);
+                    y = Math.max(y, stk4.ymax);
+                }
+            } else {
+                clipped_y = ((y < stk4.ymin) || (y > stk4.ymax));
+                if (clip) {
+                    y = Math.max(y, stk4.ymin);
+                    y = Math.min(y, stk4.ymax);
+                }
             }
             y = Math.round((y - yymin) * yscl) + top;
         }
