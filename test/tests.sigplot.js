@@ -24,7 +24,7 @@
  * under the License.
  */
 
-/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
+/* globals QUnit, sigplot, ColorMap, sigplot.plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
 
 //////////////////////////////////////////////////////////////////////////////
 // QUnit 'sigplot' module
@@ -631,7 +631,7 @@ QUnit.test('Add and remove plugins', function(assert) {
         lps: 100,
         pipe: true
     });
-    var accordion = new sigplot_plugins.AccordionPlugin({
+    var accordion = new sigplot.plugins.AccordionPlugin({
         draw_center_line: true,
         shade_area: true,
         draw_edge_lines: true,
@@ -656,7 +656,7 @@ QUnit.test('Plugins still exist after plot and canvas height and width are 0', f
     });
     var positions = [0.0, 5.0, 9.0, 3.0];
     for (var pos = 0; pos < positions.length; ++pos) {
-        var slider = new sigplot_plugins.SliderPlugin({
+        var slider = new sigplot.plugins.SliderPlugin({
             style: {
                 strokeStyle: "#FF0000"
             }

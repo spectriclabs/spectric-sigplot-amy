@@ -1,0 +1,342 @@
+<html>
+  <head>
+    <script src="/sigplot.js"></script>
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+    <style>
+      #plot {
+        width: 100%;
+        height: 75vh;
+      }
+
+      #table {
+        width: 100%;
+        text-align: center;
+      }
+
+      #body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+          <div id="plot"></div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadio1D" checked>
+            <label class="form-check-label" for="flexRadio1D">
+              Line (1D)
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadio2D">
+            <label class="form-check-label" for="flexRadio2D">
+              Raster (2D)
+            </label>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="enableSelect">
+            <label class="form-check-label" for="flexSwitchCheckDefault">Enable Box Select</label>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="enableMove">
+            <label class="form-check-label" for="flexSwitchCheckDefault">Enable Box Move</label>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="enableResize">
+            <label class="form-check-label" for="flexSwitchCheckDefault">Enable Box Resize</label>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="accordion" id="accordionInstructions">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingInstructions">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInstructions" aria-expanded="false" aria-controls="collapseInstructions">
+                Instructions
+              </button>
+            </h2>
+            <div id="collapseInstructions" class="accordion-collapse collapse" aria-labelledby="headingInstructions" data-bs-parent="#accordionInstructions">
+              <div class="accordion-body">
+                <p>
+                  This demo shows how to fully use the Boxes plugin.  It changes the default rubberbox_action (i.e. the action taken when drawing a box on the plot
+                  while holding down the left-mouse) to create a box instead of zooming.  Zooming can still be performed by holding CTRL while drawing the rubberbox.
+                </p>
+                <p>
+                  After a box is drawn, you can enable Select, Move, and Resize capabilities.  When box Select is enabled, you can right-click on a box to bring up
+                  a custom menu which allows the box to be deleted.
+                </p>
+                <p>
+                  All boxes can be deleted by middle-clicking anywhere on the plot and using the Clear Boxes action.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <table id="table">
+          <tr>
+            <th>Box ID</th>
+            <th>Box Text</th>
+            <th>X</th>
+            <th>Y</th>
+            <th>W</th>
+            <th>H</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+      var box_cnt = 0; // global counter to give each box a unique name
+      var plot; // global to access plot object
+      var boxes_plugin; // global to access boxes_plugin
+      var data_layer; // global to access data layer
+
+      ////////////////////////////////////////////////////////////////////
+      // Control handlers
+      $('#enableSelect').change(function() {
+        boxes_plugin.enableSelect( $(this).prop('checked') );
+        // If Select has been disabled, then clear all selections from the table as well
+        if ($(this).prop('checked') === false) {
+          var table = document.getElementById('table');
+          for (var ii=0; ii<table.rows.length; ii++) {
+            table.rows[ii].style.backgroundColor = "white";
+          }
+        }
+      });
+      $('#enableMove').change(function() {
+        boxes_plugin.enableMove( $(this).prop('checked') );
+      });
+      $('#enableResize').change(function() {
+        boxes_plugin.enableResize( $(this).prop('checked') );
+      });
+      $('#flexRadio1D').change(function() {
+        boxes_plugin.clear_boxes();
+        box_cnt = 0;
+        plot.deoverlay(data_layer);
+        data_layer = plot.overlay_href("/test/dat/ramp.tmp");
+      });
+      $('#flexRadio2D').change(function() {
+        boxes_plugin.clear_boxes();
+        box_cnt = 0;
+        plot.deoverlay(data_layer);
+        data_layer = plot.overlay_href("/test/dat/raster.tmp");
+      });
+
+      ////////////////////////////////////////////////////////////////////
+      // On page load
+      $(function() {
+          
+          // Setup plot options
+          var plot_options = {
+            // Cleanup the look of the plot
+            autohide_panbars: true,
+            hide_note: true,
+            // Change the default behavior
+            // so that drawing a box issues an 'mtag'
+            // event by default; zooming is accomplished by
+            // holding CTRL when drawing a box
+            rubberbox_action: "select",
+          };
+          plot = new sigplot.Plot(
+            document.getElementById('plot'),
+            plot_options
+          );
+
+          boxes_plugin = new sigplot.plugins.BoxesPlugin({
+            enableMove: false,
+            enableResize: false,
+            enableSelect: false,
+          });
+          plot.add_plugin(boxes_plugin);
+
+          // Overlay some sample data
+          if ($('#flexRadio1D').prop('checked')) {
+            data_layer = plot.overlay_href("/test/dat/ramp.tmp");
+          } else {
+            data_layer = plot.overlay_href("/test/dat/raster.tmp");
+          }
+
+          ////////////////////////////////////////////////////////////////////
+          // Event Listeners
+          ////////////////////////////////////////////////////////////////////
+
+          ////////////////////////////////////////////////////////////////////
+          // When a user draws a box we create a new box
+          // on the plot at the location
+          plot.addListener("mtag", function(evt) {
+            if (evt.w && evt.h) {
+              box_cnt++;
+              boxes_plugin.add_box({
+                x: evt.x,
+                y: evt.y,
+                w: evt.w,
+                h: evt.h,
+                text: box_cnt,
+              });
+              evt.preventDefault();
+            }
+          });
+
+          ////////////////////////////////////////////////////////////////////
+          // Box selection (by default) does single select
+          // but the event 
+          plot.addListener("boxselect", function(evt) {            
+            if (evt.action === "mup") {
+              // Uncolor all rows in the table
+              var table = document.getElementById('table');
+              for (var ii=0; ii<table.rows.length; ii++) {
+                table.rows[ii].style.backgroundColor = "white";
+              }
+              for (var ii=0; ii<evt.boxes.length; ii++) {
+                var selected_box = evt.boxes[ii];
+                var row = document.getElementById("box_" + selected_box.id);
+                row.style.backgroundColor = "gray";
+              }
+              if (evt.which === 3) {
+                // Show a box right-click menu.  This could be a DOM-based menu
+                // but to keep the demo self-contained we use a SigPlot rendered
+                // menu
+                var DELETE_BOX = {
+                    text: "Delete Box",
+                    handler: function() {
+                      for (var ii=0; ii<evt.boxes.length; ii++) {
+                        boxes_plugin.removeBox(evt.boxes[ii].id);
+                      }
+                    }
+                };
+
+                var BRING_TO_FRONT = {
+                    text: "Bring To Front",
+                    handler: function() {
+                      for (var ii=0; ii<evt.boxes.length; ii++) {
+                        boxes_plugin.bringBoxToFront(evt.boxes[ii].id);
+                      }
+                    }
+                };
+
+                var SEND_TO_BACK = {
+                    text: "Send To Back",
+                    handler: function() {
+                      for (var ii=0; ii<evt.boxes.length; ii++) {
+                        boxes_plugin.sendBoxToBack(evt.boxes[ii].id);
+                      }
+                    }
+                };
+
+                var BOXMENU = {
+                    title: "Box",
+                    items: [DELETE_BOX, BRING_TO_FRONT, SEND_TO_BACK]
+                };
+
+                sigplot.mx.menu(plot._Mx, BOXMENU);
+              }
+            } else if (evt.action === 'mdblclick') {
+              // when double-click expand boxes in the x-axis
+              var lyr = plot.get_layer(data_layer);
+              for (var ii=0; ii<evt.boxes.length; ii++) {
+                evt.boxes[ii].x = lyr.xmin;
+                evt.boxes[ii].w = lyr.xmax - lyr.xmin;
+
+                var row = document.getElementById("box_" + evt.boxes[ii].id);
+                row.cells[2].innerHTML = evt.boxes[ii].x.toString();
+                row.cells[4].innerHTML = evt.boxes[ii].w.toString();
+              }
+            }
+          });
+
+          ////////////////////////////////////////////////////////////////////
+          // When a box is moved/resized update the table
+          plot.addListener("boxmove", function(evt) {
+            var row = document.getElementById("box_" + evt.box.id);
+            row.cells[2].innerHTML = evt.box.x.toString();
+            row.cells[3].innerHTML = evt.box.y.toString();
+            row.cells[4].innerHTML = evt.box.w.toString();
+            row.cells[5].innerHTML = evt.box.h.toString();
+          });
+
+          ////////////////////////////////////////////////////////////////////
+          // When a box is added, update the table
+          plot.addListener("boxadd", function(evt) {
+            
+            var table = document.getElementById('table');
+            var row = table.insertRow(1);
+            var cellId = row.insertCell(0);
+            var cellText = row.insertCell(1);
+            var cellX = row.insertCell(2);
+            var cellY = row.insertCell(3);
+            var cellW = row.insertCell(4);
+            var cellH = row.insertCell(5);
+
+            row.id = "box_" + evt.box.id;
+            cellId.innerHTML = evt.box.id;
+            cellText.innerHTML = evt.box.text;
+            console.log(evt.box);
+            cellX.innerHTML = evt.box.x.toString();
+            cellY.innerHTML = evt.box.y.toString();
+            cellW.innerHTML = evt.box.w.toString();
+            cellH.innerHTML = evt.box.h.toString();
+          });
+
+          ////////////////////////////////////////////////////////////////////
+          // When a box is removed, update the table
+          plot.addListener("boxremove", function(evt) {
+            var row = document.getElementById("box_" + evt.box.id);
+            row.remove();
+          });
+
+          ////////////////////////////////////////////////////////////////////
+          // Allow boxes to be removed when selected and backspace is pressed
+          $(document).keyup(function(e){
+            if(e.key === "Backspace") {
+              const selectedBoxes = boxes_plugin.getSelectedBoxes();
+              selectedBoxes.forEach(box => {
+                boxes_plugin.removeBox(box.id);
+              });
+            }
+          });
+
+          ////////////////////////////////////////////////////////////////////
+          // Custom main menu
+          plot.addListener("showmenu", function(evt) {
+            // Prevent the default SigPlot menu from showing
+            evt.preventDefault();
+
+            // Show a custom menu.  This could be a DOM-based menu
+            // but to keep the demo self-contained we use a SigPlot rendered
+            // menu
+            var REMOVE_ALL_BOXES = {
+                text: "Clear Boxes",
+                handler: function() {
+                  boxes_plugin.clearBoxes();
+                  box_cnt = 0;
+                }
+            };
+
+            var CUSTOMMENU = {
+                title: "Box Demo",
+                items: [REMOVE_ALL_BOXES]
+            };
+
+            sigplot.mx.menu(plot._Mx, CUSTOMMENU);            
+            return false;
+          });
+        });
+    </script>
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+  </body>
+</html>

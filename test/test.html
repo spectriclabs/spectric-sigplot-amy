@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<title>WebSigPlot Unit Test</title>
 	<link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
-        <!-- show all tests, even if they haven't run yet --!>
+        <!-- show all tests, even if they haven't run yet -->
         <style>
             #qunit-tests > li {
               display: initial;
@@ -20,11 +20,10 @@
         <script>
         // always run tests in-order
         QUnit.config.reorder = false;
-        </script>
+		</script>
+	<!-- TODO find a way to have headless Qunit and `budo` qunit both find the correct sigplot.js respectively -->
 	<script src="../dist/sigplot.js"></script>
-	<script src="../dist/sigplot.plugins.js"></script>
 	<script src="tests.js"></script>
-	<script src="tests.bluefile.js"></script>
 	<script src="tests.m.js"></script>
 	<script src="tests.mx.js"></script>
 	<script src="tests.sigplot.js"></script>
@@ -45,7 +44,6 @@
 	<script src="tests.interactive-appearance.js"></script>
 	<script src="tests.interactive-boxes.js"></script>
 	<script src="tests.interactive-slider.js"></script>
-	<script src="tests.interactive-sds.js"></script>
 	
 </body>
 </html>

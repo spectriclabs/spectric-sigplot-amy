@@ -24,7 +24,7 @@
  * under the License.
  */
 
-/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
+/* globals QUnit, sigplot, ColorMap, sigplot.plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
 QUnit.module('sigplot-interactive-annotations', {
     beforeEach: interactiveBeforeEach,
     afterEach: interactiveAfterEach
@@ -34,7 +34,7 @@ interactiveTest('annotations', 'Do you see a text annotation at the correct loca
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     annotations.add_annotation({
         x: 0,
@@ -83,7 +83,7 @@ interactiveTest('annotations png', 'Do you see a image annotation centered at 0,
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     var img = new Image(); // Create new img element
     img.onload = function() {
@@ -101,7 +101,7 @@ interactiveTest('annotations popup', 'Do you see an popup when you hover over th
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     annotations.add_annotation({
         x: -0.25,
@@ -136,7 +136,7 @@ interactiveTest('annotations custom popup', 'Do you see an popup when you hover 
             tt = null;
         }
     });
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     annotations.add_annotation({
         x: 0,
@@ -149,7 +149,7 @@ interactiveTest('annotations shift', 'Do you see a text annotation that remains 
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     annotations.add_annotation({
         x: 0,
@@ -200,7 +200,7 @@ interactiveTest('annotation falling raster', 'Do you see annotations that scroll
     assert.notEqual(plot, null);
     var img = new Image(); // Create new img element
     img.src = 'dat/info.png';
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     plot.change_settings({
         autol: 5
@@ -248,7 +248,7 @@ interactiveTest('annotation rising raster', 'Do you see annotations that scroll 
     assert.notEqual(plot, null);
     var img = new Image(); // Create new img element
     img.src = 'dat/info.png';
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     plot.change_settings({
         autol: 5
@@ -296,7 +296,7 @@ interactiveTest('x-fixed annotation rising raster', 'Do you see annotations that
     assert.notEqual(plot, null);
     var img = new Image(); // Create new img element
     img.src = 'dat/info.png';
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     plot.change_settings({
         autol: 5
@@ -338,7 +338,7 @@ interactiveTest('lots of annotations', 'Does the plot still seem smooth?', funct
     assert.notEqual(plot, null);
     var img = new Image(); // Create new img element
     img.src = 'dat/info.png';
-    var annotations = new sigplot_plugins.AnnotationPlugin();
+    var annotations = new sigplot.plugins.AnnotationPlugin();
     plot.add_plugin(annotations);
     plot.change_settings({
         autol: 5
