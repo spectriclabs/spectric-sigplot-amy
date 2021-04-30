@@ -608,7 +608,7 @@
         // Mouse click handler
         _onMouseClick(evt) {
             const Mx = this.plot._Mx;
-
+            let allowDefault = true;
             // the box is handling this, so prevent default actions
             if (this.options.enableSelect || this.options.enableMove || this.options.enableResize) {
                 if (this._selected) {
@@ -680,10 +680,12 @@
                         clearTimeout(this._clickTimer);
                     }
 
-                    this._clickTimer = setTimeout(() => {
-                        if ((selected_boxes.length > 0) && (this.options.enableSelect)) {
-                            evt.preventDefault();
-
+                    if ((selected_boxes.length > 0) && (this.options.enableSelect)) {
+                        // If a box is selected we need to stop other actions (i.e. unzoom)
+                        // that might be associated with the 'mup' event
+                        evt.preventDefault();
+                        allowDefault = false;
+                        this._clickTimer = setTimeout(() => {
                             const sevt = document.createEvent('Event');
                             sevt.source = this;
                             sevt.boxes = selected_boxes;
@@ -692,13 +694,16 @@
                             sevt.initEvent('boxselect', true, true);
 
                             mx.dispatchEvent(Mx, sevt);
-                        }
-                        this.plot.redraw();
-                    }, 200);
+
+                            this.plot.redraw();
+                        }, 200);
+                    }
                 }
+
             }
             // After a click is finished, we no longer track the internal select state for move/drag
             this._selected = undefined;
+            return allowDefault;
         }
 
         //////////////////////////////////////////////////////////////////////
