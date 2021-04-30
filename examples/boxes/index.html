@@ -38,6 +38,12 @@
               Raster (2D)
             </label>
           </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadio2DHorizontal">
+            <label class="form-check-label" for="flexRadio2DHorizontal">
+              Raster (2D Horizontal)
+            </label>
+          </div>
         </div>
         <div class="col">
           <div class="form-check form-switch">
@@ -133,7 +139,13 @@
         boxes_plugin.clear_boxes();
         box_cnt = 0;
         plot.deoverlay(data_layer);
-        data_layer = plot.overlay_href("/test/dat/raster.tmp");
+        data_layer = plot.overlay_href("/test/dat/raster.tmp", null, {drawdirection: "vertical"});
+      });
+      $('#flexRadio2DHorizontal').change(function() {
+        boxes_plugin.clear_boxes();
+        box_cnt = 0;
+        plot.deoverlay(data_layer);
+        data_layer = plot.overlay_href("/test/dat/raster.tmp", null, {drawdirection: "horizontal"});
       });
 
       ////////////////////////////////////////////////////////////////////
@@ -166,8 +178,10 @@
           // Overlay some sample data
           if ($('#flexRadio1D').prop('checked')) {
             data_layer = plot.overlay_href("/test/dat/ramp.tmp");
-          } else {
-            data_layer = plot.overlay_href("/test/dat/raster.tmp");
+          } else if ($('#flexRadio2D').prop('checked')) {
+            data_layer = plot.overlay_href("/test/dat/raster.tmp", null, {drawmode: "vertical"});
+          } else if ($('#flexRadio2DHorizontal').prop('checked')) {
+            data_layer = plot.overlay_href("/test/dat/raster.tmp", null, {drawmode: "horizontal"});
           }
 
           ////////////////////////////////////////////////////////////////////

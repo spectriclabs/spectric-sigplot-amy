@@ -5468,6 +5468,54 @@
 
     /**
      * @param Mx
+     * @param img
+     * @param data
+     * @param row
+     * @param zmin
+     * @param zmax
+     * @private
+     */
+    mx.update_image_col = function(Mx, buf, data, col, zmin, zmax, xcompression) {
+        var imgd = new Uint32Array(buf);
+
+        Mx.pixel.setRange(zmin, zmax);
+
+        //
+        var xc = Math.max(1, data.length / buf.height);
+        for (var i = 0; i < buf.height; i++) {
+            var didx = Math.floor(i * xc);
+            var value = data[didx];
+            if (xc > 1) {
+                if (xcompression === 1) { // average
+                    for (var j = 1; j < xc; j++) {
+                        value += data[didx + j];
+                    }
+                    value = (value / xc);
+                } else if (xcompression === 2) { // min
+                    for (var j = 1; j < xc; j++) {
+                        value = Math.min(value, data[didx + j]);
+                    }
+                } else if (xcompression === 3) { // max
+                    for (var j = 1; j < xc; j++) {
+                        value = Math.max(value, data[didx + j]);
+                    }
+                } else if (xcompression === 4) { // first
+                    value = data[i];
+                } else if (xcompression === 5) { // max abs
+                    for (var j = 1; j < xc; j++) {
+                        value = Math.max(Math.abs(value), Math.abs(data[didx + j]));
+                    }
+                }
+            }
+            var colorIdx = Mx.pixel.getColorIndex(value);
+            imgd[((buf.height - i) * buf.width) + col] = colorIdx;
+        }
+
+        return imgd;
+    };
+
+    /**
+     * @param Mx
      * @param data
      * @param w
      * @param h
@@ -5476,7 +5524,7 @@
      * @param zmax
      * @private
      */
-    mx.create_image = function(Mx, data, subsize, w, h, zmin, zmax, xcompression) {
+    mx.create_image = function(Mx, data, subsize, w, h, zmin, zmax, xcompression, drawdirection) {
         var ctx = Mx.active_canvas.getContext("2d");
 
         if (!Mx.pixel) {
@@ -5484,6 +5532,11 @@
             Mx.pixel = new ColorMap(m.Mc.colormap[1].colors);
         }
 
+        if (drawdirection === "horizontal") {
+            let tmp = w;
+            w = h;
+            h = tmp;
+        }
 
         Mx.pixel.setRange(zmin, zmax);
         w = Math.ceil(w);
@@ -5494,23 +5547,34 @@
 
         var nxc = Math.max(1, subsize / w);
 
+        // imgd is a flat buffer where index 0 maps to the upper-left corner
         var imgd = new Uint32Array(buf);
         if (data) {
             for (var i = 0; i < imgd.length; i++) {
                 var ix;
                 var iy;
-                if ((Mx.origin === 1) || (Mx.origin === 4)) {
-                    ix = Math.floor(i % w);
+                if (drawdirection !== "horizontal") {
+                    if ((Mx.origin === 1) || (Mx.origin === 4)) {
+                        ix = Math.floor(i % w);
+                    } else {
+                        ix = w - Math.floor(i % w) - 1;
+                    }
+                    if ((Mx.origin === 3) || (Mx.origin === 4)) {
+                        iy = Math.floor(i / w);
+                    } else {
+                        iy = h - Math.floor(i / w) - 1;
+                    }
                 } else {
-                    ix = w - Math.floor(i % w) - 1;
-                }
-                if ((Mx.origin === 3) || (Mx.origin === 4)) {
-                    iy = Math.floor(i / w);
-                } else {
-                    iy = h - Math.floor(i / w) - 1;
-                }
-                if (iy === 1) {
-                    var test = 1;
+                    if ((Mx.origin === 1) || (Mx.origin === 4)) {
+                        ix = h - Math.floor(i / w) - 1;
+                    } else {
+                        ix = Math.floor(i / w);
+                    }
+                    if ((Mx.origin === 3) || (Mx.origin === 4)) {
+                        iy = w - Math.floor(i % w) - 1;
+                    } else {
+                        iy = Math.floor(i % w);
+                    }
                 }
                 var didx = (iy * subsize) + Math.floor(ix * nxc);
                 var value = data[didx];

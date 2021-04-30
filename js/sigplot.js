@@ -4423,13 +4423,20 @@
         var Mx = plot._Mx;
 
         if (Gx.zmin && Gx.zmax) { // at least one layer has a z dimension
-            var msg = "";
+            var msg;
+
             if (Gx.lyr.length === 1) {
-                var msg = "Z = " + Gx.lyr[0].get_z(Gx.retx, Gx.rety).toString();
+                var z = Gx.lyr[0].get_z(Gx.retx, Gx.rety);
+                if (z !== undefined) {
+                    msg = "Z = " + z.toString();
+                }
             } else {
-                var msg = "TODO"; // TODO we need to think of what we want to display here
+                msg = null; // TODO we need to think of what we want to display here
             }
-            mx.message(Mx, msg);
+
+            if (msg) {
+                mx.message(Mx, msg);
+            }
         }
     }
 
@@ -7542,7 +7549,7 @@
         var Mx = plot._Mx;
         var Gx = plot._Gx;
 
-        if ((Gx.zmin === undefined) || (Gx.zmax === undefined)) {
+        if ((Gx.zmin === undefined) || (Gx.zmax === undefined) || (Gx.x_cut_data === undefined)) {
             return;
         }
 
@@ -7592,7 +7599,7 @@
         var Mx = plot._Mx;
         var Gx = plot._Gx;
 
-        if ((Gx.zmin === undefined) || (Gx.zmax === undefined)) {
+        if ((Gx.zmin === undefined) || (Gx.zmax === undefined) || (Gx.y_cut_data === undefined)) {
             return;
         }
 
@@ -7763,60 +7770,42 @@
         var width = Gx.lyr[0].xframe;
 
         if (Gx.p_cuts) {
-            if (!Gx.lyr[0].hcb.pipe) {
-                if (((Mx.xpos >= Mx.l) && (Mx.xpos <= Mx.r) && (Gx.p_cuts_xpos !== Mx.xpos))) {
-                    var line = 0;
-                    var i = 0;
+            if (((Mx.xpos >= Mx.l) && (Mx.xpos <= Mx.r) && (Gx.p_cuts_xpos !== Mx.xpos))) {
+                var line = 0;
+                var i = 0;
 
-                    //fill data for y_cut for this mouse xpos
-                    Gx.y_cut_data = [];
-                    line = Math.floor((width * (Mx.xpos - Mx.l)) / plot_width);
-                    for (i = line; i < (width * height); i += width) {
-                        Gx.y_cut_data.push(Gx.lyr[0].zbuf[i]);
-                    }
+                if (Gx.lyr[0].yCutData) {
+                    Gx.y_cut_data = Gx.lyr[0].yCutData(
+                        pixel_to_real(plot, Mx.xpos, 0).x,
+                        true
+                    );
+
                     draw_pcut_y(plot);
-                    Gx.p_cuts_xpos = Mx.xpos;
+                    if (!Gx.lyr[0].hcb.pipe) {
+                        Gx.p_cuts_xpos = Mx.xpos;
+                    }
                 }
-                if (((Mx.ypos >= Mx.t) && (Mx.ypos <= Mx.b) && (Gx.p_cuts_ypos !== Mx.ypos))) {
-                    var row = 0;
-                    var start = 0;
-                    var finish = 0;
-                    var i = 0;
+            }
+            if (((Mx.ypos >= Mx.t) && (Mx.ypos <= Mx.b) && (Gx.p_cuts_ypos !== Mx.ypos))) {
+                var row = 0;
+                var start = 0;
+                var finish = 0;
+                var i = 0;
 
-                    //fill data for x_cut for this mouse ypos
-                    row = Math.floor((height * (Mx.ypos - Mx.t)) / plot_height);
-                    start = row * width;
-                    finish = start + width;
-                    Gx.x_cut_data = Gx.lyr[0].zbuf.slice(start, finish);
+                //fill data for x_cut for this mouse ypos
+                if (Gx.lyr[0].xCutData) {
+                    Gx.x_cut_data = Gx.lyr[0].xCutData(
+                        pixel_to_real(plot, 0, Mx.ypos).y,
+                        true
+                    );
                     draw_pcut_x(plot);
 
-                    Gx.p_cuts_ypos = Mx.ypos;
-                }
-            } else {
-                if ((Mx.xpos >= Mx.l) && (Mx.xpos <= Mx.r)) {
-                    var line = 0;
-                    var i = 0;
-                    height = Gx.lyr[0].lps;
-                    //fill data for y_cut for this mouse xpos
-                    Gx.y_cut_data = [];
-                    line = Math.floor((width * (Mx.xpos - Mx.l)) / plot_width);
-                    for (i = line; i < (width * height); i += width) {
-                        Gx.y_cut_data.push(Gx.lyr[0].zbuf[i]);
+                    // If we are a static file, store off the position
+                    // so we don't invoke xCutData on refreshes unless
+                    // the mouse moves
+                    if (!Gx.lyr[0].hcb.pipe) {
+                        Gx.p_cuts_ypos = Mx.ypos;
                     }
-                    draw_pcut_y(plot);
-                }
-
-                if ((Mx.ypos >= Mx.t) && (Mx.ypos <= Mx.b)) {
-                    var row = 0;
-                    var start = 0;
-                    var finish = 0;
-                    //fill data for x_cut for this mouse ypos
-                    Gx.x_cut_data = [];
-                    row = Math.floor((height * (Mx.ypos - Mx.t)) / plot_height);
-                    start = row * width;
-                    finish = start + width;
-                    Gx.x_cut_data = Gx.lyr[0].zbuf.slice(start, finish);
-                    draw_pcut_x(plot);
                 }
             }
         }
