@@ -5139,7 +5139,7 @@
      * @param h
      *   optional height
      */
-    function renderImageNoTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh) {
+    function renderImageNoTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh, rotationAngle) {
         if (sx === undefined) {
             sx = 0;
         }
@@ -5178,7 +5178,14 @@
             ctx.mozImageSmoothingEnabled = false;
             ctx.webkitImageSmoothingEnabled = false;
         }
-        ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        if (rotationAngle) {
+            ctx.translate(x + w / 2, y + h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.translate(-(x + h / 2), -(y + w / 2));
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, h, w);
+        } else {
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        }
         ctx.restore();
     }
 
@@ -5210,7 +5217,7 @@
      * @param h
      *   optional height
      */
-    function renderImageTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh) {
+    function renderImageTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh, rotationAngle) {
         if (sx === undefined) {
             sx = 0;
         }
@@ -5283,13 +5290,20 @@
             ctx.mozImageSmoothingEnabled = false;
             ctx.webkitImageSmoothingEnabled = false;
         }
-        ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        if (rotationAngle) {
+            ctx.translate(x + w / 2, y + h / 2);
+            ctx.rotate(rotationAngle);
+            ctx.translate(-(x + h / 2), -(y + w / 2));
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, h, w);
+        } else {
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        }
         ctx.restore();
     }
 
     /**
      * Scale the image data (represented by buf) into the destination canvas
-     * using nearest neighbor.  In genearl, you should just use the scaling
+     * using nearest neighbor.  In general, you should just use the scaling
      * provided by drawImage...but if the buf is greater than 32767 pixels in
      * either dimension that won't work and you have to use this.
      *
@@ -5678,15 +5692,17 @@
     /**
      * @param Mx
      * @param buf
-     * @param xmin
-     * @param ymin
-     * @param xmax
-     * @param ymax
-     * @param opacity
-     * @param smoothing
+     * @param {number} xmin
+     * @param {number} ymin
+     * @param {number} xmax
+     * @param {number} ymax
+     * @param {number} opacity
+     * @param {number} smoothing
+     * @param {string} downscaling  "avg", "min", "max", or "minmax"
+     * @param {number} rotationAngle  Angle of rotation in radians // TODO-MRA we might need to have very fixed rotations
      * @private
      */
-    mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling) {
+    mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling, rotationAngle) {
         var view_xmin = Math.max(xmin, Mx.stk[Mx.level].xmin);
         var view_xmax = Math.min(xmax, Mx.stk[Mx.level].xmax);
         var view_ymin = Math.max(ymin, Mx.stk[Mx.level].ymin);
@@ -5701,6 +5717,10 @@
         }
         var rx = buf.width / (xmax - xmin);
         var ry = buf.height / (ymax - ymin);
+        if (rotationAngle) {
+            rx = buf.height / (xmax - xmin);
+            ry = buf.width / (ymax - ymin);
+        }
 
         // Ensure we are on buffer pixel boundaries, later we use clipping
         // to constrain to the proper area
@@ -5711,12 +5731,23 @@
 
         var ul, lr;
         var sy, sx, sw, sh;
+        // TODO-MRA handle rotation correctly for other origins
         if (Mx.origin === 1) {
             // regular x, regular y
-            sy = Math.max(0, Math.floor((ymax - view_ymax) * ry));
-            sh = Math.min(buf.height - sy, Math.floor((view_ymax - view_ymin) * ry));
-            sx = Math.max(0, Math.floor((view_xmin - xmin) * rx));
-            sw = Math.min(buf.width - sx, Math.floor((view_xmax - view_xmin) * rx));
+            if (!rotationAngle) {
+                sy = Math.max(0, Math.floor((ymax - view_ymax) * ry));
+                sh = Math.min(buf.height - sy, Math.floor((view_ymax - view_ymin) * ry));
+                sx = Math.max(0, Math.floor((view_xmin - xmin) * rx));
+                sw = Math.min(buf.width - sx, Math.floor((view_xmax - view_xmin) * rx));
+            } else {
+                // TODO-MRA likely only works for rotation angle -90
+                // Note the this code isn't simply swapping the left-side variable names
+                // The right-sides are also different
+                sx = Math.max(0, Math.floor((view_ymin - ymin) * ry));
+                sw = Math.min(buf.width - sx, Math.floor((view_ymax - view_ymin) * ry));
+                sy = Math.max(0, Math.floor((view_xmin - xmin) * rx));
+                sh = Math.min(buf.height - sy, Math.floor((view_xmax - view_xmin) * rx));
+            }
 
             ul = mx.real_to_pixel(Mx, view_xmin, view_ymax);
             lr = mx.real_to_pixel(Mx, view_xmax, view_ymin);
@@ -5772,7 +5803,7 @@
         ctx.beginPath();
         ctx.rect(Mx.l, Mx.t, Mx.r - Mx.l, Mx.b - Mx.t);
         ctx.clip();
-        renderImage(Mx, ctx, buf, opacity, downscaling, smoothing, ul.x, ul.y, iw, ih, sx, sy, sw, sh);
+        renderImage(Mx, ctx, buf, opacity, downscaling, smoothing, ul.x, ul.y, iw, ih, sx, sy, sw, sh, rotationAngle);
         ctx.restore();
     };
 
