@@ -244,8 +244,8 @@
                 this.ymin = this.hcb.ymin || Math.min(this.hcb.ystart, d);
                 this.ymax = this.hcb.ymax || Math.max(this.hcb.ystart, d);
             }
-            if (settings.debugCanvas) {
-                this.debugCanvas = settings.debugCanvas;
+            if (settings.debug) {
+                this.debug = settings.debug;
             }
             
             if (settings.cmode !== undefined) {
@@ -523,6 +523,11 @@
                         var url = this.make_tile_request_url(maxtileXsize, maxtileYsize, decx, decy, tileX, tileY);
                         var img = this.cache.get(url);
                         if (img) { //Get the data from this tile out of the cache and plot it.
+                            let strokeStyle, text;
+                            if (this.debug) {
+                                strokeStyle = Mx.fg;
+                                text = tileX.toString() + "," + tileY.toString();
+                            }
                             if (this.drawdirection !== "horizontal") {
                                 mx.draw_image(Mx,
                                   img,
@@ -533,7 +538,9 @@
                                   1.0,
                                   false,
                                   true,
-                                  rotationAngle
+                                  rotationAngle,
+                                  strokeStyle,
+                                  text
                                 );
                             } else {
                                 mx.draw_image(Mx,
@@ -545,7 +552,9 @@
                                   1.0,
                                   false,
                                   true,
-                                  rotationAngle
+                                  rotationAngle,
+                                  strokeStyle,
+                                  text
                                 );
                             }
                         } else { // Don't already have the data for this tile to request it from the server.
