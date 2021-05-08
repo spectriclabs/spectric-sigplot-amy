@@ -81,11 +81,13 @@
             if (layer_sds) {
                 plotSDS.deoverlay(layer_sds);
             }
+            plotSDS.unzoom();
             layer_sds = plotSDS.overlay_href("http://localhost:5055/sds/hdr/TestDat/raster.tmp", null, {layerType: "SDS", drawdirection: drawdirection, usetiles: usetiles, debug: debug});
             
             if (layer_2d) {
                 plot2D.deoverlay(layer_2d);
             }
+            plot2D.unzoom();
             layer_2d = plot2D.overlay_href("http://localhost:5055/sds/fs/TestDat/raster.tmp", null, {layerType: "2D", drawdirection: drawdirection});
         }
 
