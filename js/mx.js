@@ -5702,7 +5702,7 @@
      * @param {number} rotationAngle  Angle of rotation in radians // TODO-MRA we might need to have very fixed rotations
      * @private
      */
-    mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling, rotationAngle) {
+    mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling, rotationAngle, strokeStyle, text) {
         var view_xmin = Math.max(xmin, Mx.stk[Mx.level].xmin);
         var view_xmax = Math.min(xmax, Mx.stk[Mx.level].xmax);
         var view_ymin = Math.max(ymin, Mx.stk[Mx.level].ymin);
@@ -5804,6 +5804,19 @@
         ctx.rect(Mx.l, Mx.t, Mx.r - Mx.l, Mx.b - Mx.t);
         ctx.clip();
         renderImage(Mx, ctx, buf, opacity, downscaling, smoothing, ul.x, ul.y, iw, ih, sx, sy, sw, sh, rotationAngle);
+
+        if (strokeStyle) {
+            ctx.strokeStyle = strokeStyle;
+            ctx.strokeRect(ul.x, ul.y, iw, ih);
+        }
+        if (text) {
+            mx.text(Mx,
+                ul.x,
+                ul.y + Mx.text_h,
+                text,
+                Mx.fg
+            )
+        }
         ctx.restore();
     };
 
