@@ -5559,7 +5559,12 @@
         buf.width = w;
         buf.height = h;
 
-        var nxc = Math.max(1, subsize / w);
+        var nxc;
+        if (drawdirection !== "horizontal") {
+            nxc = Math.max(1, subsize / w);
+        } else {
+            nxc = Math.max(1, subsize / h);
+        }
 
         // imgd is a flat buffer where index 0 maps to the upper-left corner
         var imgd = new Uint32Array(buf);
@@ -5567,30 +5572,26 @@
             for (var i = 0; i < imgd.length; i++) {
                 var ix;
                 var iy;
-                if (drawdirection !== "horizontal") {
-                    if ((Mx.origin === 1) || (Mx.origin === 4)) {
-                        ix = Math.floor(i % w);
-                    } else {
-                        ix = w - Math.floor(i % w) - 1;
-                    }
-                    if ((Mx.origin === 3) || (Mx.origin === 4)) {
-                        iy = Math.floor(i / w);
-                    } else {
-                        iy = h - Math.floor(i / w) - 1;
-                    }
+                var didx;
+
+                // Figure out what pixel we are at (upper left is 0,0)
+                if ((Mx.origin === 1) || (Mx.origin === 4)) {
+                    ix = Math.floor(i % w);
                 } else {
-                    if ((Mx.origin === 1) || (Mx.origin === 4)) {
-                        ix = h - Math.floor(i / w) - 1;
-                    } else {
-                        ix = Math.floor(i / w);
-                    }
-                    if ((Mx.origin === 3) || (Mx.origin === 4)) {
-                        iy = w - Math.floor(i % w) - 1;
-                    } else {
-                        iy = Math.floor(i % w);
-                    }
+                    ix = w - Math.floor(i % w) - 1;
                 }
-                var didx = (iy * subsize) + Math.floor(ix * nxc);
+                if ((Mx.origin === 3) || (Mx.origin === 4)) {
+                    iy = Math.floor(i / w);
+                } else {
+                    iy = h - Math.floor(i / w) - 1;
+                }
+
+                // Map that pixel to it's nearest data
+                if (drawdirection !== "horizontal") {
+                    didx = (iy * subsize) + Math.floor(ix * nxc);
+                } else {
+                    didx = (ix * subsize) + Math.floor(iy * nxc);
+                }
                 var value = data[didx];
                 if (nxc > 1) {
                     if (xcompression === 1) { // average
@@ -5815,7 +5816,7 @@
                 ul.y + Mx.text_h,
                 text,
                 Mx.fg
-            )
+            );
         }
         ctx.restore();
     };
