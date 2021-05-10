@@ -5740,7 +5740,7 @@
                 sh = Math.min(buf.height - sy, Math.floor((view_ymax - view_ymin) * ry));
                 sx = Math.max(0, Math.floor((view_xmin - xmin) * rx));
                 sw = Math.min(buf.width - sx, Math.floor((view_xmax - view_xmin) * rx));
-            } else if (rotationAngle !== (-Math.PI / 2)) {
+            } else if (Math.abs(rotationAngle - (-Math.PI / 2)) < 1E-12) {
                 // Note the this code isn't simply swapping the left-side variable names
                 // The right-sides are also different
                 sx = Math.max(0, Math.floor((view_ymin - ymin) * ry));
