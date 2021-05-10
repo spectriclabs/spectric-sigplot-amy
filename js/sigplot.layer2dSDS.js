@@ -605,7 +605,7 @@
                 const [sds_host, filepath] = this.hcb.url.split("/sds/hdr/");
 
                 const base_url = `${sds_host}/sds`;
-                const url_params = `/rds/${x1}/${y1}/${x2}/${y2}/${out_x_pixel_size}/${out_y_pixel_size}/${filepath}`;
+                const url_params = `rds/${x1}/${y1}/${x2}/${y2}/${out_x_pixel_size}/${out_y_pixel_size}/${filepath}`;
 
                 let query_string = `?outfmt=RGBA&colormap=${
                     m.Mc.colormap[Gx.cmap].name
