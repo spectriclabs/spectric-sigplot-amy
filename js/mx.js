@@ -5139,7 +5139,7 @@
      * @param h
      *   optional height
      */
-    function renderImageNoTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh) {
+    function renderImageNoTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh, rotationAngle) {
         if (sx === undefined) {
             sx = 0;
         }
@@ -5178,7 +5178,14 @@
             ctx.mozImageSmoothingEnabled = false;
             ctx.webkitImageSmoothingEnabled = false;
         }
-        ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        if (rotationAngle) {
+            ctx.translate(x + w / 2, y + h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.translate(-(x + h / 2), -(y + w / 2));
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, h, w);
+        } else {
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        }
         ctx.restore();
     }
 
@@ -5210,7 +5217,7 @@
      * @param h
      *   optional height
      */
-    function renderImageTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh) {
+    function renderImageTypedArrays(Mx, ctx, buf, opacity, downscaling, smoothing, x, y, w, h, sx, sy, sw, sh, rotationAngle) {
         if (sx === undefined) {
             sx = 0;
         }
@@ -5283,13 +5290,20 @@
             ctx.mozImageSmoothingEnabled = false;
             ctx.webkitImageSmoothingEnabled = false;
         }
-        ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        if (rotationAngle) {
+            ctx.translate(x + w / 2, y + h / 2);
+            ctx.rotate(rotationAngle);
+            ctx.translate(-(x + h / 2), -(y + w / 2));
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, h, w);
+        } else {
+            ctx.drawImage(Mx._renderCanvas, sx, sy, sw, sh, x, y, w, h);
+        }
         ctx.restore();
     }
 
     /**
      * Scale the image data (represented by buf) into the destination canvas
-     * using nearest neighbor.  In genearl, you should just use the scaling
+     * using nearest neighbor.  In general, you should just use the scaling
      * provided by drawImage...but if the buf is greater than 32767 pixels in
      * either dimension that won't work and you have to use this.
      *
@@ -5468,6 +5482,54 @@
 
     /**
      * @param Mx
+     * @param img
+     * @param data
+     * @param row
+     * @param zmin
+     * @param zmax
+     * @private
+     */
+    mx.update_image_col = function(Mx, buf, data, col, zmin, zmax, xcompression) {
+        var imgd = new Uint32Array(buf);
+
+        Mx.pixel.setRange(zmin, zmax);
+
+        //
+        var xc = Math.max(1, data.length / buf.height);
+        for (var i = 0; i < buf.height; i++) {
+            var didx = Math.floor(i * xc);
+            var value = data[didx];
+            if (xc > 1) {
+                if (xcompression === 1) { // average
+                    for (var j = 1; j < xc; j++) {
+                        value += data[didx + j];
+                    }
+                    value = (value / xc);
+                } else if (xcompression === 2) { // min
+                    for (var j = 1; j < xc; j++) {
+                        value = Math.min(value, data[didx + j]);
+                    }
+                } else if (xcompression === 3) { // max
+                    for (var j = 1; j < xc; j++) {
+                        value = Math.max(value, data[didx + j]);
+                    }
+                } else if (xcompression === 4) { // first
+                    value = data[i];
+                } else if (xcompression === 5) { // max abs
+                    for (var j = 1; j < xc; j++) {
+                        value = Math.max(Math.abs(value), Math.abs(data[didx + j]));
+                    }
+                }
+            }
+            var colorIdx = Mx.pixel.getColorIndex(value);
+            imgd[((buf.height - i) * buf.width) + col] = colorIdx;
+        }
+
+        return imgd;
+    };
+
+    /**
+     * @param Mx
      * @param data
      * @param w
      * @param h
@@ -5476,7 +5538,7 @@
      * @param zmax
      * @private
      */
-    mx.create_image = function(Mx, data, subsize, w, h, zmin, zmax, xcompression) {
+    mx.create_image = function(Mx, data, subsize, w, h, zmin, zmax, xcompression, drawdirection) {
         var ctx = Mx.active_canvas.getContext("2d");
 
         if (!Mx.pixel) {
@@ -5484,6 +5546,11 @@
             Mx.pixel = new ColorMap(m.Mc.colormap[1].colors);
         }
 
+        if (drawdirection === "horizontal") {
+            let tmp = w;
+            w = h;
+            h = tmp;
+        }
 
         Mx.pixel.setRange(zmin, zmax);
         w = Math.ceil(w);
@@ -5492,13 +5559,22 @@
         buf.width = w;
         buf.height = h;
 
-        var nxc = Math.max(1, subsize / w);
+        var nxc;
+        if (drawdirection !== "horizontal") {
+            nxc = Math.max(1, subsize / w);
+        } else {
+            nxc = Math.max(1, subsize / h);
+        }
 
+        // imgd is a flat buffer where index 0 maps to the upper-left corner
         var imgd = new Uint32Array(buf);
         if (data) {
             for (var i = 0; i < imgd.length; i++) {
                 var ix;
                 var iy;
+                var didx;
+
+                // Figure out what pixel we are at (upper left is 0,0)
                 if ((Mx.origin === 1) || (Mx.origin === 4)) {
                     ix = Math.floor(i % w);
                 } else {
@@ -5509,10 +5585,13 @@
                 } else {
                     iy = h - Math.floor(i / w) - 1;
                 }
-                if (iy === 1) {
-                    var test = 1;
+
+                // Map that pixel to it's nearest data
+                if (drawdirection !== "horizontal") {
+                    didx = (iy * subsize) + Math.floor(ix * nxc);
+                } else {
+                    didx = (ix * subsize) + Math.floor(iy * nxc);
                 }
-                var didx = (iy * subsize) + Math.floor(ix * nxc);
                 var value = data[didx];
                 if (nxc > 1) {
                     if (xcompression === 1) { // average
@@ -5614,15 +5693,17 @@
     /**
      * @param Mx
      * @param buf
-     * @param xmin
-     * @param ymin
-     * @param xmax
-     * @param ymax
-     * @param opacity
-     * @param smoothing
+     * @param {number} xmin
+     * @param {number} ymin
+     * @param {number} xmax
+     * @param {number} ymax
+     * @param {number} opacity
+     * @param {number} smoothing
+     * @param {string} downscaling  "avg", "min", "max", or "minmax"
+     * @param {number} rotationAngle  Angle of rotation in radians // TODO-MRA we might need to have very fixed rotations
      * @private
      */
-    mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling) {
+    mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling, rotationAngle, strokeStyle, text) {
         var view_xmin = Math.max(xmin, Mx.stk[Mx.level].xmin);
         var view_xmax = Math.min(xmax, Mx.stk[Mx.level].xmax);
         var view_ymin = Math.max(ymin, Mx.stk[Mx.level].ymin);
@@ -5637,6 +5718,10 @@
         }
         var rx = buf.width / (xmax - xmin);
         var ry = buf.height / (ymax - ymin);
+        if (rotationAngle) {
+            rx = buf.height / (xmax - xmin);
+            ry = buf.width / (ymax - ymin);
+        }
 
         // Ensure we are on buffer pixel boundaries, later we use clipping
         // to constrain to the proper area
@@ -5647,12 +5732,24 @@
 
         var ul, lr;
         var sy, sx, sw, sh;
+        // TODO-MGR handle rotation correctly for other origins
         if (Mx.origin === 1) {
             // regular x, regular y
-            sy = Math.max(0, Math.floor((ymax - view_ymax) * ry));
-            sh = Math.min(buf.height - sy, Math.floor((view_ymax - view_ymin) * ry));
-            sx = Math.max(0, Math.floor((view_xmin - xmin) * rx));
-            sw = Math.min(buf.width - sx, Math.floor((view_xmax - view_xmin) * rx));
+            if (!rotationAngle) {
+                sy = Math.max(0, Math.floor((ymax - view_ymax) * ry));
+                sh = Math.min(buf.height - sy, Math.floor((view_ymax - view_ymin) * ry));
+                sx = Math.max(0, Math.floor((view_xmin - xmin) * rx));
+                sw = Math.min(buf.width - sx, Math.floor((view_xmax - view_xmin) * rx));
+            } else if (Math.abs(rotationAngle - (-Math.PI / 2)) < 1E-12) {
+                // Note the this code isn't simply swapping the left-side variable names
+                // The right-sides are also different
+                sx = Math.max(0, Math.floor((view_ymin - ymin) * ry));
+                sw = Math.min(buf.width - sx, Math.floor((view_ymax - view_ymin) * ry));
+                sy = Math.max(0, Math.floor((view_xmin - xmin) * rx));
+                sh = Math.min(buf.height - sy, Math.floor((view_xmax - view_xmin) * rx));
+            } else {
+                throw new RangeError(`Rotation angle ${rotationAngle} rad not supported. Must be -Math.PI/2.`);
+            }
 
             ul = mx.real_to_pixel(Mx, view_xmin, view_ymax);
             lr = mx.real_to_pixel(Mx, view_xmax, view_ymin);
@@ -5708,7 +5805,20 @@
         ctx.beginPath();
         ctx.rect(Mx.l, Mx.t, Mx.r - Mx.l, Mx.b - Mx.t);
         ctx.clip();
-        renderImage(Mx, ctx, buf, opacity, downscaling, smoothing, ul.x, ul.y, iw, ih, sx, sy, sw, sh);
+        renderImage(Mx, ctx, buf, opacity, downscaling, smoothing, ul.x, ul.y, iw, ih, sx, sy, sw, sh, rotationAngle);
+
+        if (strokeStyle) {
+            ctx.strokeStyle = strokeStyle;
+            ctx.strokeRect(ul.x, ul.y, iw, ih);
+        }
+        if (text) {
+            mx.text(Mx,
+                ul.x,
+                ul.y + Mx.text_h,
+                text,
+                Mx.fg
+            );
+        }
         ctx.restore();
     };
 

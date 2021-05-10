@@ -606,6 +606,31 @@ interactiveTest('scrolling raster', 'Do you see a scrolling raster?', function(a
     }, 100);
 });
 
+interactiveTest('scrolling raster horizontal', 'Do you see a horizontal scrolling raster?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    assert.notEqual(plot, null);
+    plot.change_settings({
+        autol: 5
+    });
+    var framesize = 128;
+    var lyr0 = plot.overlay_pipe({
+        type: 2000,
+        subsize: framesize,
+        file_name: "ramp",
+        ydelta: 0.25
+    }, {
+        drawdirection: "horizontal"
+    });
+    ifixture.interval = window.setInterval(function() {
+        var ramp = [];
+        for (var i = 0; i < framesize; i += 1) {
+            ramp.push(-1 * (i + 1));
+        }
+        plot.push(lyr0, ramp);
+    }, 100);
+});
+
 interactiveTest('falling raster', 'Do you see a falling raster?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
