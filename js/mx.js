@@ -5732,7 +5732,7 @@
 
         var ul, lr;
         var sy, sx, sw, sh;
-        // TODO-MRA handle rotation correctly for other origins
+        // TODO-MGR handle rotation correctly for other origins
         if (Mx.origin === 1) {
             // regular x, regular y
             if (!rotationAngle) {
@@ -5740,14 +5740,15 @@
                 sh = Math.min(buf.height - sy, Math.floor((view_ymax - view_ymin) * ry));
                 sx = Math.max(0, Math.floor((view_xmin - xmin) * rx));
                 sw = Math.min(buf.width - sx, Math.floor((view_xmax - view_xmin) * rx));
-            } else {
-                // TODO-MRA likely only works for rotation angle -90
+            } else if (rotationAngle !== (-Math.PI / 2)) {
                 // Note the this code isn't simply swapping the left-side variable names
                 // The right-sides are also different
                 sx = Math.max(0, Math.floor((view_ymin - ymin) * ry));
                 sw = Math.min(buf.width - sx, Math.floor((view_ymax - view_ymin) * ry));
                 sy = Math.max(0, Math.floor((view_xmin - xmin) * rx));
                 sh = Math.min(buf.height - sy, Math.floor((view_xmax - view_xmin) * rx));
+            } else {
+                throw new RangeError(`Rotation angle ${rotationAngle} rad not supported. Must be -Math.PI/2.`);
             }
 
             ul = mx.real_to_pixel(Mx, view_xmin, view_ymax);
