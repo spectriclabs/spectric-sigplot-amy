@@ -131,9 +131,9 @@
             }
 
             this.hcb.class = 2;
-            var LRU = require("lru");
+            var LRU = require("lru-cache");
 
-            this.cache = new LRU(500);
+            this.cache = new LRU({max: 500});
 
             if (Gx.index) {
                 this.xstart = 1.0;
