@@ -35,18 +35,33 @@
         }
     ],
     "scripts": {
+        "build:sigplot": "npx esbuild --outfile=sigplot.js --bundle js/sigplot.js",
+        "build:plugins": "npx esbuild --outfile=sigplot.js --bundle js/sigplot.js",
+        "build:sigplot-debug": "npx esbuild --outfile=sigplot.js --bundle js/sigplot.js",
+        "build:plugins-debug": "npx esbuild --outfile=sigplot.js --bundle js/sigplot.js",
+        "build": "npm run build:sigplot && npm run build:plugins",
+        "build:debug": "npm run build:sigplot-debug && npm run build:plugins-debug",
         "clean": "rm -rf ./dist ./doc",
-        "generate-docs": "rm -rf ./doc/; node_modules/.bin/jsdoc --configure .jsdoc.json --verbose; cp ./fft-white.png doc/sigplot/$npm_package_version/",
-        "test": "grunt test",
+        "dist": "npm run clean && npm run format:check && npm run lint:check && npm run build",
         "format:check": "npx prettier --ignore-path .gitignore --check '*.json' '*.js' '{js,test,examples}/**/*.js'",
         "format:cleanup": "npx prettier --ignore-path .gitignore --write '*.json' '*.js' '{js,test,examples}/**/*.js'",
+        "generate-docs": "rm -rf ./doc/; node_modules/.bin/jsdoc --configure .jsdoc.json --verbose; cp ./fft-white.png doc/sigplot/$npm_package_version/",
         "lint:check": "npx eslint examples/ js/ test/",
-        "lint:cleanup": "npm run lint:check -- --fix"
+        "lint:cleanup": "npm run lint:check -- --fix",
+        "test": "grunt test"
     },
     "eslintConfig": {
         "extends": "eslint:recommended",
         "env": {
             "browser": true
+        },
+        "globals": {
+            "window": true,
+            "module": true
+        },
+        "parser": "@babel/eslint-parser",
+        "parserOptions": {
+            "requireConfigFile": false
         },
         "rules": {
             "dot-notation": "error",
@@ -65,40 +80,21 @@
         "tabWidth": 4
     },
     "dependencies": {
-        "esbuild": "^0.11.20",
         "loglevel": "^1.4.1",
         "lru": "^3.1.0",
+        "lru-cache": "^6.0.0",
         "sigfile": "^0.1.9",
         "spin": "0.0.1",
         "tinycolor2": "^1.4.1",
-        "travis": "^0.1.1",
-        "underscore": "^1.9.2"
+        "underscore": "^1.13.1"
     },
     "devDependencies": {
-        "@babel/core": "^7.10.5",
-        "@babel/preset-env": "^7.10.4",
-        "babelify": "^10.0.0",
+        "@babel/core": "^7.14.2",
+        "@babel/eslint-parser": "^7.14.2",
         "catharsis": "^0.8.9",
+        "esbuild": "^0.11.20",
         "eslint": "^7.26.0",
         "express": "^4.13.4",
-        "grunt": "^1.0.3",
-        "grunt-browserify": "^5.0.0",
-        "grunt-cli": "^1.3.2",
-        "grunt-closure-compiler": "^0.0.21",
-        "grunt-contrib-clean": "^1.1.0",
-        "grunt-contrib-compress": "^1.4.3",
-        "grunt-contrib-jshint": "^1.1.0",
-        "grunt-contrib-qunit": "^2.0.0",
-        "grunt-express-server": "^0.5.3",
-        "grunt-githash": "^0.1.3",
-        "grunt-http-server": "^2.1.0",
-        "grunt-jsbeautifier": "^0.2.13",
-        "grunt-jsdoc": "^2.2.1",
-        "grunt-karma": "^2.0.0",
-        "grunt-open": "^0.2.3",
-        "grunt-services": "^0.1.0",
-        "grunt-shell-spawn": "^0.3.12",
-        "grunt-text-replace": "^0.4.0",
         "jasmine": "^3.1.0",
         "karma": "^2.0.2",
         "karma-chrome-launcher": "^2.0.2",
@@ -110,7 +106,6 @@
         "prettier": "^2.3.0",
         "qunit-assert-close": "^2.1.2",
         "qunitjs": "^2.4.1",
-        "taffydb": "^2.7.3",
-        "underscore": "^1.9.2"
+        "taffydb": "^2.7.3"
     }
 }
