@@ -972,7 +972,7 @@
                 var row;
 
                 if (!this.hcb.pipe) {
-                    row = Math.round((ypos - this.ystart) / this.ydelta);
+                    row = Math.floor((ypos - this.ystart) / this.ydelta);
                 } else {
                     row = Math.floor((height * (Mx.ypos - Mx.t)) / (Mx.b - Mx.t));
                 }
@@ -1162,7 +1162,7 @@
                 y_cut_data = [];
                 var col;
                 if (!this.hcb.pipe || zData) {
-                    col = Math.round((xpos - this.xstart) / this.xdelta);
+                    col = Math.floor((xpos - this.xstart) / this.xdelta);
                     if (zData) {
                         for (i = col; i < (width * height); i += width) {
                             y_cut_data.push(this.zbuf[i]);
