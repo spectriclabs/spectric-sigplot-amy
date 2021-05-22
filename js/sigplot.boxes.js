@@ -841,7 +841,7 @@
                 // Render text
                 if (box.text) {
                     ctx.save();
-                    ctx.font = box.font || this.options.font || Mx.text_H + "px Courier New, monospace";
+                    ctx.font = box.font || this.options.font || Mx.text_h + "px Courier New, monospace";
                     ctx.globalAlpha = 1;
                     ctx.textAlign = "end";
                     ctx.fillStyle = box.strokeStyle || this.options.strokeStyle || Mx.fg;
