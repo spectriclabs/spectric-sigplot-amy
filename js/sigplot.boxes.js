@@ -846,8 +846,10 @@
                     ctx.textAlign = "end";
                     ctx.fillStyle = box.strokeStyle || this.options.strokeStyle || Mx.fg;
 
-                    x = x - Mx.text_w;
-                    y = y - (Mx.text_h / 3);
+                    // the capital M is typically the same height and width
+                    let letter_w = ctx.measureText("M").width;
+                    x = x - letter_w;
+                    y = y - (letter_w / 3);
 
                     text_w = ctx.measureText(box.text).width;
 
