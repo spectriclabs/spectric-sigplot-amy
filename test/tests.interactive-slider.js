@@ -24,7 +24,7 @@
  * under the License.
  */
 
-/* globals QUnit, sigplot, ColorMap, sigplot_plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
+/* globals QUnit, sigplot, ColorMap, sigplot.plugins, assert, assert.strictEqual, QUnit.asyncTest, assert.notEqual, alert, BlueFileReader, start, ok, throws, interactiveBeforeEach, interactiveAfterEach, interactiveTest, fixture, ifixture */
 QUnit.module('sigplot-interactive-slider', {
     beforeEach: interactiveBeforeEach,
     afterEach: interactiveAfterEach
@@ -34,11 +34,11 @@ interactiveTest('slider', 'Do you see a sliders?', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {});
     assert.notEqual(plot, null);
-    var slider1 = new sigplot_plugins.SliderPlugin({
+    var slider1 = new sigplot.plugins.SliderPlugin({
         name: "Slider 1"
     });
     plot.add_plugin(slider1);
-    var slider2 = new sigplot_plugins.SliderPlugin({
+    var slider2 = new sigplot.plugins.SliderPlugin({
         name: "Slider 2"
     });
     plot.add_plugin(slider2);

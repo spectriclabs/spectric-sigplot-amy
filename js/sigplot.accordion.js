@@ -129,6 +129,25 @@
                 refreshOnChange: true,
                 help: "location of one of the accordion bars in pixels"
             });
+            this.defineProperty("text", {
+                defaultValue: null,
+                refreshOnChange: true
+            });
+            this.defineProperty("textFont", {
+                defaultValue: null,
+                refreshOnChange: true
+            });
+            this.defineProperty("textStokeStyle", {
+                defaultValue: null,
+                refreshOnChange: true
+            });
+            this.defineProperty("textPosition", {
+                defaultValue: {
+                    horizontal: "middle",
+                    vertical: "middle"
+                },
+                refreshOnChange: true
+            });
         }
 
         pluginInit() {
@@ -250,6 +269,64 @@
                     ctx.lineTo(Mx.r, this.properties.center_location + 0.5);
                     ctx.stroke();
                 }
+            }
+
+            // Render text
+            if (this.properties.text) {
+                ctx.save();
+                ctx.font = this.properties.textFont || Mx.text_h + "px Courier New, monospace";
+                ctx.globalAlpha = 1;
+                //ctx.textAlign = "end";
+                ctx.fillStyle = this.properties.textStrokeStyle || Mx.fg;
+
+                // the capital M is typically the same height and width
+                let text_w = ctx.measureText("M").width;
+                let text_h = text_w;
+
+                let x, y;
+                if (this.properties.direction === "vertical") {
+                    if (this.properties.textPosition.horizontal === "left") {
+                        ctx.textAlign = "end";
+                        x = this.properties.center_location - Mx.text_w;
+                    } else if (this.properties.textPosition.horizontal === "right") {
+                        x = this.properties.center_location + Mx.text_w;
+                    } else if (this.properties.textPosition.horizontal === "middle") {
+                        ctx.textAlign = "center";
+                        x = this.properties.center_location;
+                    }
+
+                    if (this.properties.textPosition.vertical === "top") {
+                        y = Mx.t + text_h * 2;
+                    } else if (this.properties.textPosition.vertical === "middle") {
+                        y = Math.floor(Mx.t + Mx.b) / 2;
+                    } else if (this.properties.textPosition.vertical === "bottom") {
+                        y = Mx.b - text_h;
+                    }
+                } else if (this.properties.direction === "horizontal") {
+                    if (this.properties.textPosition.horizontal === "left") {
+                        x = Mx.l + Mx.text_w;
+                    } else if (this.properties.textPosition.horizontal === "right") {
+                        ctx.textAlign = "end";
+                        x = Mx.r - Mx.text_w;
+                    } else if (this.properties.textPosition.horizontal === "middle") {
+                        ctx.textAlign = "center";
+                        x = Math.floor(Mx.r + Mx.l) / 2;
+                    }
+
+                    if (this.properties.textPosition.vertical === "top") {
+                        y = this.properties.center_location - text_h;
+                    } else if (this.properties.textPosition.vertical === "middle") {
+                        y = this.properties.center_location;
+                    } else if (this.properties.textPosition.vertical === "bottom") {
+                        y = this.properties.center_location + text_h * 2;
+                    }
+                }
+
+                ctx.rect(Mx.l, Mx.t, Mx.r - Mx.l, Mx.b - Mx.t);
+                ctx.clip();
+
+                ctx.fillText(this.properties.text, x, y);
+                ctx.restore();
             }
         }
 

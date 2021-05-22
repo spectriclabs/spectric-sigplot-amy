@@ -48,6 +48,7 @@
         this.xmax = 0.0;
         this.name = "";
         this.cx = false;
+        this.drawmode = "scrolling"; // "falling", "rising"
         this.hcb = undefined; // index in Gx.HCB
 
         this.display = true;
@@ -104,8 +105,12 @@
                 this.position = 0;
                 this.frame = 0;
 
+                if (this.drawdirection !== "horizontal") {
+                    this.lps = this.hcb.lps || Math.ceil(Math.max(1, (Mx.b - Mx.t)));
+                } else {
+                    this.lps = this.hcb.lps || Math.ceil(Math.max(1, (Mx.r - Mx.l)));
+                }
 
-                this.lps = this.hcb.lps || Math.ceil(Math.max(1, (Mx.b - Mx.t)));
                 m.addPipeWriteListener(this.hcb, function() {
                     self._onpipewrite();
                 });
@@ -116,8 +121,6 @@
             this.offset = 0;
             this.xbufn = 0;
             this.ybufn = 0;
-            this.drawmode = "scrolling"; // "falling", "rising"
-
 
             if (hcb["class"] <= 2) {
                 this.xsub = -1;
@@ -132,26 +135,52 @@
                 this.skip = 2;
             }
 
+            this.init_axes();
+        },
+
+        init_axes: function() {
+            var Gx = this.plot._Gx;
+            var Mx = this.plot._Mx;
+
             if (Gx.index) {
                 this.xstart = 1.0;
                 this.xdelta = 1.0;
                 this.xmin = 1.0;
-                this.xmax = hcb.subsize;
+
                 this.ystart = 1.0;
                 this.ydelta = 1.0;
                 this.ymin = 1.0;
-                this.ymax = this.size;
+                if (this.drawdirection !== "horizontal") {
+                    this.xmax = this.hcb.subsize;
+                    this.ymax = this.size;
+                } else {
+                    this.xmax = this.size;
+                    this.ymax = this.hcb.subsize;
+                }
             } else {
-                this.xstart = hcb.xstart;
-                this.xdelta = hcb.xdelta;
-                var d = hcb.xstart + (hcb.xdelta * hcb.subsize);
-                this.xmin = this.hcb.xmin || Math.min(hcb.xstart, d);
-                this.xmax = this.hcb.xmax || Math.max(hcb.xstart, d);
-                this.ystart = hcb.ystart;
-                this.ydelta = hcb.ydelta;
-                var d = hcb.ystart + (hcb.ydelta * this.lps);
-                this.ymin = this.hcb.ymin || Math.min(hcb.ystart, d);
-                this.ymax = this.hcb.ymax || Math.max(hcb.ystart, d);
+                if (this.drawdirection !== "horizontal") {
+                    this.xstart = this.hcb.xstart;
+                    this.xdelta = this.hcb.xdelta;
+                    var d = this.hcb.xstart + (this.hcb.xdelta * this.hcb.subsize);
+                    this.xmin = this.hcb.xmin || Math.min(this.hcb.xstart, d);
+                    this.xmax = this.hcb.xmax || Math.max(this.hcb.xstart, d);
+                    this.ystart = this.hcb.ystart;
+                    this.ydelta = this.hcb.ydelta;
+                    var d = this.hcb.ystart + (this.hcb.ydelta * this.lps);
+                    this.ymin = this.hcb.ymin || Math.min(this.hcb.ystart, d);
+                    this.ymax = this.hcb.ymax || Math.max(this.hcb.ystart, d);
+                } else {
+                    this.ystart = this.hcb.xstart;
+                    this.ydelta = this.hcb.xdelta;
+                    var d = this.hcb.xstart + (this.hcb.xdelta * this.hcb.subsize);
+                    this.ymin = this.hcb.xmin || Math.min(this.hcb.xstart, d);
+                    this.ymax = this.hcb.xmax || Math.max(this.hcb.xstart, d);
+                    this.xstart = this.hcb.ystart;
+                    this.xdelta = this.hcb.ydelta;
+                    var d = this.hcb.ystart + (this.hcb.ydelta * this.lps);
+                    this.xmin = this.hcb.ymin || Math.min(this.hcb.ystart, d);
+                    this.xmax = this.hcb.ymax || Math.max(this.hcb.ystart, d);
+                }
             }
 
             // TODO make this work with force 1000 applied
@@ -166,9 +195,21 @@
             }
             this.lpb = Math.max(1, this.lpb / this.yc) * this.yc;
 
-            this.xlab = hcb.xunits;
-            this.ylab = hcb.yunits; // might be undefined
+            if (this.drawdirection !== "horizontal") {
+                this.xlab = this.hcb.xunits;
+                this.ylab = this.hcb.yunits; // might be undefined
+            } else {
+                this.xlab = this.hcb.yunits;
+                this.ylab = this.hcb.xunits; // might be undefined
+            }
 
+            if ((this.drawmode === "falling" || this.drawdirection === "horizontal")) {
+                this.plot._Mx.origin = 1;
+                this.preferred_origin = 1;
+            } else {
+                this.plot._Mx.origin = 4;
+                this.preferred_origin = 4;
+            }
         },
 
         _onpipewrite: function() {
@@ -191,12 +232,12 @@
                     this.ymax = this.hcb.ystart;
                 }
 
-                if (this.drawmode === "falling") {
+                if ((this.drawmode === "falling") && (this.drawdirection !== "horizontal")) {
                     this.position = 0;
                     if (this.img) {
                         mx.shift_image_rows(Mx, this.img, 1);
                     }
-                } else if (this.drawmode === "rising") {
+                } else if ((this.drawmode === "rising") && (this.drawdirection !== "horizontal")) {
                     this.position = this.lps - 1;
                     if (this.img) {
                         mx.shift_image_rows(Mx, this.img, -1);
@@ -339,7 +380,11 @@
                 }
 
                 if (this.img) {
-                    mx.update_image_row(Mx, this.img, zpoint, this.position, Gx.zmin, Gx.zmax, this.xcompression);
+                    if (this.drawdirection !== "horizontal") {
+                        mx.update_image_row(Mx, this.img, zpoint, this.position, Gx.zmin, Gx.zmax, this.xcompression);
+                    } else {
+                        mx.update_image_col(Mx, this.img, zpoint, this.position, Gx.zmin, Gx.zmax, this.xcompression);
+                    }
                 }
                 this.frame += 1;
                 if (this.drawmode === "scrolling") {
@@ -415,13 +460,17 @@
                 (settings.autoz !== undefined)) {
                 this.img = undefined;
             }
+            if (settings.drawmode !== undefined) {
+                this.drawmode = settings.drawmode;
+            }
+            if (settings.drawdirection !== undefined) {
+                this.drawdirection = settings.drawdirection;
+            }
+            // There are a variety of settings, that when changed 
+            // require us to recompute the image and many internal settings
             if ((settings.drawmode !== undefined) || (settings.xmin !== undefined) ||
                 (settings.xmax !== undefined) || (settings.xdelta !== undefined) ||
-                (settings.xstart !== undefined)) {
-                if (settings.drawmode === undefined) {
-                    settings.drawmode = this.drawmode;
-                }
-                this.drawmode = settings.drawmode;
+                (settings.xstart !== undefined) || (settings.drawdirection !== undefined)) {
                 // Reset the buffer
                 this.position = 0;
                 this.frame = 0;
@@ -434,13 +483,8 @@
                 }
                 this.img = undefined;
 
-                if (this.drawmode === "falling") {
-                    this.plot._Mx.origin = 1;
-                    this.preferred_origin = 1;
-                } else {
-                    this.plot._Mx.origin = 4;
-                    this.preferred_origin = 4;
-                }
+
+                this.init_axes();
             }
             if (settings.opacity !== undefined) {
                 this.opacity = settings.opacity;
@@ -455,7 +499,7 @@
 
                 // If p_cuts are enabled from streams, we need to keep the entire zbuf in memory
                 if (this.hcb.pipe) {
-                    if (!p_cuts) {
+                    if (p_cuts) {
                         this.buf = this.hcb.createArray(null, 0, this.lps * this.hcb.subsize * this.hcb.spa);
                         this.zbuf = new m.PointArray(this.lps * this.hcb.subsize);
                     } else {
@@ -649,7 +693,11 @@
 
             var xsize = this.hcb.subsize;
             if (this.xcompression > 0) {
-                xsize = Math.min(this.hcb.subsize, Math.ceil(Mx.r - Mx.l));
+                if (this.drawdirection !== "horizontal") {
+                    xsize = Math.min(this.hcb.subsize, Math.ceil(Mx.r - Mx.l));
+                } else {
+                    xsize = Math.min(this.hcb.subsize, Math.ceil(Mx.t - Mx.b));
+                }
             }
 
             this.get_data();
@@ -799,7 +847,8 @@
                         this.lps,
                         Gx.zmin + Gx.zoff,
                         Gx.zmax + Gx.zoff,
-                        this.xcompression);
+                        this.xcompression,
+                        this.drawdirection);
                 } else {
                     // otherwise autol > 1
                     var nny = this.hcb.size;
@@ -813,7 +862,8 @@
                             xsize,
                             this.lps,
                             Gx.zmin + Gx.zoff,
-                            Gx.zmax + Gx.zoff);
+                            Gx.zmax + Gx.zoff,
+                            this.drawdirection);
                     }
 
                     Gx.zmin = 0;
@@ -864,7 +914,8 @@
                         this.lps,
                         Gx.zmin + Gx.zoff,
                         Gx.zmax + Gx.zoff,
-                        this.xcompression);
+                        this.xcompression,
+                        this.drawdirection);
                 }
             }
 
@@ -875,13 +926,21 @@
             // Make the parts without data transparent
             if (this.hcb.pipe && (this.frame < this.lps)) {
                 var imgd = new Uint32Array(this.img);
-                if (this.drawmode === "rising") {
-                    for (var i = 0; i < imgd.length - (this.frame * xsize); i++) {
-                        imgd[i] = 0;
+                if (this.drawdirection !== "horizontal") {
+                    if (this.drawmode === "rising") {
+                        for (var i = 0; i < imgd.length - (this.frame * xsize); i++) {
+                            imgd[i] = 0;
+                        }
+                    } else {
+                        for (var i = this.frame * xsize; i < imgd.length; i++) {
+                            imgd[i] = 0;
+                        }
                     }
                 } else {
-                    for (var i = this.frame * xsize; i < imgd.length; i++) {
-                        imgd[i] = 0;
+                    for (var j = this.frame; j < this.lps; j++) {
+                        for (var i = 0; i < this.img.height; i++) {
+                            imgd[(i * this.img.width) + j] = 0;
+                        }
                     }
                 }
             }
@@ -893,6 +952,54 @@
                 panymin: this.ymin,
                 panymax: this.ymax
             };
+        },
+
+        xCutData: function(ypos, zData) {
+            var Gx = this.plot._Gx;
+            var Mx = this.plot._Mx;
+            var height = this.lps;
+            var width = this.xframe;
+            var i;
+
+            // By default, pipe mode doesn't keep historical data
+            // around unless p_cuts has been turned on.
+            if (this.hcb.pipe && !Gx.p_cuts) {
+                return null;
+            }
+
+            var x_cut_data;
+            if (this.drawdirection !== "horizontal") {
+                var row;
+
+                if (!this.hcb.pipe) {
+                    row = Math.floor((ypos - this.ystart) / this.ydelta);
+                } else {
+                    row = Math.floor((height * (Mx.ypos - Mx.t)) / (Mx.b - Mx.t));
+                }
+                if ((row < 0) || (row > this.lps)) {
+                    return null;
+                }
+                var start = row * width;
+                var finish = start + width;
+                if (zData || this.hcb.pipe) {
+                    x_cut_data = this.zbuf.slice(start, finish);
+                } else {
+                    x_cut_data = this.buf.slice(start, finish);
+                }
+            } else {
+                x_cut_data = [];
+
+                var col = Math.round((ypos - this.ystart) / this.ydelta);
+                for (i = col; i < (width * height); i += width) {
+                    if (zData || this.hcb.pipe) {
+                        x_cut_data.push(this.zbuf[i]);
+                    } else {
+                        x_cut_data.push(this.buf[i]);
+                    }
+                }
+            }
+
+            return x_cut_data;
         },
 
         /**
@@ -921,16 +1028,9 @@
                 this.cut_stash.panxmax = Gx.panxmax;
 
                 // Change Gx.lyr[0] to this.
-                if (!Gx.p_cuts) {
-                    this.x_cut_data = [];
-                    var width = this.xframe;
-                    var row = Math.round((ypos - this.ystart) / this.ydelta);
-                    if ((row < 0) || (row > this.lps)) {
-                        return;
-                    }
-                    var start = row * width;
-                    var finish = start + width;
-                    this.x_cut_data = this.buf.slice(start, finish);
+                var x_cut_data = this.xCutData(ypos);
+                if (!x_cut_data) {
+                    return;
                 }
 
                 //adjust for the values of the xcut
@@ -968,7 +1068,7 @@
                 Gx.xlabel += "    CURRENTLY IN X_CUT MODE";
                 Mx.origin = 1;
 
-                this.xcut_layer = this.plot.overlay_array(this.x_cut_data, {
+                this.xcut_layer = this.plot.overlay_array(x_cut_data, {
                     xstart: this.xstart,
                     xdelta: this.xdelta
                 }, {
@@ -986,7 +1086,7 @@
                 Gx.x_cut_press_on = true;
 
                 // The y-axis is now the z-values
-                var mxmn = m.vmxmn(this.x_cut_data, this.xframe);
+                var mxmn = m.vmxmn(x_cut_data, this.xframe);
                 var ymax = mxmn.smax;
                 var ymin = mxmn.smin;
                 var yran = ymax - ymin;
@@ -1044,6 +1144,57 @@
             }
         },
 
+        yCutData: function(xpos, zData) {
+            var Gx = this.plot._Gx;
+            var Mx = this.plot._Mx;
+            var height = this.lps;
+            var width = this.xframe;
+            var i = 0;
+
+            // By default, pipe mode doesn't keep historical data
+            // around unless p_cuts has been turned on.
+            if (this.hcb.pipe && !Gx.p_cuts) {
+                return null;
+            }
+
+            var y_cut_data;
+            if (this.drawdirection !== "horizontal") {
+                y_cut_data = [];
+                var col;
+                if (!this.hcb.pipe || zData) {
+                    col = Math.floor((xpos - this.xstart) / this.xdelta);
+                    if (zData) {
+                        for (i = col; i < (width * height); i += width) {
+                            y_cut_data.push(this.zbuf[i]);
+                        }
+                    } else {
+                        for (i = col; i < (width * height); i += width) {
+                            y_cut_data.push(this.buf[i]);
+                        }
+                    }
+                } else {
+                    col = Math.floor((width * (Mx.xpos - Mx.l)) / (Mx.r - Mx.l));
+                    for (i = col; i < (width * height); i += width) {
+                        y_cut_data.push(this.zbuf[i]);
+                    }
+                }
+            } else {
+                var row = Math.round((xpos - this.xstart) / this.xdelta);
+                if ((row < 0) || (row > this.lps)) {
+                    return;
+                }
+                var start = row * width;
+                var finish = start + width;
+                if (!this.hcb.pipe || zData) {
+                    y_cut_data = this.zbuf.slice(start, finish);
+                } else {
+                    y_cut_data = this.buf.slice(start, finish);
+                }
+            }
+
+            return y_cut_data;
+        },
+
         /**
          * Display an yCut
          *
@@ -1069,17 +1220,7 @@
                 this.cut_stash.panxmin = Gx.panxmin;
                 this.cut_stash.panxmax = Gx.panxmax;
 
-                if (!Gx.p_cuts) {
-                    var height = this.lps;
-                    var width = this.xframe;
-                    var i = 0;
-
-                    this.y_cut_data = [];
-                    var col = Math.round((xpos - this.xstart) / this.xdelta);
-                    for (i = col; i < (width * height); i += width) {
-                        this.y_cut_data.push(this.buf[i]);
-                    }
-                }
+                var y_cut_data = this.yCutData(xpos);
 
                 //adjust for the values of the xcut
                 this.old_drawmode = this.drawmode;
@@ -1117,7 +1258,7 @@
                 }
                 Gx.xlabel += "    CURRENTLY IN Y_CUT MODE";
                 Mx.origin = 1;
-                this.ycut_layer = this.plot.overlay_array(this.y_cut_data, {
+                this.ycut_layer = this.plot.overlay_array(y_cut_data, {
                     xstart: this.ystart,
                     xdelta: this.ydelta
                 }, {
@@ -1137,7 +1278,7 @@
                 Gx.y_cut_press_on = true;
 
                 // The y-axis is now the z-values
-                var mxmn = m.vmxmn(this.y_cut_data, this.lps);
+                var mxmn = m.vmxmn(y_cut_data, this.lps);
                 var ymax = mxmn.smax;
                 var ymin = mxmn.smin;
                 var yran = ymax - ymin;
@@ -1204,8 +1345,14 @@
             var Gx = this.plot._Gx;
             var HCB = this.hcb;
 
-            if (this.hcb.pipe) {
-                var lps = this.hcb.lps || Math.ceil(Math.max(1, (Mx.b - Mx.t)));
+            if (this.hcb.pipe && this.img) {
+                var lps;
+                if (this.drawdirection !== "horizontal") {
+                    lps = this.hcb.lps || Math.ceil(Math.max(1, (Mx.b - Mx.t)));
+                } else {
+                    //lps = this.hcb.lps || Math.ceil(Math.max(1, (Mx.r - Mx.l)));
+                    lps = this.lps;
+                }
                 if ((lps !== this.lps) && this.buf) {
                     var lps_delta = (lps - this.lps);
                     this.lps = lps;
@@ -1215,10 +1362,12 @@
 
                     if (this.drawmode === "scrolling") {
                         // in scrolling mode, ymin should never change
-                        var d = HCB.ystart + (HCB.ydelta * this.lps);
-                        this.ymin = Math.min(HCB.ystart, d);
-                        this.ymax = Math.max(HCB.ystart, d);
-                        this.img = mx.resize_image_height(Mx, this.img, this.lps);
+                        if (this.drawdirection !== "horizontal") {
+                            var d = HCB.ystart + (HCB.ydelta * this.lps);
+                            this.ymin = Math.min(HCB.ystart, d);
+                            this.ymax = Math.max(HCB.ystart, d);
+                            this.img = mx.resize_image_height(Mx, this.img, this.lps);
+                        }
                     } else if (this.drawmode === "falling") {
                         this.ymax = this.ymin + (HCB.ydelta * this.lps);
                         this.img = mx.resize_image_height(Mx, this.img, this.lps);
@@ -1284,9 +1433,17 @@
 
             // render the scrolling pipe line
             if (this.position !== null && this.drawmode === "scrolling") {
-                var pnt = mx.real_to_pixel(Mx, 0, this.position * this.ydelta);
-                if ((pnt.y > Mx.t) && (pnt.y < Mx.b)) {
-                    mx.draw_line(Mx, "white", Mx.l, pnt.y, Mx.r, pnt.y);
+                var pnt;
+                if (this.drawdirection !== "horizontal") {
+                    pnt = mx.real_to_pixel(Mx, 0, this.position * this.ydelta);
+                    if ((pnt.y > Mx.t) && (pnt.y < Mx.b)) {
+                        mx.draw_line(Mx, "white", Mx.l, pnt.y, Mx.r, pnt.y);
+                    }
+                } else {
+                    pnt = mx.real_to_pixel(Mx, this.position * this.xdelta, 0);
+                    if ((pnt.x > Mx.l) && (pnt.x < Mx.r)) {
+                        mx.draw_line(Mx, "white", pnt.x, Mx.t, pnt.x, Mx.b);
+                    }
                 }
             }
         }

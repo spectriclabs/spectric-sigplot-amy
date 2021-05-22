@@ -67,8 +67,12 @@ file.  There are two broad categories of test: those that exeucte without user
 interaction and those that require user interaction to confirm proper behavior.
 
 Non-interactive tests can be executed by simply running `grunt test`.
-Interactive tests can be executed by running `grunt web_server` and then
+Interactive tests can be executed by running `npm run serve` and then
 opening your webrowser to http://localhost:1337/test/test.html.
+
+NOTE: When running the unittests in the browser, currently the `budo` live
+reload an rebuild won't work as desired.  You still need to manually
+run `grunt browserify` and then refresh your browser.
 
 ## Preparing your code for submission
 

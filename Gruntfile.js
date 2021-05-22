@@ -22,7 +22,7 @@ module.exports = function (grunt) {
         },
         qunit: {
             options: { '--web-security': 'no', '--local-to-remote-url-access': 'yes' },
-            all: ['test/test.html']
+            all: ['test/test_headless.html']
         },
         'closure-compiler': {
             sigplot_debug: {
