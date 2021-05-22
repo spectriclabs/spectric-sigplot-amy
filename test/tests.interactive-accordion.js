@@ -46,6 +46,11 @@ interactiveTest('vertical accordion', 'Do you see a vertical accordion that stay
         direction: "vertical",
         edge_line_style: {
             strokeStyle: "#FF2400"
+        },
+        text: "this is sample text",
+        textPosition: {
+            "horizontal": "left",
+            "vertical": "middle"
         }
     });
     var lyr0 = plot.overlay_array(zeros, {
