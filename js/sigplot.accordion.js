@@ -506,14 +506,14 @@
         _onDocMouseUp() {
             const Mx = this.Mx;
 
-            // We are no longer dragging
-            this.dragging = false;
-            this.edge_dragging = false;
-
             // only emit an event if we are actually dragging
             if (!this.dragging || !this.edge_dragging) {
                 return;
             }
+
+            // We are no longer dragging
+            this.dragging = false;
+            this.edge_dragging = false;
 
             // Issue a slider tag event
             let evt = document.createEvent('Event');
