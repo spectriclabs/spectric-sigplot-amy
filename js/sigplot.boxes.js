@@ -99,7 +99,6 @@
             this.plot.addListener("mdblclick", this._onMouseClick);
             // listen for document mouse up to handle situations where
             // a user is dragging the mouse out of the plot area
-            document.addEventListener("mouseup", this._onMouseClick, false);
         }
 
         //////////////////////////////////////////////////////////////////////
@@ -611,95 +610,116 @@
             let allowDefault = true;
             // the box is handling this, so prevent default actions
             if (this.options.enableSelect || this.options.enableMove || this.options.enableResize) {
-                if (this._selected) {
-                    const selected = this._selected;
-                    this._selected = undefined;
-
-                    const move_dist = mx.real_distance_to_pixel(
-                        this.plot._Mx,
-                        selected.orig_box.x,
-                        selected.orig_box.y,
-                        selected.box.x,
-                        selected.box.y
-                    );
-
-                    const size_dist = mx.real_distance_to_pixel(
-                        this.plot._Mx,
-                        selected.orig_box.x + selected.orig_box.w,
-                        selected.orig_box.y + selected.orig_box.h,
-                        selected.box.x + selected.box.w,
-                        selected.box.y + selected.box.h
-                    );
-
-                    if ((Math.abs(move_dist.x) > 3) || (Math.abs(move_dist.y) > 3) || (Math.abs(size_dist.x) > 3) || (Math.abs(size_dist.y) > 3)) {
-                        // If the control point has been dragged causing negative w/h adjust the box
-                        if (selected.box.w < 0) {
-                            if ((Mx.origin === 1) || (Mx.origin === 4)) {
-                                // Regular x
-                                selected.box.x = selected.box.x + selected.box.w;
-                                selected.box.w = Math.abs(selected.box.w);
-                            } else {
-                                // Inverted x
-                                selected.box.x = selected.box.x - selected.box.w;
-                                selected.box.w = Math.abs(selected.box.w);
-                            }
+                if (!this._selected) {
+                    const boxes_selected = this._selectBoxes(evt.xpos, evt.ypos, false);
+                    if (boxes_selected.length > 0) {
+                        if (this.options.enableSelect) {
+                            boxes_selected[0].selected = true;
                         }
-                        if (selected.box.h < 0) {
-                            if ((Mx.origin === 1) || (Mx.origin === 2)) {
-                                // Regular y
-                                selected.box.y = selected.box.y - selected.box.h;
-                                selected.box.h = Math.abs(selected.box.h);
-                            } else {
-                                // Inverted y
-                                selected.box.y = selected.box.y + selected.box.h;
-                                selected.box.h = Math.abs(selected.box.h);
-                            }
+                        let controlPoint;
+                        if (this.options.enableResize) {
+                            controlPoint = this._isOverControlPoint(evt.xpos, evt.ypos, boxes_selected[0]);
                         }
-
-                        // Only issue box move if the box has moved
-                        const sevt = document.createEvent('Event');
-                        sevt.source = this;
-                        sevt.box = selected.box;
-                        sevt.action = evt.type;
-                        sevt.initEvent('boxmove', true, true);
-                        mx.dispatchEvent(Mx, sevt);
-                        evt.preventDefault();
-                        this.plot.redraw();
-                        return; // TODO should a boxmove also emit a boxselect?
-                    } else {
-                        // Restore the original box x,y,w,h to avoid slight movement that doesn't cause boxmove
-                        // to change things
-                        selected.box.x = selected.orig_box.x;
-                        selected.box.y = selected.orig_box.y;
-                        selected.box.w = selected.orig_box.w;
-                        selected.box.h = selected.orig_box.h;
-                    }
-
-                    const selected_boxes = [selected.box];
-                    if (this._clickTimer) {
-                        clearTimeout(this._clickTimer);
-                    }
-
-                    if ((selected_boxes.length > 0) && (this.options.enableSelect)) {
-                        // If a box is selected we need to stop other actions (i.e. unzoom)
-                        // that might be associated with the 'mup' event
-                        evt.preventDefault();
-                        allowDefault = false;
-                        this._clickTimer = setTimeout(() => {
-                            const sevt = document.createEvent('Event');
-                            sevt.source = this;
-                            sevt.boxes = selected_boxes;
-                            sevt.action = evt.type;
-                            sevt.which = evt.which;
-                            sevt.initEvent('boxselect', true, true);
-
-                            mx.dispatchEvent(Mx, sevt);
-
-                            this.plot.redraw();
-                        }, 200);
+                        this._selected = {
+                            x: evt.x,
+                            y: evt.y,
+                            orig_box: Object.assign({}, boxes_selected[0]),
+                            box: boxes_selected[0],
+                            controlPoint: controlPoint,
+                            which: evt.which,
+                        };
                     }
                 }
 
+                const selected = this._selected;
+                if (!selected) {
+                    return;
+                }
+                this._selected = undefined;
+
+                const move_dist = mx.real_distance_to_pixel(
+                    this.plot._Mx,
+                    selected.orig_box.x,
+                    selected.orig_box.y,
+                    selected.box.x,
+                    selected.box.y
+                );
+
+                const size_dist = mx.real_distance_to_pixel(
+                    this.plot._Mx,
+                    selected.orig_box.x + selected.orig_box.w,
+                    selected.orig_box.y + selected.orig_box.h,
+                    selected.box.x + selected.box.w,
+                    selected.box.y + selected.box.h
+                );
+
+                if ((Math.abs(move_dist.x) > 3) || (Math.abs(move_dist.y) > 3) || (Math.abs(size_dist.x) > 3) || (Math.abs(size_dist.y) > 3)) {
+                    // If the control point has been dragged causing negative w/h adjust the box
+                    if (selected.box.w < 0) {
+                        if ((Mx.origin === 1) || (Mx.origin === 4)) {
+                            // Regular x
+                            selected.box.x = selected.box.x + selected.box.w;
+                            selected.box.w = Math.abs(selected.box.w);
+                        } else {
+                            // Inverted x
+                            selected.box.x = selected.box.x - selected.box.w;
+                            selected.box.w = Math.abs(selected.box.w);
+                        }
+                    }
+                    if (selected.box.h < 0) {
+                        if ((Mx.origin === 1) || (Mx.origin === 2)) {
+                            // Regular y
+                            selected.box.y = selected.box.y - selected.box.h;
+                            selected.box.h = Math.abs(selected.box.h);
+                        } else {
+                            // Inverted y
+                            selected.box.y = selected.box.y + selected.box.h;
+                            selected.box.h = Math.abs(selected.box.h);
+                        }
+                    }
+
+                    // Only issue box move if the box has moved
+                    const sevt = document.createEvent('Event');
+                    sevt.source = this;
+                    sevt.box = selected.box;
+                    sevt.action = evt.type;
+                    sevt.initEvent('boxmove', true, true);
+                    mx.dispatchEvent(Mx, sevt);
+                    evt.preventDefault();
+                    this.plot.redraw();
+                    return; // TODO should a boxmove also emit a boxselect?
+                } else {
+                    // Restore the original box x,y,w,h to avoid slight movement that doesn't cause boxmove
+                    // to change things
+                    selected.box.x = selected.orig_box.x;
+                    selected.box.y = selected.orig_box.y;
+                    selected.box.w = selected.orig_box.w;
+                    selected.box.h = selected.orig_box.h;
+                }
+
+                const selected_boxes = [selected.box];
+                if (this._clickTimer) {
+                    clearTimeout(this._clickTimer);
+                }
+
+                if ((selected_boxes.length > 0) && (this.options.enableSelect)) {
+                    // If a box is selected we need to stop other actions (i.e. unzoom)
+                    // that might be associated with the 'mup' event
+                    evt.preventDefault();
+                    allowDefault = false;
+                    this._clickTimer = setTimeout(() => {
+                        const sevt = document.createEvent('Event');
+                        sevt.source = this;
+                        sevt.boxes = selected_boxes;
+                        sevt.action = evt.type;
+                        sevt.which = evt.which;
+                        sevt.initEvent('boxselect', true, true);
+
+                        mx.dispatchEvent(Mx, sevt);
+
+                        this.plot.redraw();
+                    }, 200);
+                }
             }
             // After a click is finished, we no longer track the internal select state for move/drag
             this._selected = undefined;
@@ -872,7 +892,6 @@
             this.plot.removeListener("mdblclick", this._onMouseClick);
             // listen for document mouse up to handle situations where
             // a user is dragging the mouse out of the plot area
-            document.removeEventListener("mouseup", this._onMouseClick);
 
             this.plot = undefined;
             this.boxes = [];
