@@ -229,6 +229,7 @@
         this.ymrk = 0.0;
         this.origin = 1;
         this.stk = [new mx.STKSTRUCT()]; // zoom stack
+        this.mouseOver = false;
 
         mx.setbgfg(this, "black", "white");
 
@@ -376,6 +377,20 @@
             };
         })(Mx);
 
+        Mx.onmouseover = (function(Mx) {
+            return function(event) {
+                Mx.mouseOver = true;
+                return false;
+            };
+        })(Mx);
+
+        Mx.onmouseleave = (function(Mx) {
+            return function(event) {
+                Mx.mouseOver = false;
+                return false;
+            };
+        })(Mx);
+
         Mx.onkeydown = (function(Mx) {
             return function(event) {
                 if (Mx.warpbox) {
@@ -450,6 +465,8 @@
         mx.addEventListener(Mx, "mousemove", Mx.onmousemove, false);
         window.addEventListener("mouseup", Mx.onmouseup, false);
         mx.addEventListener(Mx, "mousedown", Mx.onmousedown, false);
+        mx.addEventListener(Mx, "mouseover", Mx.onmouseover, false);
+        mx.addEventListener(Mx, "mouseleave", Mx.onmouseleave, false);
         window.addEventListener("keydown", Mx.onkeydown, false);
         window.addEventListener("keyup", Mx.onkeyup, false);
         //mx.addEventListener(Mx, "touchend", Mx.ontouchend);
@@ -465,6 +482,8 @@
         mx.removeEventListener(Mx, "mousemove", Mx.onmousemove, false);
         window.removeEventListener("mouseup", Mx.onmouseup, false);
         mx.removeEventListener(Mx, "mousedown", Mx.onmousedown, false);
+        mx.removeEventListener(Mx, "mouseover", Mx.onmouseover, false);
+        mx.removeEventListener(Mx, "mouseleave", Mx.onmouseleave, false);
         window.removeEventListener("keydown", Mx.onkeydown, false);
         window.removeEventListener("keyup", Mx.onkeyup, false);
         //mx.addEventListener(Mx, "touchend", Mx.ontouchend);
