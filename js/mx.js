@@ -315,7 +315,7 @@
                 Mx.y = e.y || e.clientY;
                 // Plot relative x/y of mouse
                 Mx.xpos = (e.offsetX === undefined) ? (e.pageX - rect.left - window.scrollX) : e.offsetX;
-                Mx.ypos = (e.offsetX === undefined) ? (e.pageY - rect.top - window.scrollY) : e.offsetY;
+                Mx.ypos = (e.offsetY === undefined) ? (e.pageY - rect.top - window.scrollY) : e.offsetY;
 
                 //				Mx.xpos = (e.offsetX === undefined) ? e.layerX : e.offsetX;
                 //				Mx.ypos = (e.offsetY === undefined) ? e.layerY : e.offsetY;
