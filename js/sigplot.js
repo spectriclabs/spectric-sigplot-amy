@@ -494,6 +494,8 @@
                     plot.refresh();
                 }
 
+                Gx.mouseClickActive = true;
+
                 // Update Mx event fields
                 mx.ifevent(Mx, event);
 
@@ -931,6 +933,24 @@
                     window.clearInterval(Gx.repeatPanning);
                     Gx.repeatPanning = undefined;
                 }
+
+                // Update Mx event fields
+                mx.ifevent(plot._Mx, event);
+
+                if ((Mx.mouseOver === false) && (Gx.mouseClickActive)) {
+                    var evt = document.createEvent('Event');
+                    evt.initEvent('mup', true, true);
+                    evt.originalEvent = event;
+                    // xpos/ypos/x/y are clipped 
+                    evt.xpos = Mx.xpos;
+                    evt.ypos = Mx.ypos;
+                    evt.x = Gx.retx;
+                    evt.y = Gx.rety;
+                    evt.which = event.which;
+                    var executeDefault = mx.dispatchEvent(Mx, evt);
+                }
+
+                Gx.mouseClickActive = false;
                 return false;
             };
         }(this));
@@ -1170,19 +1190,6 @@
                     Gx.panning = undefined; // Panbar dragging completed - clear
                     // the state variable
                 }
-
-                // Update Mx event fields
-                mx.ifevent(plot._Mx, event);
-
-                var evt = document.createEvent('Event');
-                evt.initEvent('mup', true, true);
-                evt.originalEvent = event;
-                evt.xpos = Mx.xpos;
-                evt.ypos = Mx.ypos;
-                evt.x = Gx.retx;
-                evt.y = Gx.rety;
-                evt.which = event.which;
-                var executeDefault = mx.dispatchEvent(Mx, evt);
             };
         }(this));
         window.addEventListener("mouseup", this.dragMouseUpHandler, false);
