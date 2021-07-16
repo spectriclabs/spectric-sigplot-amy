@@ -100,6 +100,11 @@
     mx.LEGACY_RENDER = false;
 
     /**
+     * Set to True to enable legacy behaviors for people with strong muscle memory
+     */
+    mx.LEGACY_BEHAVIOR = false;
+
+    /**
      * The zoom stack structure object
      * @private
      */
@@ -4262,8 +4267,13 @@
             ((Mx.ypos >= warpbox.ymin) && (Mx.ypos <= warpbox.ymax))) {
 
             // Update the position
-            warpbox.xl = Mx.xpos;
-            warpbox.yl = Mx.ypos;
+            if (mx.LEGACY_BEHAVIOR) {
+                warpbox.xl = Mx.xpos;
+                warpbox.yl = Mx.ypos;
+            } else {
+                warpbox.xl = Math.min(Mx.r, Math.max(Mx.xpos, Mx.l));
+                warpbox.yl = Math.min(Mx.b, Math.max(Mx.ypos, Mx.t));
+            }
 
             // Draw the current box
             var x = Math.min(warpbox.xo, warpbox.xl);
