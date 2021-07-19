@@ -5733,11 +5733,21 @@
      * @private
      */
     mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling, rotationAngle, strokeStyle, text) {
+        
         var view_xmin = Math.max(xmin, Mx.stk[Mx.level].xmin);
         var view_xmax = Math.min(xmax, Mx.stk[Mx.level].xmax);
         var view_ymin = Math.max(ymin, Mx.stk[Mx.level].ymin);
         var view_ymax = Math.min(ymax, Mx.stk[Mx.level].ymax);
 
+        // On input xmin < xmax and ymin < ymax, so if the view
+        // values have become inverted that means the image it outside
+        // of the bounds established by Mx.stk[Mx.level]
+        if (view_xmax < view_xmin) {
+            return;
+        }
+        if (view_ymax < view_ymin) {
+            return;
+        }
 
         if ((buf.width <= 1) || Math.abs(xmax - xmin) === 0) {
             return;
