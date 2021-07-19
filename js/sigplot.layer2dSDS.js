@@ -544,10 +544,14 @@
                 const tilexsize = maxtileXsize * decfactorx;
                 const tileysize = maxtileYsize * decfactory;
 
-                const firstcolumn = Math.floor(x1 / tilexsize);
-                const firstrow = Math.floor(y1 / tileysize);
-                const lastcolumn = Math.ceil(x2 / tilexsize);
-                const lastrow = Math.ceil(y2 / tileysize);
+                const maxcol = Math.ceil(HCB.subsize / tilexsize);
+                const maxrow = Math.ceil(HCB.size / tileysize);
+
+                // x1,x2,y1,y2 are index relative
+                const firstcolumn = Math.max(0, Math.floor(x1 / tilexsize));
+                const firstrow = Math.max(0, Math.floor(y1 / tileysize));
+                const lastcolumn = Math.min(maxcol, Math.ceil(x2 / tilexsize) + 1);
+                const lastrow = Math.min(maxrow, Math.ceil(y2 / tileysize) + 1);
 
                 for (let tileY = firstrow; tileY < lastrow; tileY++) {
                     for (let tileX = firstcolumn; tileX < lastcolumn; tileX++) {
