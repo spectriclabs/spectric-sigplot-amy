@@ -5737,10 +5737,6 @@
         }
         var rx = buf.width / (xmax - xmin);
         var ry = buf.height / (ymax - ymin);
-        if (rotationAngle) {
-            rx = buf.height / (xmax - xmin);
-            ry = buf.width / (ymax - ymin);
-        }
         
         // ul, lr are the upper-left/lower-right in view coordinates
         // for receiving the rendered source-vuffer
@@ -5763,25 +5759,41 @@
                 sh = Math.min(buf.height - sy, Math.ceil((view_ymax - view_ymin) * ry) + 1);
                 sx = Math.max(0, Math.floor((view_xmin - xmin) * rx));
                 sw = Math.min(buf.width - sx, Math.ceil((view_xmax - view_xmin) * rx) + 1);
+
+                // Now determine the specific view area
+                render_xmin = (sx / rx) + xmin;
+                render_xmax = ((sx + sw) / rx) + xmin;
+                render_ymin = ymax - ((sy + sh) / ry);
+                render_ymax = ymax - (sy / ry);
+
+                ul = mx.real_to_pixel(Mx, render_xmin, render_ymax);
+                lr = mx.real_to_pixel(Mx, render_xmax, render_ymin);
             } else if (Math.abs(rotationAngle - (-Math.PI / 2)) < 1E-12) {
-                // Note the this code isn't simply swapping the left-side variable names
-                // The right-sides are also different
+                // The x-axis is now distributed against the height of the buffer
+                // and the y-axis against the width of the buffer
+                rx = buf.height / (xmax - xmin);
+                ry = buf.width / (ymax - ymin);
+
+                // The buffers x start and width is based upon the y-axis
                 sx = Math.max(0, Math.floor((view_ymin - ymin) * ry));
                 sw = Math.min(buf.width - sx, Math.ceil((view_ymax - view_ymin) * ry) + 1);
+                // The buffers y start and height is based upon the x-axis
                 sy = Math.max(0, Math.floor((view_xmin - xmin) * rx));
                 sh = Math.min(buf.height - sy, Math.ceil((view_xmax - view_xmin) * rx) + 1);
+
+                // Given the calculated buffer boundary, we need to figure out back in 
+                // plot coordinates where that is rendered in the view.  This is very confusing 
+                // because the start x related to ratio-y and ymin and vice versa
+                render_ymin = (sx / ry) + ymin;
+                render_ymax = ((sx + sw) / ry) + ymin;
+                render_xmin = (sy / rx) + xmin;
+                render_xmax = ((sy + sh) / rx) + xmin;
+
+                ul = mx.real_to_pixel(Mx, render_xmin, render_ymax);
+                lr = mx.real_to_pixel(Mx, render_xmax, render_ymin);
             } else {
                 throw new RangeError(`Rotation angle ${rotationAngle} rad not supported. Must be -Math.PI/2.`);
             }
-
-            // Now determine the specific view area
-            render_xmin = (sx / rx) + xmin;
-            render_xmax = ((sx + sw) / rx) + xmin;
-            render_ymin = ymax - ((sy + sh) / ry);
-            render_ymax = ymax - (sy / ry);
-            
-            ul = mx.real_to_pixel(Mx, render_xmin, render_ymax);
-            lr = mx.real_to_pixel(Mx, render_xmax, render_ymin);
         } else if (Mx.origin === 2) {
             // inverted x, regular y
             sy = Math.max(0, Math.floor((ymax - view_ymax) * ry));
