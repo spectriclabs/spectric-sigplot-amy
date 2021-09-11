@@ -144,3 +144,57 @@ interactiveTest('sigplot custom symbol-line', 'Do you see custom symbols?', func
         symbol: custom_symbol
     });
 });
+
+interactiveTest('sigplot symbol CI', 'Do you see six symbols?', function(assert) {
+    // The legacy way to make an "XY" plot was to create CI data rendered in 
+    // IR mode
+    var plot_options = {
+        autohide_panbars: true,
+        hide_note: true,
+        cmode: 5
+    };
+
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, plot_options);
+    assert.notEqual(plot, null);
+
+    var data = [10, 2, 3, 3, 5, 4, 2, 1, 3, 1, 4, 10]; // the series of y-values
+    var data_header = {
+        format: "CI",
+        xunits: "Time",
+        yunits: "Power",
+    };
+    var layer_options = {
+        name: "Sample Data",
+        symbol: 3,
+    };
+    var plot = new sigplot.Plot(document.getElementById('plot'), plot_options);
+    plot.overlay_array(data, data_header, layer_options);
+});
+
+interactiveTest('sigplot symbol XY', 'Do you see six symbols?', function(assert) {
+
+    var plot_options = {
+        autohide_panbars: true,
+        hide_note: true,
+    };
+
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, plot_options);
+    assert.notEqual(plot, null);
+
+
+    var data = [10, 2, 3, 3, 5, 4, 2, 1, 3, 1, 4, 10]; // the series of y-values
+    var data_header = {
+        xunits: "Time",
+        yunits: "Power"
+    };
+    var layer_options = {
+        name: "Sample Data",
+        symbol: 3,
+        mode: "XY"
+    };
+    var plot = new sigplot.Plot(document.getElementById('plot'), plot_options);
+    plot.overlay_array(data, data_header, layer_options);
+});
+
