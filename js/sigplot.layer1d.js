@@ -54,6 +54,7 @@
         // xbufn = xbuf.byteLength
         // ybufn = ybuf.byteLength
         this.size = 0;
+        this.mode = "XDELTA" // xdelta mode, "XY" is other mode
 
         this.display = true;
         this.color = 0;
@@ -122,6 +123,10 @@
                 this.size = options.framesize;
             }
 
+            if (options.mode) {
+                this.mode = options.mode;
+            }
+
             // pipe data requires a valid size on overlay, but
             // other data can work without a valid size because
             // the reload() function will correctly update the size
@@ -138,14 +143,14 @@
             }
 
             this.skip = 1;
-            if (this.cx) {
+            if ((this.cx) || (this.mode == "XY")) {
                 this.skip = 2;
             }
 
             this.xstart = hcb.xstart;
             this.xdelta = hcb.xdelta;
 
-            if (this.size > 0) {
+            if ((this.size > 0) && (this.mode == "XDELTA")) {
                 // a single data-point is not infintesimally small, so xmin/xmax
                 // are defined as the start of the data point, hence we subtract
                 // one from the size.  This logic works if xdelta is postive or
@@ -402,6 +407,9 @@
             this.get_data(xmin, xmax);
 
             var npts = Math.ceil(this.size);
+            if (this.mode == "XY") {
+                npts = Math.floor(npts / 2);
+            }
 
             var skip = this.skip;
 
@@ -427,15 +435,15 @@
             var n1, n2;
             var mxmn;
             // xsub isn't really used yet, so it can largely be ignored
-            if ((Gx.cmode === 5) || (this.xsub > 0)) {
+            if ((Gx.cmode === 5) || (this.xsub > 0) || (this.mode == "XY")) {
                 if (npts <= 0) {
                     // This is a degenerate case when there are no points
                     qmin = Gx.panxmin;
                     qmax = Gx.panxmax;
-                } else if (Gx.cmode !== 5) {
+                } else if ((Gx.cmode !== 5) && (this.mode == "XDELTA")) {
                     // Largely unused code since xsub isn't used
                     this.xpoint = new m.PointArray(this.xbuf);
-                } else if (this.cx) {
+                } else if ((this.cx) || (this.mode == "XY")) {
                     // This is the pre-dominate condition
                     m.vmov(dbuf, skip, this.xpoint, 1, npts);
                 } else if (this.line !== 0) {
@@ -461,6 +469,10 @@
                     qmin = mxmn.smin;
                     n1 = 0;
                     n2 = npts;
+                }
+                if ((this.cx) || (this.mode == "XY")) {
+                    this.xmin = qmin;
+                    this.xmax = qmax;
                 }
             } else if (npts > 0) {
                 var xstart = this.xstart;
@@ -520,6 +532,8 @@
                 } else if (Gx.cmode >= 4) {
                     m.vmov(dbuf.subarray(1), skip, this.ypoint, 1, npts);
                 }
+            } else if (this.mode == "XY") {
+                m.vmov(dbuf.subarray(1), skip, this.ypoint, 1, npts);
             } else {
                 if (Gx.cmode === 5) { // I vs. R
                     m.vfill(this.ypoint, 0, npts);
