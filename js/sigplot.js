@@ -4442,7 +4442,7 @@
         var Gx = plot._Gx;
         var Mx = plot._Mx;
 
-        if (Gx.zmin && Gx.zmax) { // at least one layer has a z dimension
+        if (Gx.zmin !== undefined && Gx.zmax !== undefined) { // at least one layer has a z dimension
             var msg;
 
             if (Gx.lyr.length === 1) {
