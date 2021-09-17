@@ -2454,7 +2454,8 @@
             hcb.ws = ws;
 
             var layer_n = this.overlay_bluefile(hcb, layerOptions);
-
+            this._Gx.HCB_WS[layer_n] = ws;
+            
             ws.onopen = function(evt) {};
 
             ws.onmessage = (function(theSocket) {
@@ -2556,6 +2557,7 @@
                         } else if (msg.event === "out_buffer") {
                             if (wpipe.layer_n !== null) {
                                 plot.remove_layer(wpipe.layer_n);
+                                plot._Gx.HCB_WS[wpipe.layer_n].close();
                                 wpipe.layer_n = null;
                             }
 
@@ -2576,6 +2578,7 @@
                             try {
                                 wpipe.hcb = m.initialize(null, wpipe.hcb);
                                 wpipe.layer_n = plot.overlay_bluefile(wpipe.hcb, wpipe.plotLayerOptions);
+                                plot._Gx.HCB_WS[wpipe.layer_n] = wpipe.ws;
                             } catch (e) {
                                 wpipe.ws.close();
                             }
@@ -3090,6 +3093,11 @@
                 Gx.HCB_RDR[lyr_uuid].abort();
             }
             delete Gx.HCB_RDR[lyr_uuid];
+
+            if (_.has(Gx.HCB_WS, lyr_uuid)) {
+                Gx.HCB_WS[lyr_uuid].close();
+            }
+            delete Gx.HCB_WS[lyr_uuid];
 
             var fileName = "";
             if (HCB) {
@@ -4255,6 +4263,7 @@
         this.HCB = [];
         this.HCB_UUID = {};
         this.HCB_RDR = {};
+        this.HCB_WS = {};
         this.plugins = [];
 
         this.plotData = document.createElement("canvas");
