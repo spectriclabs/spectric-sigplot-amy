@@ -35,10 +35,10 @@
     }
   ],
   "scripts": {
+    "build": "grunt dist",
     "generate-docs": "rm -rf ./doc/; node_modules/.bin/jsdoc --configure .jsdoc.json --verbose; cp ./fft-white.png doc/sigplot/$npm_package_version/",
-    "test": "grunt test",
-    "prepublish": "grunt dist",
-    "serve": "budo js/sigplot.js --live -p 1337 -v . -- --standalone=sigplot"
+    "serve": "budo js/sigplot.js --live -p 1337 -v . -- --standalone=sigplot",
+    "test": "grunt test"
   },
   "dependencies": {
     "budo": "^11.6.4",
