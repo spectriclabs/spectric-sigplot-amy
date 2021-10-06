@@ -111,7 +111,7 @@
                      }
                      colors[i] = newColor;
                  } else {
-                    if (color.red == undefined && color.green == undefined && color.blue == undefined) {
+                    if (color.red === undefined && color.green === undefined && color.blue === undefined) {
                         //assume if it doesn't have rgb values it is a matplotlib style color map
                         colors[i].red = Math.floor(Math.round(255 * color[0]));
                         colors[i].green = Math.floor(Math.round(255 * color[1]));

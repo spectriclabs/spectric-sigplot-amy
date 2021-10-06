@@ -674,7 +674,7 @@ interactiveTest('sigplot (custom cmap) penny', 'Do you see a red penny', functio
 
 interactiveTest('sigplot (viridis cmap) penny', 'Do you see a viridis colored penny', function(assert) {
     var container = document.getElementById('plot');
-    var colors = _viridis_data = [
+    var colors = [
         [0.267004, 0.004874, 0.329415],
         [0.268510, 0.009605, 0.335427],
         [0.269944, 0.014625, 0.341379],
