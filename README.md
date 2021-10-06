@@ -1,7 +1,7 @@
 [SigPlot](http://sigplot.lgsinnovations.com)
 =======
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://travis-ci.org/LGSInnovations/sigplot.svg?branch=master)](https://travis-ci.org/LGSInnovations/sigplot) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md#pull-requests) [![npm version](https://badge.fury.io/js/sigplot.svg)](https://badge.fury.io/js/sigplot)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![NodeJS with Grunt](https://github.com/spectriclabs/sigplot/actions/workflows/build-sigplot.yml/badge.svg)](https://github.com/spectriclabs/sigplot/actions/workflows/build-sigplot.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md#pull-requests) [![npm version](https://badge.fury.io/js/sigplot.svg)](https://badge.fury.io/js/sigplot)
 
 SigPlot provides fast, interactive plotting for software defined radio
 applications using HTML5.
