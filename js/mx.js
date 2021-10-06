@@ -5733,7 +5733,7 @@
      * @private
      */
     mx.draw_image = function(Mx, buf, xmin, ymin, xmax, ymax, opacity, smoothing, downscaling, rotationAngle, strokeStyle, text) {
-        
+
         var view_xmin = Math.max(xmin, Mx.stk[Mx.level].xmin);
         var view_xmax = Math.min(xmax, Mx.stk[Mx.level].xmax);
         var view_ymin = Math.max(ymin, Mx.stk[Mx.level].ymin);
@@ -5757,7 +5757,7 @@
         }
         var rx = buf.width / (xmax - xmin);
         var ry = buf.height / (ymax - ymin);
-        
+
         // ul, lr are the upper-left/lower-right in view coordinates
         // for receiving the rendered source-vuffer
         var ul, lr;
