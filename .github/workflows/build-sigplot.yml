@@ -28,3 +28,24 @@ jobs:
 
     - name: Build SigPlot
       run: npx grunt dist
+  
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+          cache: 'npm'
+
+      - run: npm install
+      - run: npm run build
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+      - if: steps.publish.outputs.type != 'none'
+        run: |
+          echo "Version changed: ${{ steps.publish.outputs.old-version }} => ${{ steps.publish.outputs.version }}"
