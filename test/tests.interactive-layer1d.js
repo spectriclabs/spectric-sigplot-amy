@@ -842,6 +842,29 @@ interactiveTest('complex scrolling line', 'Do you see a scrolling random data (0
     }, 100);
 });
 
+interactiveTest('dB auto-scale', 'Do you dblog plot that auto-scales', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    assert.notEqual(plot, null);
+    plot.change_settings({
+        cmode: 6,
+        autol: 5
+    });
+    var lyr0 = plot.overlay_pipe({
+        type: 1000,
+        format: "SF"
+    }, {
+        framesize: 1024
+    });
+    ifixture.interval = window.setInterval(function() {
+        var random = [];
+        for (var i = 0; i < 1024; i += 1) {
+            random.push(Math.random() * 10);
+        }
+        plot.push(lyr0, random);
+    }, 100);
+});
+
 
 // Demonstrate that changing the ymin/ymax settings
 // will implicitly change the autoy settings
