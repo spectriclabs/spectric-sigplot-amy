@@ -241,6 +241,9 @@
             if (Gx.index) {
                 imin = Math.floor(xmin);
                 imax = Math.floor(xmax + 0.5);
+            } else if (this.mode == "XY") {
+                imin = 0;
+                imax = size - 1;
             } else if (HCB.xdelta >= 0.0) {
                 imin = Math.floor((xmin - HCB.xstart) / HCB.xdelta) - 1;
                 imax = Math.floor((xmax - HCB.xstart) / HCB.xdelta + 0.5);
