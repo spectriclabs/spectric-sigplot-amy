@@ -229,12 +229,7 @@
 
             var skip = this.skip;
 
-            var size;
-            if (HCB["class"] === 2) {
-                size = HCB.subsize;
-            } else {
-                size = HCB.size;
-            }
+            var size = this.size;
 
             var imin = 0;
             var imax = 0;
