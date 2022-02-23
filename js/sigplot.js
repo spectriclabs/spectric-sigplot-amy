@@ -7694,6 +7694,17 @@
         if ((Gx.autol > 1) && (Gx.panymin !== undefined) && (Gx.panymax !== undefined)) {
             var fac = 1.0 / (Math.max(Gx.autol, 1));
 
+            // Update the panymin/panymax based on the layers
+            // Iterate over each layer
+            Gx.panymin = undefined;
+            Gx.panymax = undefined;
+            for (var n = 0; n < Gx.lyr.length; n++) {
+                // Ask the layer for it's bounds
+                let lyr_bnds = Gx.lyr[n].get_pan_bounds();
+                // And update the boundaries accordingly
+                set_panbounds(plot, lyr_bnds);
+            }
+
             Gx.panymin = Gx.panymin * fac + Mx.stk[0].ymin * (1.0 - fac);
             Gx.panymax = Gx.panymax * fac + Mx.stk[0].ymax * (1.0 - fac);
 
