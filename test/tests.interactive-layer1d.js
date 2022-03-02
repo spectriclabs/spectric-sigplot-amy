@@ -378,11 +378,11 @@ interactiveTest('sigplot expand full on command', 'Do you see a fully expanded p
     assert.equal(plot._Gx.panxmin, 0);
     assert.equal(plot._Gx.panxmax, 65535);
     assert.equal(plot._Gx.panymin, -655.34); // based off 0.02 of the first buffer
-    assert.equal(plot._Gx.panymax, 66189.34); // based off 0.02 of the first buffer
+    assert.equal(plot._Gx.panymax, 33422.34); // based off 0.02 of the first buffer
     assert.equal(plot._Mx.stk[0].xmin, 0);
     assert.equal(plot._Mx.stk[0].xmax, 65535);
     assert.equal(plot._Mx.stk[0].ymin, -655.34);
-    assert.equal(plot._Mx.stk[0].ymax, 66189.34);
+    assert.equal(plot._Mx.stk[0].ymax, 33422.34);
 });
 
 interactiveTest('sigplot custom axis label', 'Do you see the axis label "CustomY (a) vs. Time code format"?', function(assert) {
