@@ -197,4 +197,3 @@ interactiveTest('sigplot symbol XY', 'Do you see six symbols?', function(assert)
     var plot = new sigplot.Plot(document.getElementById('plot'), plot_options);
     plot.overlay_array(data, data_header, layer_options);
 });
-
