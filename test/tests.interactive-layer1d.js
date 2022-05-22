@@ -1433,7 +1433,7 @@ interactiveTest('1d preferred origin 2 pipe', 'does the plot x-axis show correct
     var layerOptions = {
         framesize: 1024,
         preferred_origin: 2,
-        
+
     };
 
     var lyr_uuid = plot.overlay_pipe(hcb, layerOptions);
