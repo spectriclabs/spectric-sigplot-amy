@@ -77,7 +77,7 @@
         this.yptr = null;
         this.xpoint = null; // PointArray backed by memory in xptr
         this.ypoint = null; // PointArray backed by memory in yptr
-
+        this.firstpush = false;
         this.options = {};
     };
 
@@ -394,6 +394,11 @@
                 m.filad(this.hcb, data, sync);
             }
 
+            // if this is the first push of data, request a rescale
+            if (this.firstpush === false) {
+                this.firstpush = true;
+                hdrmod = true;
+            }
             return hdrmod ? true : false;
 
         },
