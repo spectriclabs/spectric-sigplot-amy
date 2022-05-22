@@ -1705,3 +1705,18 @@ interactiveTest('Raster downscale minmax zoom', 'Do you see a line at 16000 and 
 
     }, 300);
 });
+
+interactiveTest('sigplot 2d array origin 2', 'Do you see a raster? Is alignment of x/y axes correct?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    assert.notEqual(plot, null);
+    var data = [
+        [1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 0],
+        [1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 0]
+    ];
+    var lyr_n = plot.overlay_array(data, null, {
+        preferred_origin: 2
+    });
+});

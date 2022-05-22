@@ -3097,6 +3097,18 @@
         //
         // However, it's probably more important to decide this based off the significant digits of the
         // tic labels.  In other words, if the tics cannot be labeled uniquely then you need to make sp=0.
+
+        var endticx;
+        if (stk1.xmax >= stk1.xmin) {
+            endticx = function(val) {
+                return (val <= stk1.xmax);
+            };
+        } else {
+            endticx = function(val) {
+                return (val >= stk1.xmax);
+            };
+        }
+
         var sp = 1;
         var x;
         var xlbl = "";
@@ -3108,7 +3120,7 @@
             } else {
                 // Ensure that all of the tic labels will render uniquely
                 var last_xlbl;
-                for (x = xTIC.dtic1; x <= stk1.xmax; x = x + xTIC.dtic) {
+                for (x = xTIC.dtic1; endticx(x); x = x + xTIC.dtic) {
                     xlbl = mx.format_f(x * fmul, xlbl_maxlen, xlbl_maxlen / 2);
                     if (xlbl === last_xlbl) {
                         sp = 0;
@@ -3125,7 +3137,7 @@
         var i;
         ix = 0;
         xlbl = "";
-        for (x = xTIC.dtic1; x <= stk1.xmax; x = x + xTIC.dtic) {
+        for (x = xTIC.dtic1; endticx(x); x = x + xTIC.dtic) {
             i = iscl + Math.round(fact * (x - stk1.xmin)) + 2;
             if (i < iscl) {
                 continue;
@@ -3218,21 +3230,21 @@
         } else {
             fmul = 1;
         }
-        var ytic, ytic1, endtic;
+        var ytic, ytic1, endticy;
         if (yTIC.dtic === 0) {
             ytic = stk1.ymax - ytic1 + 1.0;
         }
         if (stk1.ymax >= stk1.ymin) {
-            endtic = function(val) {
+            endticy = function(val) {
                 return (val <= stk1.ymax);
             };
         } else {
-            endtic = function(val) {
+            endticy = function(val) {
                 return (val >= stk1.ymax);
             };
         }
         var ylbl;
-        for (var y = yTIC.dtic1; endtic(y); y = y + yTIC.dtic) {
+        for (var y = yTIC.dtic1; endticy(y); y = y + yTIC.dtic) {
             i = iscb + Math.round(fact * (y - stk1.ymin)) - 2;
             if (i > iscb) {
                 continue;

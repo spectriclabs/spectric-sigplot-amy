@@ -1477,6 +1477,12 @@
 
         layer.change_settings(layerOptions);
 
+        for (var layerOption in layerOptions) {
+            if (layer[layerOption] !== undefined) {
+                layer[layerOption] = layerOptions[layerOption];
+            }
+        }
+
         var layers = [];
         if (plot.add_layer(layer)) {
             layers.push(layer);
