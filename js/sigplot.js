@@ -2557,6 +2557,7 @@
                             if (wpipe.layer_n !== null) {
                                 plot.remove_layer(wpipe.layer_n);
                                 wpipe.layer_n = null;
+                                wpipe.lyr = null;
                             }
 
                             var bufferLayerOptions = {
@@ -2576,8 +2577,15 @@
                             try {
                                 wpipe.hcb = m.initialize(null, wpipe.hcb, () => wpipe.ws.close());
                                 wpipe.layer_n = plot.overlay_bluefile(wpipe.hcb, wpipe.plotLayerOptions);
+                                wpipe.lyr = plot.get_layer(wpipe.layer_n);
                             } catch (e) {
                                 wpipe.ws.close();
+                                if (wpipe.layer_n !== null) {
+                                    plot.remove_layer(wpipe.layer_n);
+                                    wpipe.layer_n = null;
+                                    wpipe.lyr = null;
+                                }
+                                wpipe.lyr = null;
                             }
                         } else if (msg.event === "error") {
                             m.log.error(msg);
@@ -2585,9 +2593,9 @@
                             wpipe.ws.close();
                             return;
                         } else if (msg.event === "abscissa_update") {
-                            if (wpipe.plotLayerOptions.layerType === Layer1D) {
+                            if (wpipe.lyr instanceof Layer1D) {
                                 wpipe.hcb.xstart += msg.payload.skip_count * wpipe.hcb.xdelta;
-                            } else if (wpipe.plotLayerOptions.layerType === Layer2D) {
+                            } else if (wpipe.lyr instanceof Layer2D) {
                                 wpipe.hcb.ystart += msg.payload.skip_count * wpipe.hcb.ydelta;
                             }
                         } else {
@@ -2595,10 +2603,10 @@
                             wpipe.ws.close();
                         }
                     } else {
-                        if (wpipe.plotLayerOptions.layerType === Layer1D) {
+                        if (wpipe.lyr instanceof Layer1D) {
                             var array = wpipe.hcb.createArray(evt.data);
                             plot.push(wpipe.layer_n, array);
-                        } else if (wpipe.plotLayerOptions.layerType === Layer2D) {
+                        } else if (wpipe.lyr instanceof Layer2D) {
                             var numFrames = evt.data.byteLength / wpipe.hcb.bpe;
                             for (var i = 0; i < numFrames; ++i) {
                                 var offset = i * wpipe.hcb.bpe;
