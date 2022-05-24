@@ -1416,6 +1416,25 @@ interactiveTest('1d preferred origin 2 array', 'Do you see a ramp from 0 to 1023
     });
 });
 
+interactiveTest('1d array negative xdelta', 'Do you see a ramp from 0 to 1023 backwards?', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {});
+    assert.notEqual(plot, null);
+
+
+    var ramp = [];
+    for (var i = 0; i < 1024; i++) {
+        ramp.push(i);
+    }
+
+    var lyr_n = plot.overlay_array(ramp, {
+        xstart: 300,
+        xdelta: -0.1
+    }, {
+        layerType: sigplot.Layer1D
+    });
+});
+
 interactiveTest('1d preferred origin 2 pipe', 'does the plot x-axis show correctly', function(assert) {
     var container = document.getElementById('plot');
     var plot = new sigplot.Plot(container, {
@@ -1434,6 +1453,35 @@ interactiveTest('1d preferred origin 2 pipe', 'does the plot x-axis show correct
         framesize: 1024,
         preferred_origin: 2,
 
+    };
+
+    var lyr_uuid = plot.overlay_pipe(hcb, layerOptions);
+
+    var ramp = [];
+    for (var i = 0; i < 1024; i += 1) {
+        ramp.push(i + 1);
+    }
+    // do a syncronous push so we can make some assertions if we want
+    plot.push(lyr_uuid, ramp, null, true);
+});
+
+interactiveTest('1d negative xdelta pipe', 'does the plot x-axis show correctly', function(assert) {
+    var container = document.getElementById('plot');
+    var plot = new sigplot.Plot(container, {
+        autohide_panbars: false,
+        xcnt: 'continuous',
+    });
+    assert.notEqual(plot, null);
+
+    var hcb = {
+        xunits: 3,
+        yunits: 26,
+        size: 1024,
+        xstart: 300,
+        xdelta: -0.1
+    };
+    var layerOptions = {
+        framesize: 1024,
     };
 
     var lyr_uuid = plot.overlay_pipe(hcb, layerOptions);

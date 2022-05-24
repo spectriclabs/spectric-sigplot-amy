@@ -603,17 +603,24 @@
             var Mx = this.plot._Mx;
             var Gx = this.plot._Gx;
 
-            // If we already have a view, the 1D
-            // plot will only attempt to figure-out the
-            // new pany using the current view-box
-            var xmin = this.xmin;
+            var xmin;
             // Minic legacy XPLOT behavior; by default the 
             // pan boundaries are based off the first bufmax of
             // points.
-            var xmax = Math.min(
-                xmin + (this.size * this.xdelta),
-                xmin + (Gx.bufmax * this.xdelta)
-            );
+            var xmax;
+            if (this.xdelta >= 0) {
+                xmin = this.xmin;
+                xmax = Math.min(
+                    xmin + (this.size * this.xdelta),
+                    xmin + (Gx.bufmax * this.xdelta)
+                );
+            } else {
+                xmax = this.xmax;
+                xmin = Math.max(
+                    xmax + (this.size * this.xdelta),
+                    xmax + (Gx.bufmax * this.xdelta)
+                );
+            }
 
             if (view) {
                 xmin = view.xmin;
