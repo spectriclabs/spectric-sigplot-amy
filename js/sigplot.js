@@ -941,7 +941,7 @@
                     var evt = document.createEvent('Event');
                     evt.initEvent('mup', true, true);
                     evt.originalEvent = event;
-                    // xpos/ypos/x/y are clipped 
+                    // xpos/ypos/x/y are clipped
                     evt.xpos = Mx.xpos;
                     evt.ypos = Mx.ypos;
                     evt.x = Gx.retx;
@@ -2619,7 +2619,7 @@
                 };
             })(wpipe.ws);
 
-            return wpipe.layer_n;
+            return wpipe;
         },
 
 
@@ -3351,11 +3351,11 @@
         /**
          * Set the current view bounds, if any bounds are not defined
          * then they are kept as currently set.
-         * 
+         *
          * Will call an asyncronous refresh() after the new view box
          * values have been set.
-         * 
-         * @param {Object} ViewBounds 
+         *
+         * @param {Object} ViewBounds
          * @returns {number} ViewBounds.xmin
          *     the abscissa X minimum value of the view box
          * @returns {number} ViewBounds.xmax
@@ -3392,7 +3392,7 @@
 
         /**
          * Get the current view bounds
-         * 
+         *
          * @returns {Object} ViewBounds
          *     the view bounds
          * @returns {number} ViewBounds.xmin
@@ -8729,10 +8729,10 @@
      * Determine the effective bounds of the plottable area, which is defined
      * via the pan-boundaries (panxmin/panxmax/panymin/panymax).  Then check
      * the stack (i.e. the viewable area) and update accordingly.
-     *  
+     *
      * @memberOf sigplot
      * @private
-     * 
+     *
      * @param plot
      *         the plot to scale
      * @param mode
