@@ -44,7 +44,7 @@
     "budo": "^11.6.4",
     "loglevel": "^1.4.1",
     "lru": "^3.1.0",
-    "sigfile": "^0.1.9",
+    "sigfile": "github:spectriclabs/sigfile",
     "spin": "0.0.1",
     "tinycolor2": "^1.4.1",
     "travis": "^0.1.1",
